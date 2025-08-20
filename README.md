@@ -24,12 +24,6 @@ This workflow keeps our `main` branch clean and avoids conflicts.
 1. In the **bottom-left corner** of VS Code, click the branch name (`main`).  
 2. Select **+ Create new branch**.  
 3. Name it something descriptive, like:  
-   - `feature/add-valida
-
-### Step 2. Create a new branch
-1. In the **bottom-left corner** of VS Code, click the branch name (`main`).  
-2. Select **+ Create new branch**.  
-3. Name it something descriptive, like:  
    - `feature/add-validation`  
    - `fix/button-styling`  
 
