@@ -67,10 +67,9 @@ git push origin your-branch-name # Upload your local branch to GitHub (remote na
 
 ### Step 5. Open a Pull Request (PR)
 
-1. After pushing, VS Code will show a notification with Create Pull Request.
-2. Click it → GitHub will open in your browser.
-3. Fill in the PR description (what, why, how).
-4. Submit the PR to merge your branch into main.
+1. After pushing, GitHub will show a notification 'Compare & pull request'.
+2. Click it and fill in the PR description (what, why, how).
+4. Then click 'Create pull request' to submit the PR to merge your branch into main.
 
 ---
 
