@@ -161,6 +161,10 @@ def patio_check():
     
     print("\n🪴 Patio Development Check\n")
 
+    zoning = input("In what zoninig is the property? (R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6): ").strip().upper()
+    if zoning not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+        return "❌ Zoning is out of scope of this tool - only zones R1-R6 and RU1-RU4 and RU6 are assessable with this tool"
+
     structure_type = get_valid_input("Is this a new structure or a replacement? (new/replacement): ",["new","replacement"]).strip().lower()
     if structure_type == "replacement":
         height_existing = float(get_valid_number("Height of existing structure from ground level (in meters): "))
@@ -169,11 +173,11 @@ def patio_check():
 
         material_quality = get_valid_input("Will the structure use equivalent or better quality materials? (yes/no): ",["yes","no"]).strip().lower()
         if material_quality == "no":
-            return "❌ Not Exempt: Material quality not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 2(a))"
+            return "❌ Not Exempt: Material quality not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (2)(a))"
     
         same_size = get_valid_input("Will the structure be the same height and size as existing? (yes/no): ",["yes","no"]).strip().lower()
         if structure_type == "replacement" and same_size == "no":
-            return "❌ Not Exempt: Replacement not same size. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 2(b))"
+            return "❌ Not Exempt: Replacement not same size. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (2)(b))"
 
     heritage = get_valid_input("Is the property a heritage item? (yes/no): ",["yes","no"]).strip().lower()
     if heritage == "yes":
@@ -185,68 +189,71 @@ def patio_check():
 
     area = float(get_valid_number("Planned area of structure (in m²): ",min_value=0))
     if area > 25:
-        return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(b))"
+        return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(b))"
     else:
         land_size = float(get_valid_number("Land size (in m²): ",min_value=0))
         total_structures_area = float(get_valid_number("Total area of planned + existing structures [Balconies, decks, patios, pergolas, terraces and verandahs] (in m²): ",min_value=0))
         if land_size > 300:
             if total_structures_area > 0.15 * land_size:
-                return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(c)(i))"
+                return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(c)(i))"
         else:
             if total_structures_area > 25:
-                return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(c)(ii))"
+                return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(c)(ii))"
 
     wall_height = get_valid_input("Will any wall exceed 1.4m in height? (yes/no): ",["yes","no"]).strip().lower()
     if wall_height == "yes":
-        return "❌ Not Exempt: Wall height exceeds limit. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(d))"
+        return "❌ Not Exempt: Wall height exceeds limit. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(d))"
 
     behind_building_line = get_valid_input("Is the structure behind the building line of road frontage? (yes/no): ",["yes","no"]).strip().lower()
     if behind_building_line == "no":
-        return "❌ Not Exempt: Not behind building line. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(e)(ii))"
+        return "❌ Not Exempt: Not behind building line. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(e)(ii))"
 
     boundary_distance = float(get_valid_number("Distance from site boundary (in mm): ",min_value=0))
     if boundary_distance < 900:
-        return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(f)(ii))"
+        return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(f)(ii))"
+    elif boundary_distance < 5000:
+        if zoning not in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+            return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(f)(i))" 
 
     metal = get_valid_input("Will the structure use metal components? (yes/no): ",["yes","no"]).strip().lower()
     if metal == "yes":
         reflective = get_valid_input("Are metal components non-reflective or factory coloured? (yes/no): ",["yes","no"]).strip().lower()
         if reflective == "no":
-            return "❌ Not Exempt: Metal components not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(h))"
+            return "❌ Not Exempt: Metal components not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(h))"
 
     floor_height = float(get_valid_number("Floor height from ground level (in mm): ",min_value=0))
     if floor_height > 1000:
-        return "❌ Not Exempt: Floor height exceeds 1m. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(i))"
+        return "❌ Not Exempt: Floor height exceeds 1m. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(i))"
 
     roof = get_valid_input("Will the structure have a roof? (yes/no): ",["yes","no"]).strip().lower()
     if roof == "yes":
         overhang = float(get_valid_number("Roof overhang on any side (in mm): ",min_value=0))
         if overhang > 600:
-            return "❌ Not Exempt: Roof overhang exceeds 600mm. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(i1))"
+            return "❌ Not Exempt: Roof overhang exceeds 600mm. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(i1))"
 
         attached = get_valid_input("Will the roof be attached to the dwelling? (yes/no): ",["yes","no"]).strip().lower()
         if attached == "yes":
             above_gutter = get_valid_input("Will the roof extend above the gutter line? (yes/no): ",["yes","no"]).strip().lower()
             if above_gutter == "yes":
-                return "❌ Not Exempt: Roof extends above gutter. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(j))"
+                return "❌ Not Exempt: Roof extends above gutter. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(j))"
 
             roof_height = float(get_valid_number("Roof height above ground level (in meters): ",min_value=0))
             if roof_height > 3:
-                return "❌ Not Exempt: Roof height exceeds 3m. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(j1))"
+                return "❌ Not Exempt: Roof height exceeds 3m. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(j1))"
 
             fascia_connection = get_valid_input("Will the roof be connected to fascia? (yes/no): ",["yes","no"]).strip().lower()
             if fascia_connection == "yes":
                 engineer_spec = get_valid_input("Will it be connected per engineer's specs? (yes/no): ",["yes","no"]).strip().lower()
                 if engineer_spec == "no":
-                    return "❌ Not Exempt: Fascia connection not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(k))"
+                    return "❌ Not Exempt: Fascia connection not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(k))"
 
             stormwater = get_valid_input("Will roofwater be disposed into existing stormwater system? (yes/no): ",["yes","no"]).strip().lower()
             if stormwater == "no":
-                return "❌ Not Exempt: No stormwater disposal. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(l))"
+                return "❌ Not Exempt: No stormwater disposal. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(l))"
 
     drainage = get_valid_input("Will the structure interfere with existing drainage or flow paths? (yes/no): ",["yes","no"]).strip().lower()
     if drainage == "yes":
-        return "❌ Not Exempt: Interferes with drainage. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(m))"
+        return "❌ Not Exempt: Interferes with drainage. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(m))"
 
     bushfire = get_valid_input("Is the property on bushfire prone land? (yes/no): ",["yes","no"]).strip().lower()
     if bushfire == "yes":
@@ -254,7 +261,7 @@ def patio_check():
         if distance_dwelling < 5:
             non_combustible = get_valid_input("Will the patio be constructed of non-combustible materials? (yes/no): ",["yes","no"]).strip().lower()
             if non_combustible == "no":
-                return "❌ Not Exempt: Bushfire material standards not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 1(n))"
+                return "❌ Not Exempt: Bushfire material standards not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(n))"
 
     return "✅ Exempt Development: Patio meets criteria set out in SEPP, Part 2, Division 1, Subdivision 6, 2.11 and 2.12"
 
@@ -265,6 +272,10 @@ def shed_check():
         a string indicating reson for Not Exempt under SEPP"""
 
     print("\n🔧 Shed Development Check\n")
+
+    zoning = input("In what zoninig is the property? (R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6): ").strip().upper()
+    if zoning not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+        return "❌ Zoning is out of scope of this tool - only zones R1-R6 and RU1-RU4 and RU6 are assessable with this tool"
 
     heritage = get_valid_input("Is the property a heritage item? (yes/no): ",["yes","no"]).strip().lower()
     if heritage == "yes":
@@ -280,33 +291,37 @@ def shed_check():
 
     area = float(get_valid_number("Planned shed area (in m²): ",min_value=0))
     if area > 20:
-        return "❌ Not Exempt: Area exceeds 20m². (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (b))"
+        return "❌ Not Exempt: Area exceeds 20m². (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(b))"
 
     height = float(get_valid_number("Planned shed height from ground level (in meters): ",min_value=0))
     if height > 3:
-        return "❌ Not Exempt: Height exceeds 3m. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (c))"
+        return "❌ Not Exempt: Height exceeds 3m. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(c))"
 
     boundary_distance = float(get_valid_number("Distance from any site boundary (in mm): ",min_value=0))
     if boundary_distance < 900:
-        return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (d))"
+        return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(d)(ii))"
+    elif boundary_distance < 5000:
+        if zoning not in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+            return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(d)(i))" 
 
     building_line = get_valid_input("Is the shed behind the building line of road frontage? (yes/no): ",["yes","no"]).strip().lower()
     if building_line == "no":
-        return "❌ Not Exempt: Not behind building line. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (e))"
+        if zoning not in ["RU1", "RU2", "RU3", "RU4", "RU6"]:
+            return "❌ Not Exempt: Not behind building line. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(e))"
 
     shipping_container = get_valid_input("Is the shed a shipping container? (yes/no): ",["yes","no"]).strip().lower()
     if shipping_container == "yes":
-        return "❌ Not Exempt: Shipping containers not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (f))"
+        return "❌ Not Exempt: Shipping containers not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(f))"
 
     stormwater = get_valid_input("Will roofwater be disposed of without causing nuisance to adjoining owners? (yes/no): ",["yes","no"]).strip().lower()
     if stormwater == "no":
-        return "❌ Not Exempt: Stormwater disposal not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (g))"
+        return "❌ Not Exempt: Stormwater disposal not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(g))"
 
     metal = get_valid_input("Will the shed use metal components? (yes/no): ",["yes","no"]).strip().lower()
     if metal == "yes":
         reflective = get_valid_input("Are metal components low-reflective or factory pre-coloured? (yes/no): ",["yes","no"]).strip().lower()
         if reflective == "no":
-            return "❌ Not Exempt: Metal components not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (h))"
+            return "❌ Not Exempt: Metal components not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(h))"
 
     bushfire = get_valid_input("Is the property on bushfire prone land? (yes/no): ",["yes","no"]).strip().lower()
     if bushfire == "yes":
@@ -314,29 +329,29 @@ def shed_check():
         if distance_dwelling < 5:
             non_combustible = get_valid_input("Will the shed be constructed of non-combustible materials? (yes/no): ",["yes","no"]).strip().lower()
             if non_combustible == "no":
-                return "❌ Not Exempt: Bushfire standards not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (i))"
+                return "❌ Not Exempt: Bushfire standards not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(i))"
 
     adjacent_building = get_valid_input("Will the shed be adjacent to an existing building? (yes/no): ",["yes","no"]).strip().lower()
     if adjacent_building == "yes":
         interfere = get_valid_input("Will it interfere with entry/exit or fire safety measures of adjacent building? (yes/no): ",["yes","no"]).strip().lower()
         if interfere == "yes":
-            return "❌ Not Exempt: Interferes with building access or safety. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (k))"
+            return "❌ Not Exempt: Interferes with building access or safety. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(k))"
 
     habitable = get_valid_input("Is the shed planned to be habitable? (yes/no): ",["yes","no"]).strip().lower()
     if habitable == "yes":
-        return "❌ Not Exempt: Habitable sheds not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (l))"
+        return "❌ Not Exempt: Habitable sheds not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(l))"
 
     easement = get_valid_input("Is the shed within 1m of a registered easement? (yes/no): ",["yes","no"]).strip().lower()
     if easement == "yes":
-        return "❌ Not Exempt: Too close to easement. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (m))"
+        return "❌ Not Exempt: Too close to easement. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(m))"
 
     services = get_valid_input("Will the shed have water or sewer connections? (yes/no): ",["yes","no"]).strip().lower()
     if services == "yes":
-        return "❌ Not Exempt: Service connections not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (n))"
+        return "❌ Not Exempt: Service connections not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(n))"
 
     existing_structures = get_valid_input("Are there already two of the following on the lot: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses? (yes/no): ",["yes","no"]).strip().lower()
     if existing_structures == "yes":
-        return "❌ Not Exempt: Maximum number of structures exceeded. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 2)"
+        return "❌ Not Exempt: Maximum number of structures exceeded. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (2))"
 
     return "✅ Exempt Development: Shed meets criteria set out in SEPP, Part 2, Division 1, Subdivision 9, 2.17 and 2.18"
 
