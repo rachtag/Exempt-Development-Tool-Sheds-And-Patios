@@ -279,11 +279,14 @@ def shed_check():
     return "✅ Exempt Development: Shed meets criteria set out in SEPP, Part 2, Division 1, Subdivision 9, 2.17 and 2.18"
 
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 
 # Create API
 app = Flask(__name__)
 
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 @app.route("/get-assessment-result/", methods=["POST","GET"])
 def API_assessment():
@@ -295,21 +298,23 @@ def API_assessment():
         return get_shed_help + get_patio_help
 
 def Assess(attributes):
-
+    address = attributes.get("address", "No address provided")
     if attributes["development"] == "patio":
         result = patio_check()
     else:
         result = shed_check()
 
+    full_result = f"🏠 Property Address: {address}\n{result}"
+
     print("\n")
     print("--------------------------------------------------------------------------------------------------------------------")
     print("📋 Assessment Result:")
-    print(result)  
+    print(full_result)  
     print("--------------------------------------------------------------------------------------------------------------------")
     print("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
     print("--------------------------------------------------------------------------------------------------------------------")
     print("\n")
-    return result
+    return full_result
 
 
 if __name__ == "__main__":
