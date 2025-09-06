@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Exempt Development Assessment</title>
+    <style>
+      body {
+        font-family: Arial;
+        margin: 20px;
+      }
+      .form-group {
+        margin-bottom: 10px;
+      }
+      label {
+        display: block;
+        margin-bottom: 4px;
+      }
+      input,
+      select {
+        width: 300px;
+        padding: 5px;
+      }
+      #result {
+        margin-top: 20px;
+        white-space: pre-wrap;
+        background: #f0f0f0;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Exempt Development Assessment Tool</h2>
+
+    <form id="assessmentForm">
+      <div class="form-group">
+        <label for="development">Development Type</label>
+        <select id="development" name="development" required>
+          <option value="">Select</option>
+          <option value="shed">Shed</option>
+          <option value="patio">Patio</option>
+        </select>
+      </div>
+
+      <div id="dynamicFields"></div>
+
+      <button type="submit">Submit Assessment</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+      const shedFields = [
+        "zoning",
+        "heritage",
+        "foreshore",
+        "sensitive_area",
+        "area",
+        "height",
+        "boundary_distance",
+        "building_line",
+        "shipping_container",
+        "stormwater",
+        "metal",
+        "reflective",
+        "bushfire",
+        "distance_dwelling",
+        "non_combustible",
+        "adjacent_building",
+        "interfere",
+        "habitable",
+        "easement",
+        "services",
+        "existing_structures",
+      ];
+
+      const patioFields = [
+        "zoning",
+        "structure_type",
+        "height_existing",
+        "material_quality",
+        "same_size",
+        "heritage",
+        "foreshore",
+        "area",
+        "land_size",
+        "total_structures_area",
+        "wall_height",
+        "behind_building_line",
+        "boundary_distance",
+        "metal",
+        "reflective",
+        "floor_height",
+        "roof",
+        "overhang",
+        "attached",
+        "above_gutter",
+        "roof_height",
+        "fascia_connection",
+        "engineer_spec",
+        "stormwater",
+        "drainage",
+        "bushfire",
+        "distance_dwelling",
+        "non_combustible",
+      ];
+
+      const yesNoFields = new Set([
+        "heritage",
+        "foreshore",
+        "sensitive_area",
+        "building_line",
+        "shipping_container",
+        "stormwater",
+        "metal",
+        "reflective",
+        "bushfire",
+        "non_combustible",
+        "adjacent_building",
+        "interfere",
+        "habitable",
+        "easement",
+        "services",
+        "existing_structures",
+        "material_quality",
+        "same_size",
+        "wall_height",
+        "behind_building_line",
+        "roof",
+        "attached",
+        "above_gutter",
+        "fascia_connection",
+        "engineer_spec",
+        "drainage",
+      ]);
+
+      document
+        .getElementById("development")
+        .addEventListener("change", function () {
+          const type = this.value;
+          const container = document.getElementById("dynamicFields");
+          container.innerHTML = "";
+
+          const fields = type === "shed" ? shedFields : patioFields;
+
+          fields.forEach((field) => {
+            const label = document.createElement("label");
+            label.textContent = field.replace(/_/g, " ");
+            label.setAttribute("for", field);
+
+            let input;
+            if (yesNoFields.has(field)) {
+              input = document.createElement("select");
+              input.innerHTML = `<option value="">Select</option><option value="yes">Yes</option><option value="no">No</option>`;
+            } else {
+              input = document.createElement("input");
+              input.type = "text";
+            }
+
+            input.name = field;
+            input.id = field;
+            input.required = true;
+
+            const group = document.createElement("div");
+            group.className = "form-group";
+            group.appendChild(label);
+            group.appendChild(input);
+            container.appendChild(group);
+          });
+        });
+
+      document
+        .getElementById("assessmentForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const json = {};
+
+          for (let [key, value] of formData.entries()) {
+            json[key] =
+              isNaN(value) || value.trim() === "" ? value : parseFloat(value);
+          }
+
+          try {
+            const response = await fetch(
+              "https://your-api-endpoint.com/ExemptAssessAPI",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(json),
+              }
+            );
+
+            const result = await response.json();
+            document.getElementById("result").textContent = JSON.stringify(
+              result,
+              null,
+              2
+            );
+          } catch (err) {
+            document.getElementById("result").textContent =
+              "Error: " + err.message;
+          }
+        });
+    </script>
+  </body>
+</html>
