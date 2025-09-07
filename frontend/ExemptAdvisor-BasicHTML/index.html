@@ -5,202 +5,466 @@
     <title>Exempt Development Assessment</title>
     <style>
       body {
-        font-family: Arial;
+        font-family: Arial, sans-serif;
         margin: 20px;
-      }
-      .form-group {
-        margin-bottom: 10px;
+        max-width: 1000px;
       }
       label {
         display: block;
-        margin-bottom: 4px;
+        margin-top: 15px;
       }
-      input,
-      select {
-        width: 300px;
-        padding: 5px;
+      select,
+      input {
+        width: 100%;
+        padding: 6px;
+        margin-top: 5px;
       }
-      #result {
+      button {
         margin-top: 20px;
+        padding: 10px 15px;
+      }
+      #jsonOutput {
+        margin-top: 30px;
         white-space: pre-wrap;
-        background: #f0f0f0;
-        padding: 10px;
+        background: #f4f4f4;
+        padding: 15px;
+        border: 1px solid #ccc;
+      }
+      .error {
+        border: 2px solid red;
       }
     </style>
   </head>
   <body>
-    <h2>Exempt Development Assessment Tool</h2>
+    <h2>Exempt Development Assessment</h2>
 
     <form id="assessmentForm">
-      <div class="form-group">
-        <label for="development">Development Type</label>
-        <select id="development" name="development" required>
+      <label
+        >Development Type:
+        <select name="development" id="developmentType" required>
           <option value="">Select</option>
           <option value="shed">Shed</option>
           <option value="patio">Patio</option>
         </select>
-      </div>
+      </label>
 
       <div id="dynamicFields"></div>
 
-      <button type="submit">Submit Assessment</button>
+      <button type="button" onclick="reviewJSON()">Review JSON</button>
+      <button type="button" onclick="postJSON()">Submit JSON</button>
     </form>
 
-    <div id="result"></div>
+    <div id="jsonOutput"></div>
 
     <script>
-      const shedFields = [
-        "zoning",
-        "heritage",
-        "foreshore",
-        "sensitive_area",
-        "area",
-        "height",
-        "boundary_distance",
-        "building_line",
-        "shipping_container",
-        "stormwater",
-        "metal",
-        "reflective",
-        "bushfire",
-        "distance_dwelling",
-        "non_combustible",
-        "adjacent_building",
-        "interfere",
-        "habitable",
-        "easement",
-        "services",
-        "existing_structures",
-      ];
+      const fieldSets = {
+        shed: [
+          {
+            name: "zoning",
+            label: "Land zoning",
+            type: "select",
+            options: [
+              "R1",
+              "R2",
+              "R3",
+              "R4",
+              "R5",
+              "RU1",
+              "RU2",
+              "RU3",
+              "RU4",
+              "RU6",
+            ],
+          },
+          {
+            name: "heritage",
+            label: "Is the property a heritage item?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "foreshore",
+            label: "Is the property in a foreshore area?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "sensitive_area",
+            label: "Environmentally sensitive area?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "area",
+            label: "Planned shed area (m²)",
+            type: "number",
+            min: 0,
+          },
+          { name: "height", label: "Shed height (m)", type: "number", min: 0 },
+          {
+            name: "boundary_distance",
+            label: "Boundary distance (mm)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "building_line",
+            label: "Behind building line?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "shipping_container",
+            label: "Is it a shipping container?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "stormwater",
+            label: "Roofwater disposed without nuisance?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "metal",
+            label: "Uses metal components?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "reflective",
+            label: "Low-reflective or factory coloured?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "bushfire",
+            label: "Bushfire prone land?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "distance_dwelling",
+            label: "Distance from dwelling (m)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "non_combustible",
+            label: "Constructed of non-combustible materials?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "adjacent_building",
+            label: "Adjacent to existing building?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "interfere",
+            label: "Interfere with fire safety?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "habitable",
+            label: "Planned to be habitable?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "easement",
+            label: "Within 1m of easement?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "services",
+            label: "Water/sewer connections?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "existing_structures",
+            label: "Already two structures on lot?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+        ],
+        patio: [
+          {
+            name: "zoning",
+            label: "Land zoning",
+            type: "select",
+            options: [
+              "R1",
+              "R2",
+              "R3",
+              "R4",
+              "R5",
+              "RU1",
+              "RU2",
+              "RU3",
+              "RU4",
+              "RU6",
+            ],
+          },
+          {
+            name: "structure_type",
+            label: "New or replacement?",
+            type: "select",
+            options: ["new", "replacement"],
+          },
+          {
+            name: "height_existing",
+            label: "Height of existing structure (m)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "material_quality",
+            label: "Equivalent or better materials?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "same_size",
+            label: "Same height and size?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "heritage",
+            label: "Heritage item?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "foreshore",
+            label: "Foreshore area?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          { name: "area", label: "Planned area (m²)", type: "number", min: 0 },
+          {
+            name: "land_size",
+            label: "Land size (m²)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "total_structures_area",
+            label: "Total structures area (m²)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "wall_height",
+            label: "Any wall > 1.4m?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "behind_building_line",
+            label: "Behind building line?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "boundary_distance",
+            label: "Boundary distance (mm)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "metal",
+            label: "Metal components?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "reflective",
+            label: "Non-reflective or factory coloured?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "floor_height",
+            label: "Floor height (mm)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "roof",
+            label: "Has roof?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "overhang",
+            label: "Roof overhang (mm)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "attached",
+            label: "Roof attached to dwelling?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "above_gutter",
+            label: "Roof above gutter line?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "roof_height",
+            label: "Roof height (m)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "fascia_connection",
+            label: "Connected to fascia?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "engineer_spec",
+            label: "Connected per engineer specs?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "stormwater",
+            label: "Roofwater into stormwater system?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "drainage",
+            label: "Interfere with drainage?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "bushfire",
+            label: "Bushfire prone land?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+          {
+            name: "distance_dwelling",
+            label: "Distance from dwelling (m)",
+            type: "number",
+            min: 0,
+          },
+          {
+            name: "non_combustible",
+            label: "Non-combustible materials?",
+            type: "select",
+            options: ["yes", "no"],
+          },
+        ],
+      };
 
-      const patioFields = [
-        "zoning",
-        "structure_type",
-        "height_existing",
-        "material_quality",
-        "same_size",
-        "heritage",
-        "foreshore",
-        "area",
-        "land_size",
-        "total_structures_area",
-        "wall_height",
-        "behind_building_line",
-        "boundary_distance",
-        "metal",
-        "reflective",
-        "floor_height",
-        "roof",
-        "overhang",
-        "attached",
-        "above_gutter",
-        "roof_height",
-        "fascia_connection",
-        "engineer_spec",
-        "stormwater",
-        "drainage",
-        "bushfire",
-        "distance_dwelling",
-        "non_combustible",
-      ];
+      const devType = document.getElementById("developmentType");
+      const dynamicFields = document.getElementById("dynamicFields");
 
-      const yesNoFields = new Set([
-        "heritage",
-        "foreshore",
-        "sensitive_area",
-        "building_line",
-        "shipping_container",
-        "stormwater",
-        "metal",
-        "reflective",
-        "bushfire",
-        "non_combustible",
-        "adjacent_building",
-        "interfere",
-        "habitable",
-        "easement",
-        "services",
-        "existing_structures",
-        "material_quality",
-        "same_size",
-        "wall_height",
-        "behind_building_line",
-        "roof",
-        "attached",
-        "above_gutter",
-        "fascia_connection",
-        "engineer_spec",
-        "drainage",
-      ]);
+      devType.addEventListener("change", renderFields);
 
-      document
-        .getElementById("development")
-        .addEventListener("change", function () {
-          const type = this.value;
-          const container = document.getElementById("dynamicFields");
-          container.innerHTML = "";
+      function renderFields() {
+        dynamicFields.innerHTML = "";
+        const selected = devType.value;
+        const fields = fieldSets[selected] || [];
 
-          const fields = type === "shed" ? shedFields : patioFields;
+        fields.forEach((field) => {
+          const wrapper = document.createElement("label");
+          wrapper.textContent = field.label;
 
-          fields.forEach((field) => {
-            const label = document.createElement("label");
-            label.textContent = field.replace(/_/g, " ");
-            label.setAttribute("for", field);
-
-            let input;
-            if (yesNoFields.has(field)) {
-              input = document.createElement("select");
-              input.innerHTML = `<option value="">Select</option><option value="yes">Yes</option><option value="no">No</option>`;
-            } else {
-              input = document.createElement("input");
-              input.type = "text";
-            }
-
-            input.name = field;
-            input.id = field;
+          let input;
+          if (field.type === "select") {
+            input = document.createElement("select");
+            input.name = field.name;
             input.required = true;
-
-            const group = document.createElement("div");
-            group.className = "form-group";
-            group.appendChild(label);
-            group.appendChild(input);
-            container.appendChild(group);
-          });
-        });
-
-      document
-        .getElementById("assessmentForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-          const formData = new FormData(this);
-          const json = {};
-
-          for (let [key, value] of formData.entries()) {
-            json[key] =
-              isNaN(value) || value.trim() === "" ? value : parseFloat(value);
+            input.innerHTML =
+              `<option value="">Select</option>` +
+              field.options
+                .map((opt) => `<option value="${opt}">${opt}</option>`)
+                .join("");
+          } else {
+            input = document.createElement("input");
+            input.type = field.type;
+            input.name = field.name;
+            input.required = true;
+            if (field.min !== undefined) input.min = field.min;
+            if (field.max !== undefined) input.max = field.max;
           }
 
-          try {
-            const response = await fetch(
-              "https://your-api-endpoint.com/ExemptAssessAPI",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(json),
-              }
-            );
-
-            const result = await response.json();
-            document.getElementById("result").textContent = JSON.stringify(
-              result,
-              null,
-              2
-            );
-          } catch (err) {
-            document.getElementById("result").textContent =
-              "Error: " + err.message;
-          }
+          wrapper.appendChild(input);
+          dynamicFields.appendChild(wrapper);
         });
+      }
+
+      function reviewJSON() {
+        const form = document.getElementById("assessmentForm");
+        const formData = new FormData(form);
+        const json = {};
+        let valid = true;
+
+        [...form.elements].forEach((el) => el.classList.remove("error"));
+
+        for (const [key, value] of formData.entries()) {
+          const field = form.elements[key];
+
+          if (field && field.required && !value) {
+            field.classList.add("error");
+            valid = false;
+          }
+
+          if (field && field.type === "number") {
+            const num = parseFloat(value);
+            if (
+              isNaN(num) ||
+              (field.min && num < parseFloat(field.min)) ||
+              (field.max && num > parseFloat(field.max))
+            ) {
+              field.classList.add("error");
+              valid = false;
+            } else {
+              json[key] = Number.isInteger(num) ? parseInt(value) : num;
+              continue;
+            }
+          }
+
+          json[key] = value;
+        }
+
+        document.getElementById("jsonOutput").textContent = valid
+          ? JSON.stringify(json, null, 2)
+          : "Please correct highlighted fields.";
+      }
+
+      function postJSON() {
+        const output = document.getElementById("jsonOutput").textContent;
+        try {
+          const payload = JSON.parse(output);
+          fetch("http://127.0.0.1:5000/get-assessment-result/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+            .then((res) =>
+              res.ok ? res.text() : Promise.reject(res.statusText)
+            )
+            .then((data) => alert("Submission successful: " + data))
+            .catch((err) => alert("Submission failed: " + err));
+        } catch (e) {
+          alert("Invalid JSON. Please review before submitting.");
+        }
+      }
     </script>
   </body>
 </html>
