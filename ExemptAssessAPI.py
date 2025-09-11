@@ -125,7 +125,11 @@ in a heritage item or a draft heritage item, on land in a foreshore area or in a
     (2) There must not be more than 2 developments per lot.
 
 """
-
+def parse_float(value, default=0.0):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default                                 
 def patio_check():
     """ This function provides the rule-set for Exempt Development of a Patio under the SEPP
         returning a string indicating if the proposed development is Exempt or if not, returning
@@ -171,7 +175,7 @@ def patio_check():
     if attributes["boundary_distance"] < 900:
         return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(f)(ii))"
     elif attributes["boundary_distance"] < 5000:
-        if attributes["zoning"] not in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
             return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(f)(i))" 
 
     if attributes["metal"] == "yes":
@@ -238,7 +242,7 @@ def shed_check():
     if attributes["boundary_distance"] < 900:
         return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(d)(ii))"
     elif attributes["boundary_distance"] < 5000:
-        if attributes["zoning"] not in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
             return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(d)(i))" 
 
     if attributes["building_line"] == "no":
@@ -279,11 +283,14 @@ def shed_check():
     return "✅ Exempt Development: Shed meets criteria set out in SEPP, Part 2, Division 1, Subdivision 9, 2.17 and 2.18"
 
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 
 # Create API
 app = Flask(__name__)
 
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 @app.route("/get-assessment-result/", methods=["POST","GET"])
 def API_assessment():
@@ -295,21 +302,23 @@ def API_assessment():
         return get_shed_help + get_patio_help
 
 def Assess(attributes):
-
+    address = attributes.get("address", "No address provided")
     if attributes["development"] == "patio":
         result = patio_check()
     else:
         result = shed_check()
 
+    full_result = f"🏠 Property Address: {address}\n{result}"
+
     print("\n")
     print("--------------------------------------------------------------------------------------------------------------------")
     print("📋 Assessment Result:")
-    print(result)  
+    print(full_result)  
     print("--------------------------------------------------------------------------------------------------------------------")
     print("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
     print("--------------------------------------------------------------------------------------------------------------------")
     print("\n")
-    return result
+    return full_result
 
 
 if __name__ == "__main__":
