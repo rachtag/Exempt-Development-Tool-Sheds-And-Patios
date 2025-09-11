@@ -138,80 +138,80 @@ def patio_check():
     print("\n🪴 Patio Development Check\n")
 
     if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-        return "❌ Zoning is out of scope of this tool - only zones R1-R6 and RU1-RU4 and RU6 are assessable with this tool"
+        return "Our tool currently does not support your zone. Please contact Albury City Council for further assistance."
 
     if attributes["structure_type"] == "replacement":
         if attributes["height_existing"] > 1:
-            return "❌ Not Exempt: Existing height exceeds 1m. (SEPP, Part 2, Division 1, Subdivision 6, 2.11 (b))"
+            return "You do not qualify for exempt development as the proposed structure is higher than 1m above ground level. Please refer to the SEPP legislation for height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.11"
 
         if attributes["material_quality"] == "no":
-            return "❌ Not Exempt: Material quality not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (2)(a))"
+            return "You do not qualify for exempt development as the replacement must use materials of equal or better quality. Please refer to the SEPP legislation for material quality restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
     
         if attributes["structure_type"] == "replacement" and attributes["same_size"] == "no":
-            return "❌ Not Exempt: Replacement not same size. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (2)(b))"
+            return "You do not qualify for exempt development as the replacement must be the same size and height as the existing structure. Please refer to the SEPP legislation for size and height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["heritage"] == "yes":
-        return "❌ Not Exempt: Heritage item. (SEPP, Part 2, Division 1, Subdivision 6, 2.11 (a))"
+        return "You do not qualify for exempt development because the property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.11"
 
     if attributes["foreshore"] == "yes":
-        return "❌ Not Exempt: Foreshore area. (SEPP, Part 2, Division 1, Subdivision 6, 2.11 (a))"
+        return "You do not qualify for exempt development because the property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.11"
 
     if attributes["area"] > 25:
-        return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(b))"
+        return "You do not qualify for exempt development as the structure area is more than 25 m². Please refer to the SEPP legislation for area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
     else:
         if attributes["land_size"] > 300:
             if attributes["total_structures_area"] > 0.15 * attributes["land_size"]:
-                return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(c)(i))"
+                return "You do not qualify for exempt development as the combined area of these structures is over the limit for this lot size. Please refer to the SEPP legislation for total area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
         else:
             if attributes["total_structures_area"] > 25:
-                return "❌ Not Exempt: Area exceeds limits. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(c)(ii))"
+                return "You do not qualify for exempt development as the combined area of these structures is over the limit for this lot size. Please refer to the SEPP legislation for total area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["wall_height"] == "yes":
-        return "❌ Not Exempt: Wall height exceeds limit. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(d))"
+        return "You do not qualify for exempt development as the wall height exceeds 1.4m. Please refer to the SEPP legislation for wall height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["behind_building_line"] == "no":
-        return "❌ Not Exempt: Not behind building line. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(e)(ii))"
+        return "You do not qualify for exempt development as the structure must be behind the front building line. Please refer to the SEPP legislation for building line restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["boundary_distance"] < 900:
-        return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(f)(ii))"
+        return "You do not qualify for exempt development as the structure must be at least 900mm from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
     elif attributes["boundary_distance"] < 5000:
         if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-            return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(f)(i))" 
+            return "You do not qualify for exempt development as the structure must at least 5m from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["metal"] == "yes":
         if attributes["reflective"] == "no":
-            return "❌ Not Exempt: Metal components not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(h))"
+            return "You do not qualify for exempt development as metal components must be low-reflective and factory pre-coloured. Please refer to the SEPP legislation for metal component restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["floor_height"] > 1000:
-        return "❌ Not Exempt: Floor height exceeds 1m. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(i))"
+        return "You do not qualify for exempt development as the floor height exceeds 1m above ground level. Please refer to the SEPP legislation for floor height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["roof"] == "yes":
         if attributes["overhang"] > 600:
-            return "❌ Not Exempt: Roof overhang exceeds 600mm. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(i1))"
+            return "You do not qualify for exempt development as the roof overhang exceeds 600mm. Please refer to the SEPP legislation for roof overhang restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
         if attributes["attached"] == "yes":
             if attributes["above_gutter"] == "yes":
-                return "❌ Not Exempt: Roof extends above gutter. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(j))"
+                return "You do not qualify for exempt development as the roof must not extend above the dwelling’s gutter line. Please refer to the SEPP legislation for roof height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
             if attributes["roof_height"] > 3:
-                return "❌ Not Exempt: Roof height exceeds 3m. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(j1))"
+                return "You do not qualify for exempt development as the roof’s highest point is over 3 meters above ground level. Please refer to the SEPP legislation for roof height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
             if attributes["fascia_connection"] == "yes":
                 if attributes["engineer_spec"] == "no":
-                    return "❌ Not Exempt: Fascia connection not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(k))"
+                    return "You do not qualify for exempt development as the fascia connection is not compliant with professional specifications. Please refer to the SEPP legislation for fascia connection restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
             if attributes["stormwater"] == "no":
-                return "❌ Not Exempt: No stormwater disposal. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(l))"
+                return "You do not qualify for exempt development as your roofwater does not dispose into an stormwater drainage system. Please refer to the SEPP legislation for stormwater disposal restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["drainage"] == "yes":
-        return "❌ Not Exempt: Interferes with drainage. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(m))"
+        return "You do not qualify for exempt development as the proposed development interferes with existing drainage fixtures or flow paths. Please refer to the SEPP legislation for drainage restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
     if attributes["bushfire"] == "yes":
         if attributes["distance_dwelling"] < 5:
             if attributes["non_combustible"] == "no":
-                return "❌ Not Exempt: Bushfire material standards not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.12 (1)(n))"
+                return "You do not qualify for exempt development as the bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
 
-    return "✅ Exempt Development: Patio meets criteria set out in SEPP, Part 2, Division 1, Subdivision 6, 2.11 and 2.12"
+    return "Your structure qualifies for exempt development. For more information, please refer to the SEPP legislation: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#pt.2-div.1-sdiv.6"
 
 
 def shed_check():
@@ -222,65 +222,68 @@ def shed_check():
     print("\n🔧 Shed Development Check\n")
 
     if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-        return "❌ Zoning is out of scope of this tool - only zones R1-R6 and RU1-RU4 and RU6 are assessable with this tool"
+        return "Our tool currently does not support your zone. Please contact Albury City Council for further assistance"
 
     if attributes["heritage"] == "yes":
-        return "❌ Not Exempt: Heritage item. (SEPP, Part 2, Division 1, Subdivision 6, 2.17)"
+        return "You do not qualify for exempt development because the property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.17"
 
     if attributes["foreshore"] == "yes":
-        return "❌ Not Exempt: Foreshore area. (SEPP, Part 2, Division 1, Subdivision 6, 2.17)"
+        return "You do not qualify for exempt development because the property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.17"
 
     if attributes["sensitive_area"] == "yes":
-        return "❌ Not Exempt: Environmentally sensitive area. (SEPP, Part 2, Division 1, Subdivision 6, 2.17)"
+        return "You do not qualify for exempt development because the property is located in an environmentally sensitive area. Please refer to the SEPP legislation for environmentally sensitive area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.17"
 
-    if attributes["area"] > 20:
-        return "❌ Not Exempt: Area exceeds 20m². (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(b))"
+    if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes ["area"] > 20:
+        return "You do not qualify for exempt development as the proposed structure's area exceeds the limit of 20m². Please refer to the SEPP legislation for area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+
+    if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes ["area"] > 50:
+        return "You do not qualify for exempt development as the proposed structure's area exceeds the limit of 50m². Please refer to the SEPP legislation for area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["height"] > 3:
-        return "❌ Not Exempt: Height exceeds 3m. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(c))"
+        return "You do not qualify for exempt development as the proposed structure is higher than 3 m above ground level. Please refer to the SEPP legislation for height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
-    if attributes["boundary_distance"] < 900:
-        return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(d)(ii))"
-    elif attributes["boundary_distance"] < 5000:
-        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-            return "❌ Not Exempt: Too close to boundary. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(d)(i))" 
+    if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes["boundary_distance"] < 900:
+        return "You do not qualify for exempt development as the structure must be at least 900mm from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+   
+    if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
+        return "You do not qualify for exempt development as the structure must be at least 5000mm from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["building_line"] == "no":
         if attributes["zoning"] not in ["RU1", "RU2", "RU3", "RU4", "RU6"]:
-            return "❌ Not Exempt: Not behind building line. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(e))"
+            return "You do not qualify for exempt development as the structure must be behind the building line. Please refer to the SEPP legislation for building line restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["shipping_container"] == "yes":
-        return "❌ Not Exempt: Shipping containers not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(f))"
+        return "You do not qualify for exempt development as shipping containers are not allowed. Please refer to the SEPP legislation for shipping container restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["stormwater"] == "no":
-        return "❌ Not Exempt: Stormwater disposal not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(g))"
+        return "You do not qualify for exempt development your roofwater disposal may affect your neighbours. Please refer to the SEPP legislation for stormwater disposal restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["metal"] == "yes":
         if attributes["reflective"] == "no":
-            return "❌ Not Exempt: Metal components not compliant. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(h))"
+            return "You do not qualify for exempt development as your metal components are not compliant. Please refer to the SEPP legislation for metal component restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["bushfire"] == "yes":
         if attributes["distance_dwelling"] < 5:
             if attributes["non_combustible"] == "no":
-                return "❌ Not Exempt: Bushfire standards not met. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(i))"
+                return "You do not qualify for exempt development as the bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["adjacent_building"] == "yes":
         if attributes["interfere"] == "yes":
-            return "❌ Not Exempt: Interferes with building access or safety. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(k))"
+            return "You do not qualify for exempt development as the structure interferes with building access or safety. Please refer to the SEPP legislation for adjacent building restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["habitable"] == "yes":
-        return "❌ Not Exempt: Habitable sheds not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(l))"
+        return "You do not qualify for exempt development because your proposed structure cannot be used as habitable buildings. Please refer to the SEPP legislation for habitable building restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["easement"] == "yes":
-        return "❌ Not Exempt: Too close to easement. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(m))"
+        return "You do not qualify for exempt development as the proposed structure should be at least 1m from the easement. Please refer to the SEPP legislation for easement restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["services"] == "yes":
-        return "❌ Not Exempt: Service connections not allowed. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (1)(n))"
+        return "You do not qualify for exempt development as service connections are not allowed. Please refer to the SEPP legislation for service connection restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
     if attributes["existing_structures"] == "yes":
-        return "❌ Not Exempt: Maximum number of structures exceeded. (SEPP, Part 2, Division 1, Subdivision 6, 2.18 (2))"
+        return "You do not qualify for exempt development as you already have two similar structures on your property. Please refer to the SEPP legislation for existing structure restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
 
-    return "✅ Exempt Development: Shed meets criteria set out in SEPP, Part 2, Division 1, Subdivision 9, 2.17 and 2.18"
+    return "Your structure qualifies for exempt development. For more information, please refer to the SEPP legislation: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#pt.2-div.1-sdiv.6"
 
 
 from flask import Flask, request, jsonify, render_template
