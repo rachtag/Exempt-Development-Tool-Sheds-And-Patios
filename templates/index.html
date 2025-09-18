@@ -18,8 +18,11 @@
  <div class="section">
   <p>Please ensure your property is within Albury City before continuing.</p>
    <label for="address">Enter the property address:</label>
-   <input type="text" id="address" placeholder="553 Kiewa St, Albury NSW 2640">
- </div>
+   <div class="address-container">
+     <input type="text" id="address" placeholder="553 Kiewa St, Albury NSW 2640">
+     <div id="results"></div>
+   </div>
+  </div>
   <!-- Development type -->
   <div class="section">
     <label for="development">Please select the type of structure you are planning to build:</label>
@@ -262,5 +265,6 @@ document.getElementById("submit").addEventListener("click", async () => {
   document.getElementById("result").textContent = text;
 });
 </script>
+<script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script> 
 </body>
 </html>

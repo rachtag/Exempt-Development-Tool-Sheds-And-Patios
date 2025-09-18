@@ -57,9 +57,47 @@ button:hover {
   background: #34495e;
 }
 
+
 /* Results box */
 pre {
   background: #f4f4f4;
   padding: 10px;
   border-radius: 6px;
+}
+
+/* Wrap the input & results */
+.address-container {
+  position: relative;
+  display: inline-block;
+  width: 400px; /* match your input width */
+}
+
+/* Input stays the same */
+.address-container input {
+  width: 100%; /* fill the container */
+  box-sizing: border-box;
+}
+
+/* Autocomplete dropdown styling */
+#results {
+  position: absolute;
+  top: 100%;          /* directly below input */
+  left: 0;
+  right: 0;
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  z-index: 1000;
+  box-sizing: border-box;
+  border-radius: 6px;           /* rounded corners */
+  overflow: hidden;             /* ensures items follow rounded edge */
+}
+
+#results .item {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+#results .item:hover {
+  background-color: #e0e0e0;
 }
