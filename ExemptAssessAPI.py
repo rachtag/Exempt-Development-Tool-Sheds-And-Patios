@@ -378,7 +378,9 @@ def shed_check():
 
 
 from flask import Flask, request, jsonify, render_template
+from flask import render_template_string
 from assessment_db import AssessmentDB
+import sqlite3
 import json
 
 # Create API
@@ -391,6 +393,7 @@ def index():
     # Render the frontend form (located in /templates/index.html)
     return render_template("index.html")
 
+# Define route page to return assessment results based on user input via POST or provide help info via GET
 @app.route("/get-assessment-result/", methods=["POST","GET"])
 def API_assessment():
     # Store incoming attributes globally for access across functions
@@ -403,6 +406,64 @@ def API_assessment():
     elif request.method =="GET":
         # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
         return get_shed_help + get_patio_help
+
+
+# Define route to retrieve and display all logged assessments from the database in a simple HTML table
+@app.route('/get-logging-db/', methods=['GET'])
+def get_logging_db():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('assessments.db')
+    cursor = conn.cursor()
+
+    # Fetch all rows from the assessments table
+    cursor.execute("SELECT * FROM assessments")
+    rows = cursor.fetchall()
+
+    # Get column names for header
+    column_names = [description[0] for description in cursor.description]
+
+    conn.close()
+
+    # HTML template with dynamic table rendering
+    html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Assessment DB Contents</title>
+        <style>
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <h2>Assessment DB Contents</h2>
+        <table>
+            <thead>
+                <tr>
+                    {% for col in columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
+    return render_template_string(html_template, columns=column_names, rows=rows)
+
+
+
 
 def Assess(attributes):
     # Initialise an empty list to hold the full result including relevant SEPP sections and explanatory links
@@ -462,6 +523,15 @@ def Assess(attributes):
 
     # Return the full result list to the frontend for display
     return full_result
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
