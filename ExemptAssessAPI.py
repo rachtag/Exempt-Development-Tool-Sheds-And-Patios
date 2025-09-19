@@ -196,14 +196,13 @@ def patio_check():
             results.append("The structure must be behind the front building line of road frontage. Please refer to the SEPP legislation for building line restrictions:")
             relevant_sections.append("sec.2.12 (1)(e)")
 
-        if attributes["boundary_distance"] < 900:
+        if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes["boundary_distance"] < 900:
             results.append("The structure must be at least 900mm from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.12 (1)(f)(ii)")
 
-        elif attributes["boundary_distance"] < 5000:
-            if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-                results.append("The structure must be at least 5m from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
-                relevant_sections.append("sec.2.12 (1)(f)(i)")
+        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
+            results.append("The structure must be at least 5m from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
+            relevant_sections.append("sec.2.12 (1)(f)(i)")
 
         if attributes["metal"] == "yes":
             if attributes["reflective"] == "no":
