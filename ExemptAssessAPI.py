@@ -394,7 +394,7 @@ def index():
     return render_template("index.html")
 
 # Define route page to return assessment results based on user input via POST or provide help info via GET
-@app.route("/get-assessment-result/", methods=["POST","GET"])
+@app.route("/get-assessment-help/", methods=["POST","GET"])
 def API_assessment():
     # Store incoming attributes globally for access across functions
     global attributes 
@@ -463,8 +463,7 @@ def get_logging_db():
     return render_template_string(html_template, columns=column_names, rows=rows)
 
 
-
-
+# Define the main assessment function that routes to specific development checks based on input attributes
 def Assess(attributes):
     # Initialise an empty list to hold the full result including relevant SEPP sections and explanatory links
     full_result = []
@@ -523,14 +522,6 @@ def Assess(attributes):
 
     # Return the full result list to the frontend for display
     return full_result
-
-
-
-
-
-
-
-
 
 
 
