@@ -2,6 +2,7 @@
 
 import sqlite3
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 class AssessmentDB:
     def __init__(self, db_path="assessments.db"):
@@ -22,10 +23,13 @@ class AssessmentDB:
         self.conn.commit()
 
     def save_assessment(self, context, input_json, response_json):
+        # Save the current time in AEST timezone
+        aest_time = datetime.now(ZoneInfo("Australia/Sydney")).isoformat()
+
         self.cursor.execute("""
             INSERT INTO assessments (timestamp, context, input_json, response_json)
             VALUES (?, ?, ?, ?)
-        """, (datetime.utcnow().isoformat(), context, input_json, response_json))
+        """, (aest_time, context, input_json, response_json))
         self.conn.commit()
 
     def get_recent_assessments(self, limit=10):
