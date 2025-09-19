@@ -393,19 +393,20 @@ def index():
     return render_template("index.html")
 
 # Define route page to return assessment results based on user input via POST or provide help info via GET
-@app.route("/get-assessment-help/", methods=["POST","GET"])
+
+@app.route("/get-assessment-result/", methods=["POST"])
 def API_assessment():
     # Store incoming attributes globally for access across functions
     global attributes 
-    if request.method =="POST":
-        # Parse JSON payload from frontend form submission
-        attributes = request.get_json()
-        # Pass attributes to assessment engine and return result
-        return Assess(attributes)
-    elif request.method =="GET":
-        # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
-        return get_shed_help + get_patio_help
+    # Parse JSON payload from frontend form submission
+    attributes = request.get_json()
+    # Pass attributes to assessment engine and return result
+    return Assess(attributes)
 
+@app.route("/get-assessment-help/", methods=["GET"])
+def API_assessment_help():
+    # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
+    return get_shed_help + get_patio_help
 
 # Define route to retrieve and display all logged assessments from the database in a simple HTML table
 @app.route('/get-logging-db/', methods=['GET'])
@@ -466,10 +467,27 @@ def get_logging_db():
 def Assess(attributes):
     # Initialise an empty list to hold the full result including relevant SEPP sections and explanatory links
     full_result = []
+    # Make a copy of original attributes for logging purposes
+    attributes_received = attributes.copy()
 
     # Extract address for logging or future audit trail (default fallback if missing)
     address = attributes.get("address", "No address provided")
     
+    # Do some basic validation of input attributes
+    for attrib in attributes:
+        # Normalise string inputs to lowercase and strip whitespace
+        if isinstance(attributes[attrib], str):
+            attributes[attrib] = attributes[attrib].lower().strip()
+        # Validate numeric inputs, defaulting to 0.0 if invalid or missing
+        elif isinstance(attributes[attrib], (int, float)):
+            attributes[attrib] = parse_float(attributes[attrib], default=0.0)   
+        else:
+            # For any other data types, retain the original value
+            attributes[attrib] = attributes[attrib]
+        # Default any missing string attributes to "no" for binary yes/no fields
+        if attributes[attrib] == "":
+            attributes[attrib] = "no"
+
     # Route to appropriate rules engine based on development type
     if attributes["development"] == "patio":
         # Applies patio-specific rules from schema
@@ -513,7 +531,7 @@ def Assess(attributes):
     # and `context` is a string to identify the type of assessment result {"Exempt", "Non-Exempt", "Invalid"}
     db.save_assessment(
         context = context,
-        input_json = json.dumps(attributes),
+        input_json = json.dumps(attributes_received),
         response_json = json.dumps({"result": full_result})
         )
 
