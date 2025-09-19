@@ -475,9 +475,13 @@ def Assess(attributes):
     
     # Do some basic validation of input attributes
     for attrib in attributes:
-        # Normalise string inputs to lowercase and strip whitespace
+        # Normalise string inputs to lowercase and strip whitespace (except zoning which should be uppercase)
         if isinstance(attributes[attrib], str):
-            attributes[attrib] = attributes[attrib].lower().strip()
+            if attrib == "zoning":  # Zones should be in capital letters
+                attributes[attrib] = attributes[attrib].upper().strip()
+            else:
+                attributes[attrib] = attributes[attrib].lower().strip() 
+            
         # Validate numeric inputs, defaulting to 0.0 if invalid or missing
         elif isinstance(attributes[attrib], (int, float)):
             attributes[attrib] = parse_float(attributes[attrib], default=0.0)   
