@@ -125,397 +125,593 @@ in a heritage item or a draft heritage item, on land in a foreshore area or in a
     (2) There must not be more than 2 developments per lot.
 
 """
+SEPP_URL = "https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#"
+
 def parse_float(value, default=0.0):
+    """ This function provides input validation for numeric inputs """
     try:
         return float(value)
     except (TypeError, ValueError):
-        return default                                 
+        return default
+
+
 def patio_check():
     """ This function provides the rule-set for Exempt Development of a Patio under the SEPP
-        returning a string indicating if the proposed development is Exempt or if not, returning
-        a string indicating reson for Not Exempt under SEPP"""
+        returning a strings indicating if the proposed development is Exempt or if not, returning
+        a list of strings indicating reasons for Not Exempt under SEPP"""
     
-    print("\n🪴 Patio Development Check\n")
-
-    if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-        return "Our tool currently does not support your zone. Please contact Albury City Council for further assistance."
-
-    if attributes["structure_type"] == "replacement":
-        if attributes["height_existing"] > 1:
-            return "You do not qualify for exempt development as the proposed structure is higher than 1m above ground level. Please refer to the SEPP legislation for height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.11"
-
-        if attributes["material_quality"] == "no":
-            return "You do not qualify for exempt development as the replacement must use materials of equal or better quality. Please refer to the SEPP legislation for material quality restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+    print("\n🔧 Patio Development Check")
+    # Initialise a results list for NON-EXEMPT reasons and a list for relevant sections in SEPP for reference
+    results = [] 
+    relevant_sections = []
+    # Initialise an assessment context variable for database logging
+    # Possible values: "Exempt", "Non-Exempt", "Invalid"
+    context = "Invalid"
     
-        if attributes["structure_type"] == "replacement" and attributes["same_size"] == "no":
-            return "You do not qualify for exempt development as the replacement must be the same size and height as the existing structure. Please refer to the SEPP legislation for size and height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+    try:
+        if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+            results.append("This tool does not currently support your zone type.")
+            relevant_sections.append("Please contact Albury City Council for further assistance.")
 
-    if attributes["heritage"] == "yes":
-        return "You do not qualify for exempt development because the property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.11"
+        if attributes["structure_type"] == "replacement":
+            if attributes["height_existing"] > 1:
+                results.append("The proposed structure is higher than 1m above ground level. Please refer to the SEPP legislation for height restrictions:")
+                relevant_sections.append("sec.2.11 (b)")
 
-    if attributes["foreshore"] == "yes":
-        return "You do not qualify for exempt development because the property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.11"
+            if attributes["material_quality"] == "no":
+                results.append("The replacement must use materials of equal or better quality. Please refer to the SEPP legislation for material quality restrictions:")
+                relevant_sections.append("sec.2.12 (2)(a)")
+    
+            if attributes["same_size"] == "no":
+                results.append("The replacement must be the same size and height as the existing structure. Please refer to the SEPP legislation for size and height restrictions:")
+                relevant_sections.append("sec.2.12 (2)(b)")
 
-    if attributes["area"] > 25:
-        return "You do not qualify for exempt development as the structure area is more than 25 m². Please refer to the SEPP legislation for area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
-    else:
-        if attributes["land_size"] > 300:
-            if attributes["total_structures_area"] > 0.15 * attributes["land_size"]:
-                return "You do not qualify for exempt development as the combined area of these structures is over the limit for this lot size. Please refer to the SEPP legislation for total area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["heritage"] == "yes":
+            results.append("The property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions:")
+            relevant_sections.append("sec.2.11 (a)")
+
+        if attributes["foreshore"] == "yes":
+            results.append("The property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions:")
+            relevant_sections.append("sec.2.11 (b)")
+
+        if attributes["area"] > 25:
+            results.append("The structure floor area is more than 25 m². Please refer to the SEPP legislation for floor area restrictions:")
+            relevant_sections.append("sec.2.12 (1)(b)")
         else:
-            if attributes["total_structures_area"] > 25:
-                return "You do not qualify for exempt development as the combined area of these structures is over the limit for this lot size. Please refer to the SEPP legislation for total area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+            if attributes["land_size"] > 300:
+                if attributes["total_structures_area"] > 0.15 * attributes["land_size"]:
+                    results.append("The combined floor area of similar structures is over the limit for this lot size. Please refer to the SEPP legislation for total floor area restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(c)(i)")
 
-    if attributes["wall_height"] == "yes":
-        return "You do not qualify for exempt development as the wall height exceeds 1.4m. Please refer to the SEPP legislation for wall height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+            else:
+                if attributes["total_structures_area"] > 25:
+                    results.append("The combined floor area of similar structures is over the limit for this lot size. Please refer to the SEPP legislation for total floor area restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(c)(ii)") 
 
-    if attributes["behind_building_line"] == "no":
-        return "You do not qualify for exempt development as the structure must be behind the front building line. Please refer to the SEPP legislation for building line restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["wall_height"] == "yes":
+            results.append("The wall height exceeds 1.4m. Please refer to the SEPP legislation for wall height restrictions:")
+            relevant_sections.append("sec.2.12 (1)(d)") 
 
-    if attributes["boundary_distance"] < 900:
-        return "You do not qualify for exempt development as the structure must be at least 900mm from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
-    elif attributes["boundary_distance"] < 5000:
-        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-            return "You do not qualify for exempt development as the structure must at least 5m from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["behind_building_line"] == "no":
+            results.append("The structure must be behind the front building line of road frontage. Please refer to the SEPP legislation for building line restrictions:")
+            relevant_sections.append("sec.2.12 (1)(e)")
 
-    if attributes["metal"] == "yes":
-        if attributes["reflective"] == "no":
-            return "You do not qualify for exempt development as metal components must be low-reflective and factory pre-coloured. Please refer to the SEPP legislation for metal component restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes["boundary_distance"] < 900:
+            results.append("The structure must be at least 900mm from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
+            relevant_sections.append("sec.2.12 (1)(f)(ii)")
 
-    if attributes["floor_height"] > 1000:
-        return "You do not qualify for exempt development as the floor height exceeds 1m above ground level. Please refer to the SEPP legislation for floor height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
+            results.append("The structure must be at least 5m from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
+            relevant_sections.append("sec.2.12 (1)(f)(i)")
 
-    if attributes["roof"] == "yes":
-        if attributes["overhang"] > 600:
-            return "You do not qualify for exempt development as the roof overhang exceeds 600mm. Please refer to the SEPP legislation for roof overhang restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["metal"] == "yes":
+            if attributes["reflective"] == "no":
+                results.append("The metal components must be low-reflective and factory pre-coloured. Please refer to the SEPP legislation for metal component restrictions:")
+                relevant_sections.append("sec.2.12 (1)(h)")
 
-        if attributes["attached"] == "yes":
-            if attributes["above_gutter"] == "yes":
-                return "You do not qualify for exempt development as the roof must not extend above the dwelling’s gutter line. Please refer to the SEPP legislation for roof height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["floor_height"] > 1000:
+            results.append("The floor height exceeds 1m above ground level. Please refer to the SEPP legislation for floor height restrictions:")
+            relevant_sections.append("sec.2.12 (1)(i)")
 
-            if attributes["roof_height"] > 3:
-                return "You do not qualify for exempt development as the roof’s highest point is over 3 meters above ground level. Please refer to the SEPP legislation for roof height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+        if attributes["roof"] == "yes":
+            if attributes["overhang"] > 600:
+                results.append("The roof overhang exceeds 600mm. Please refer to the SEPP legislation for roof overhang restrictions:")
+                relevant_sections.append("sec.2.12 (1)(i1)")
 
-            if attributes["fascia_connection"] == "yes":
-                if attributes["engineer_spec"] == "no":
-                    return "You do not qualify for exempt development as the fascia connection is not compliant with professional specifications. Please refer to the SEPP legislation for fascia connection restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+            if attributes["attached"] == "yes":
+                if attributes["above_gutter"] == "yes":
+                    results.append("The roof must not extend above the dwelling’s gutter line. Please refer to the SEPP legislation for roof height restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(j)")
 
-            if attributes["stormwater"] == "no":
-                return "You do not qualify for exempt development as your roofwater does not dispose into an stormwater drainage system. Please refer to the SEPP legislation for stormwater disposal restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+                if attributes["roof_height"] > 3:
+                    results.append("The roof’s highest point is over 3m above ground level. Please refer to the SEPP legislation for roof height restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(j1)")
 
-    if attributes["drainage"] == "yes":
-        return "You do not qualify for exempt development as the proposed development interferes with existing drainage fixtures or flow paths. Please refer to the SEPP legislation for drainage restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+                if attributes["fascia_connection"] == "yes":
+                    if attributes["engineer_spec"] == "no":
+                        results.append("The fascia connection is not compliant with professional specifications. Please refer to the SEPP legislation for fascia connection restrictions:")
+                        relevant_sections.append("sec.2.12 (1)(k)")
 
-    if attributes["bushfire"] == "yes":
-        if attributes["distance_dwelling"] < 5:
-            if attributes["non_combustible"] == "no":
-                return "You do not qualify for exempt development as the bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.12"
+                if attributes["stormwater"] == "no":
+                    results.append("The roofwater does not dispose into an stormwater drainage system. Please refer to the SEPP legislation for stormwater disposal restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(l)")
 
-    return "Your structure qualifies for exempt development. For more information, please refer to the SEPP legislation: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#pt.2-div.1-sdiv.6"
+        if attributes["drainage"] == "yes":
+            results.append("The proposed development interferes with existing drainage fixtures or flow paths. Please refer to the SEPP legislation for drainage restrictions:")
+            relevant_sections.append("sec.2.12 (1)(m)") 
+
+        if attributes["bushfire"] == "yes":
+            if attributes["distance_dwelling"] < 5:
+                if attributes["non_combustible"] == "no":
+                    results.append("The bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(n)")
+
+        if len(results) > 0:
+            results.insert(0,"The proposed structure DOES NOT qualify for exempt development for the following reasons:")
+            relevant_sections.insert(0, "")
+            context = "Non-Exempt"
+        else:
+            results.append("The proposed structure qualifies for exempt development. For more information, please refer to the SEPP legislation:")
+            relevant_sections.append("pt.2-div.1-sdiv.6")
+            context = "Exempt"
+
+        return results, relevant_sections, context
+    
+    except Exception:
+        results.append(f"Missing or invalid input data. Please check all required fields are provided and valid.")
+        relevant_sections.append(f"Attributes File: {attributes}")
+        return results, relevant_sections, context
 
 
 def shed_check():
     """ This function provides the rule-set for Exempt Development of a Shed under the SEPP
-        returning a string indicating if the proposed development is Exempt or if not, returning
-        a string indicating reson for Not Exempt under SEPP"""
+        returning a strings indicating if the proposed development is Exempt or if not, returning
+        a list of strings indicating reasons for Not Exempt under SEPP"""
 
-    print("\n🔧 Shed Development Check\n")
+    print("\n🔧 Shed Development Check")
+    # Initialise a results list for NON-EXEMPT reasons and a list for relevant sections in SEPP for reference
+    results = [] 
+    relevant_sections = [] 
+    # Initialise an assessment context variable for database logging
+    # Possible values: "Exempt", "Non-Exempt", "Invalid"
+    context = "Invalid"
+    
+    try:
 
-    if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
-        return "Our tool currently does not support your zone. Please contact Albury City Council for further assistance"
+        if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+            results.append("This tool does not currently support your zone type.")
+            relevant_sections.append("Please contact Albury City Council for further assistance.")
 
-    if attributes["heritage"] == "yes":
-        return "You do not qualify for exempt development because the property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.17"
+        if attributes["heritage"] == "yes":
+            results.append("The property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions:")
+            relevant_sections.append("sec.2.17 (a)")    
 
-    if attributes["foreshore"] == "yes":
-        return "You do not qualify for exempt development because the property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.17"
+        if attributes["foreshore"] == "yes":
+            results.append("The property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions:")
+            relevant_sections.append("sec.2.17 (b)")
 
-    if attributes["sensitive_area"] == "yes":
-        return "You do not qualify for exempt development because the property is located in an environmentally sensitive area. Please refer to the SEPP legislation for environmentally sensitive area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.17"
+        if attributes["sensitive_area"] == "yes":
+            results.append("The property is located in an environmentally sensitive area. Please refer to the SEPP legislation for environmentally sensitive area restrictions:")
+            relevant_sections.append("sec.2.17 (b)")
 
-    if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes ["area"] > 20:
-        return "You do not qualify for exempt development as the proposed structure's area exceeds the limit of 20m². Please refer to the SEPP legislation for area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes ["area"] > 20:
+            results.append("The proposed structure's floor area exceeds the limit of 20m². Please refer to the SEPP legislation for floor area restrictions:")
+            relevant_sections.append("sec.2.18 (1)(b)(ii)")
 
-    if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes ["area"] > 50:
-        return "You do not qualify for exempt development as the proposed structure's area exceeds the limit of 50m². Please refer to the SEPP legislation for area restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes ["area"] > 50:
+            results.append("The proposed structure's floor area exceeds the limit of 50m². Please refer to the SEPP legislation for floor area restrictions:")
+            relevant_sections.append("sec.2.18 (1)(b)(i)")
 
-    if attributes["height"] > 3:
-        return "You do not qualify for exempt development as the proposed structure is higher than 3 m above ground level. Please refer to the SEPP legislation for height restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["height"] > 3:
+            results.append("The proposed structure is higher than 3m above ground level. Please refer to the SEPP legislation for height restrictions:")
+            relevant_sections.append("sec.2.18 (1)(c)")
 
-    if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes["boundary_distance"] < 900:
-        return "You do not qualify for exempt development as the structure must be at least 900mm from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
-   
-    if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
-        return "You do not qualify for exempt development as the structure must be at least 5000mm from the boundary. Please refer to the SEPP legislation for boundary distance restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes["boundary_distance"] < 900:
+            results.append("The structure must be at least 900mm from any lot boundary. Please refer to the SEPP legislation for boundary distance restrictions:")
+            relevant_sections.append("sec.2.18 (1)(d)(ii)")
+    
+        if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
+            results.append("The structure must be at least 5000mm from any lot boundary. Please refer to the SEPP legislation for boundary distance restrictions:")
+            relevant_sections.append("sec.2.18 (1)(d)(i)")
 
-    if attributes["building_line"] == "no":
-        if attributes["zoning"] not in ["RU1", "RU2", "RU3", "RU4", "RU6"]:
-            return "You do not qualify for exempt development as the structure must be behind the building line. Please refer to the SEPP legislation for building line restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["building_line"] == "no":
+            if attributes["zoning"] not in ["RU1", "RU2", "RU3", "RU4", "RU6"]:
+                results.append("The structure must be behind the building line of road frontage. Please refer to the SEPP legislation for building line restrictions:")
+                relevant_sections.append("sec.2.18 (1)(e)")
 
-    if attributes["shipping_container"] == "yes":
-        return "You do not qualify for exempt development as shipping containers are not allowed. Please refer to the SEPP legislation for shipping container restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["shipping_container"] == "yes":
+            results.append("Shipping containers are not allowed. Please refer to the SEPP legislation for shipping container restrictions:")
+            relevant_sections.append("sec.2.18 (1)(f)")
 
-    if attributes["stormwater"] == "no":
-        return "You do not qualify for exempt development your roofwater disposal may affect your neighbours. Please refer to the SEPP legislation for stormwater disposal restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["stormwater"] == "no":
+            results.append("The roofwater disposal may affect your neighbours. Please refer to the SEPP legislation for stormwater disposal restrictions:")
+            relevant_sections.append("sec.2.18 (1)(g)")
 
-    if attributes["metal"] == "yes":
-        if attributes["reflective"] == "no":
-            return "You do not qualify for exempt development as your metal components are not compliant. Please refer to the SEPP legislation for metal component restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["metal"] == "yes":
+            if attributes["reflective"] == "no":
+                results.append("The metal components are not compliant. Please refer to the SEPP legislation for metal component restrictions:")
+                relevant_sections.append("sec.2.18 (1)(h)")
 
-    if attributes["bushfire"] == "yes":
-        if attributes["distance_dwelling"] < 5:
-            if attributes["non_combustible"] == "no":
-                return "You do not qualify for exempt development as the bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["bushfire"] == "yes":
+            if attributes["distance_dwelling"] < 5:
+                if attributes["non_combustible"] == "no":
+                    results.append("The bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions:")
+                    relevant_sections.append("sec.2.18 (1)(i)")
 
-    if attributes["adjacent_building"] == "yes":
-        if attributes["interfere"] == "yes":
-            return "You do not qualify for exempt development as the structure interferes with building access or safety. Please refer to the SEPP legislation for adjacent building restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["adjacent_building"] == "yes":
+            if attributes["interfere"] == "yes":
+                results.append("The structure interferes with building access or safety. Please refer to the SEPP legislation for adjacent building restrictions:")
+                relevant_sections.append("sec.2.18 (1)(k)")
 
-    if attributes["habitable"] == "yes":
-        return "You do not qualify for exempt development because your proposed structure cannot be used as habitable buildings. Please refer to the SEPP legislation for habitable building restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["habitable"] == "yes":
+            results.append("The proposed structure cannot be used as habitable buildings. Please refer to the SEPP legislation for habitable building restrictions:")
+            relevant_sections.append("sec.2.18 (1)(l)")
 
-    if attributes["easement"] == "yes":
-        return "You do not qualify for exempt development as the proposed structure should be at least 1m from the easement. Please refer to the SEPP legislation for easement restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["easement"] == "yes":
+            results.append("The proposed structure must be at least 1m from any easement. Please refer to the SEPP legislation for easement restrictions:")
+            relevant_sections.append("sec.2.18 (1)(m)")
 
-    if attributes["services"] == "yes":
-        return "You do not qualify for exempt development as service connections are not allowed. Please refer to the SEPP legislation for service connection restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["services"] == "yes":
+            results.append("Service connections are not allowed. Please refer to the SEPP legislation for service connection restrictions:")
+            relevant_sections.append("sec.2.18 (1)(n) ")
 
-    if attributes["existing_structures"] == "yes":
-        return "You do not qualify for exempt development as you already have two similar structures on your property. Please refer to the SEPP legislation for existing structure restrictions: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#sec.2.18"
+        if attributes["existing_structures"] == "yes":
+            results.append("More than two similar structures already exist on the property. Please refer to the SEPP legislation for existing structure restrictions:")
+            relevant_sections.append("sec.2.18 (2)")
 
-    return "Your structure qualifies for exempt development. For more information, please refer to the SEPP legislation: https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#pt.2-div.1-sdiv.6"
+        if len(results) > 0:
+            results.insert(0,"The proposed structure DOES NOT qualify for exempt development for the following reasons:")
+            relevant_sections.insert(0, "")
+            context = "Non-Exempt"
+        else:
+            results.append("The proposed structure qualifies for exempt development. For more information, please refer to the SEPP legislation:")
+            relevant_sections.append("pt.2-div.1-sdiv.9")
+            context = "Exempt"
+
+        return results, relevant_sections, context
+    
+    except Exception:
+        results.append(f"Missing or invalid input data. Please check all required fields are provided and valid.")
+        relevant_sections.append(f"Attributes File: {attributes}")
+        return results, relevant_sections, context
 
 
 from flask import Flask, request, jsonify, render_template
+from flask import render_template_string
+from assessment_db import AssessmentDB
+import sqlite3
+import json
 
 # Create API
+# Initialize Flask application instance
 app = Flask(__name__)
 
+# Define route for homepage; serves the main HTML form interface for shed/patio assessment
 @app.route("/")
 def index():
+    # Render the frontend form (located in /templates/index.html)
     return render_template("index.html")
 
-@app.route("/get-assessment-result/", methods=["POST","GET"])
+# Define route page to return assessment results based on user input via POST or provide help info via GET
+
+@app.route("/get-assessment-result/", methods=["POST"])
 def API_assessment():
+    # Store incoming attributes globally for access across functions
     global attributes 
-    if request.method =="POST":
-        attributes = request.get_json()
-        return Assess(attributes)
-    elif request.method =="GET":
-        return get_shed_help + get_patio_help
+    # Parse JSON payload from frontend form submission
+    attributes = request.get_json()
+    # Pass attributes to assessment engine and return result
+    return Assess(attributes)
 
+@app.route("/get-assessment-help/", methods=["GET"])
+def API_assessment_help():
+    # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
+    return get_shed_help + get_patio_help
+
+# Define route to retrieve and display all logged assessments from the database in a simple HTML table
+@app.route("/get-logging-db/", methods=["GET"])
+def get_logging_db():
+    # Connect to the SQLite database
+    conn = sqlite3.connect("assessments.db")
+    cursor = conn.cursor()
+
+    # Fetch all rows from the assessments table
+    cursor.execute("SELECT * FROM assessments")
+    rows = cursor.fetchall()
+
+    # Get column names for header
+    column_names = [description[0] for description in cursor.description]
+
+    conn.close()
+
+    # HTML template with dynamic table rendering
+    html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Assessment DB Contents</title>
+        <style>
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <h2>Assessment DB Contents</h2>
+        <table>
+            <thead>
+                <tr>
+                    {% for col in columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
+    return render_template_string(html_template, columns=column_names, rows=rows)
+
+
+# Define the main assessment function that routes to specific development checks based on input attributes
 def Assess(attributes):
+    # Initialise an empty list to hold the full result including relevant SEPP sections and explanatory links
+    full_result = []
+    # Make a copy of original attributes for logging purposes
+    attributes_received = attributes.copy()
+
+    # Extract address for logging or future audit trail (default fallback if missing)
     address = attributes.get("address", "No address provided")
+    
+    # Do some basic validation of input attributes
+    for attrib in attributes:
+        # Normalise string inputs to lowercase and strip whitespace (except zoning which should be uppercase)
+        if isinstance(attributes[attrib], str):
+            if attrib == "zoning":  # Zones should be in capital letters
+                attributes[attrib] = attributes[attrib].upper().strip()
+            else:
+                attributes[attrib] = attributes[attrib].lower().strip() 
+            
+        # Validate numeric inputs, defaulting to 0.0 if invalid or missing
+        elif isinstance(attributes[attrib], (int, float)):
+            attributes[attrib] = parse_float(attributes[attrib], default=0.0)   
+        else:
+            # For any other data types, retain the original value
+            attributes[attrib] = attributes[attrib]
+        # Default any missing string attributes to "no" for binary yes/no fields
+        if attributes[attrib] == "":
+            attributes[attrib] = "no"
+
+    # Route to appropriate rules engine based on development type
     if attributes["development"] == "patio":
-        result = patio_check()
+        # Applies patio-specific rules from schema
+        result, relevant_sections, context = patio_check()  
+    elif attributes["development"] == "shed":
+        # Applies shed-specific rules from schema
+        result, relevant_sections, context = shed_check()
     else:
-        result = shed_check()
+        # Handle invalid development type with fallback messaging and context flag
+        result, relevant_sections, context = ["The development type is not supported."], ["Please use 'shed' or 'patio' as the development type."], "Invalid"
 
-    full_result = f"🏠 Property Address: {address}\n{result}"
+    # Iterate through each rule result and append to output list
+    for section in range(len(relevant_sections)):
+            full_result.append(result[section])
+            
+            # If context is invalid, append guidance and exit early
+            if context == "Invalid" and section == 0:
+                full_result.append(relevant_sections[section])
+                break
 
-    print("\n")
+            # If SEPP section is provided, append full URL for user reference
+            if relevant_sections[section] != "":
+                full_result.append(f"{SEPP_URL}{relevant_sections[section]}")
+
+
     print("--------------------------------------------------------------------------------------------------------------------")
-    print("📋 Assessment Result:")
-    print(full_result)  
+    print(f"📋 Assessment Result for : {address}")
+    print("--------------------------------------------------------------------------------------------------------------------")
+    for line in full_result:
+        print(line)
     print("--------------------------------------------------------------------------------------------------------------------")
     print("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
     print("--------------------------------------------------------------------------------------------------------------------")
     print("\n")
+
+    # Save Assessment results to database
+    db = AssessmentDB()
+
+    # Save assessment result as `context`, `input_data`, and `response_data`
+    # Where `input_data` and `response_data` are JSON strings
+    # and `context` is a string to identify the type of assessment result {"Exempt", "Non-Exempt", "Invalid"}
+    db.save_assessment(
+        context = context,
+        input_json = json.dumps(attributes_received),
+        response_json = json.dumps({"result": full_result})
+        )
+
+    db.close()
+
+    # Return the full result list to the frontend for display
     return full_result
 
 
-if __name__ == "__main__":
 
-    testjson = {
-    "development" : "shed",
-    "zoning" : "RU2",
-    "heritage" : "no",
-    "foreshore" : "no",
-    "sensitive_area" : "no",
-    "area" : 7,
-    "height" : 0,
-    "boundary_distance" : 1500,
-    "building_line" : "yes",
-    "shipping_container" : "no",
-    "stormwater" : "yes",
-    "metal" : "no",
-    "reflective" : "no",
-    "bushfire" : "no",
-    "adjacent_building" : "no",
-    "distance_dwelling" : 6,
-    "non_combustible" : "no",
-    "interfere" : "no",
-    "habitable" : "no",
-    "easement" : "no",
-    "services" : "no",
-    "existing_structures" : "no"
-    }
+if __name__ == "__main__":
     
+    # Below get_shed_help and get_patio_help provide HTML help information on the required attributes for each development type using GET method
+
     get_shed_help = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Shed Assessment Attributes</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    h2 {
-      color: #2c3e50;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    caption {
-      caption-side: top;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
-</head>
-<body>
-  <h2>Shed Assessment Attributes</h2>
-  <p>For shed assessment, the JSON file must contain the following attributes:</p>
-  <table>
-    <thead>
-      <tr>
-        <th>Attribute Name</th>
-        <th>Description</th>
-        <th>Valid Options</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>development</td><td>Type of development</td><td>shed</td></tr>
-      <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
-      <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
-      <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
-      <tr><td>sensitive_area</td><td>Is the property in an environmentally sensitive area?</td><td>yes, no</td></tr>
-      <tr><td>area</td><td>Planned shed area (in m²)</td><td>numeric</td></tr>
-      <tr><td>height</td><td>Planned shed height from ground level (in meters)</td><td>numeric</td></tr>
-      <tr><td>boundary_distance</td><td>Distance from any site boundary (in mm)</td><td>numeric</td></tr>
-      <tr><td>building_line</td><td>Is the shed behind the building line of road frontage?</td><td>yes, no</td></tr>
-      <tr><td>shipping_container</td><td>Is the shed a shipping container?</td><td>yes, no</td></tr>
-      <tr><td>stormwater</td><td>Will roofwater be disposed of without causing nuisance to adjoining owners?</td><td>yes, no</td></tr>
-      <tr><td>metal</td><td>Will the shed use metal components?</td><td>yes, no</td></tr>
-      <tr><td>reflective</td><td>Are metal components low-reflective or factory pre-coloured?</td><td>yes, no</td></tr>
-      <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
-      <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
-      <tr><td>non_combustible</td><td>Will the shed be constructed of non-combustible materials?</td><td>yes, no</td></tr>
-      <tr><td>adjacent_building</td><td>Will the shed be adjacent to an existing building?</td><td>yes, no</td></tr>
-      <tr><td>interfere</td><td>Will it interfere with entry/exit or fire safety measures of adjacent building?</td><td>yes, no</td></tr>
-      <tr><td>habitable</td><td>Is the shed planned to be habitable?</td><td>yes, no</td></tr>
-      <tr><td>easement</td><td>Is the shed within 1m of a registered easement?</td><td>yes, no</td></tr>
-      <tr><td>services</td><td>Will the shed have water or sewer connections?</td><td>yes, no</td></tr>
-      <tr><td>existing_structures</td><td>Are there already two of the following on the lot: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses?</td><td>yes, no</td></tr>
-    </tbody>
-  </table>
-</body>
-</html>
-"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <title>Shed Assessment Attributes</title>
+        <style>
+            body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            }
+            h2 {
+            color: #2c3e50;
+            }
+            table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            }
+            th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            }
+            th {
+            background-color: #f4f4f4;
+            }
+            caption {
+            caption-side: top;
+            font-weight: bold;
+            margin-bottom: 10px;
+            }
+        </style>
+        </head>
+        <body>
+        <h2>Shed Assessment Attributes</h2>
+        <p>For shed assessment, the JSON file must contain the following attributes:</p>
+        <table>
+            <thead>
+            <tr>
+                <th>Attribute Name</th>
+                <th>Description</th>
+                <th>Valid Options</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>address</td><td>Address of development</td><td></td></tr>
+            <tr><td>development</td><td>Type of development</td><td>shed</td></tr>
+            <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
+            <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
+            <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
+            <tr><td>sensitive_area</td><td>Is the property in an environmentally sensitive area?</td><td>yes, no</td></tr>
+            <tr><td>area</td><td>Planned shed area (in m²)</td><td>numeric</td></tr>
+            <tr><td>height</td><td>Planned shed height from ground level (in meters)</td><td>numeric</td></tr>
+            <tr><td>boundary_distance</td><td>Distance from any site boundary (in mm)</td><td>numeric</td></tr>
+            <tr><td>building_line</td><td>Is the shed behind the building line of road frontage?</td><td>yes, no</td></tr>
+            <tr><td>shipping_container</td><td>Is the shed a shipping container?</td><td>yes, no</td></tr>
+            <tr><td>stormwater</td><td>Will roofwater be disposed of without causing nuisance to adjoining owners?</td><td>yes, no</td></tr>
+            <tr><td>metal</td><td>Will the shed use metal components?</td><td>yes, no</td></tr>
+            <tr><td>reflective</td><td>Are metal components low-reflective or factory pre-coloured?</td><td>yes, no</td></tr>
+            <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
+            <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
+            <tr><td>non_combustible</td><td>Will the shed be constructed of non-combustible materials?</td><td>yes, no</td></tr>
+            <tr><td>adjacent_building</td><td>Will the shed be adjacent to an existing building?</td><td>yes, no</td></tr>
+            <tr><td>interfere</td><td>Will it interfere with entry/exit or fire safety measures of adjacent building?</td><td>yes, no</td></tr>
+            <tr><td>habitable</td><td>Is the shed planned to be habitable?</td><td>yes, no</td></tr>
+            <tr><td>easement</td><td>Is the shed within 1m of a registered easement?</td><td>yes, no</td></tr>
+            <tr><td>services</td><td>Will the shed have water or sewer connections?</td><td>yes, no</td></tr>
+            <tr><td>existing_structures</td><td>Are there already two of the following on the lot: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses?</td><td>yes, no</td></tr>
+            </tbody>
+        </table>
+        </body>
+        </html>
+        """
 
     get_patio_help = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Patio Assessment Attributes</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    h2 {
-      color: #2c3e50;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    caption {
-      caption-side: top;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
-</head>
-<body>
-  <h2>Patio Assessment Attributes</h2>
-  <p>For patio assessment, the JSON file must contain the following attributes:</p>
-  <table>
-    <thead>
-      <tr>
-        <th>Attribute Name</th>
-        <th>Description</th>
-        <th>Valid Options</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>development</td><td>Type of development</td><td>patio</td></tr>
-      <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
-      <tr><td>structure_type</td><td>New development or replacing existing structure?</td><td>new, replacement</td></tr>
-      <tr><td>height_existing</td><td>Height of existing structure from ground level (in meters)</td><td>numeric</td></tr>
-      <tr><td>material_quality</td><td>Will the structure use equivalent or better quality materials?</td><td>yes, no</td></tr>
-      <tr><td>same_size</td><td>Will the structure be the same height and size as existing?</td><td>yes, no</td></tr>
-      <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
-      <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
-      <tr><td>area</td><td>Planned area of structure (in m²)</td><td>numeric</td></tr>
-      <tr><td>land_size</td><td>Land size (in m²)</td><td>numeric</td></tr>
-      <tr><td>total_structures_area</td><td>Total area of planned + existing structures (in m²)</td><td>numeric</td></tr>
-      <tr><td>wall_height</td><td>Will any wall exceed 1.4m in height?</td><td>yes, no</td></tr>
-      <tr><td>behind_building_line</td><td>Is the structure behind the building line of road frontage?</td><td>yes, no</td></tr>
-      <tr><td>boundary_distance</td><td>Distance from site boundary (in mm)</td><td>numeric</td></tr>
-      <tr><td>metal</td><td>Will the structure use metal components?</td><td>yes, no</td></tr>
-      <tr><td>reflective</td><td>Are metal components non-reflective or factory coloured?</td><td>yes, no</td></tr>
-      <tr><td>floor_height</td><td>Floor height from ground level (in mm)</td><td>numeric</td></tr>
-      <tr><td>roof</td><td>Will the structure have a roof?</td><td>yes, no</td></tr>
-      <tr><td>overhang</td><td>Roof overhang on any side (in mm)</td><td>numeric</td></tr>
-      <tr><td>attached</td><td>Will the roof be attached to the dwelling?</td><td>yes, no</td></tr>
-      <tr><td>above_gutter</td><td>Will the roof extend above the gutter line?</td><td>yes, no</td></tr>
-      <tr><td>roof_height</td><td>Roof height above ground level (in meters)</td><td>numeric</td></tr>
-      <tr><td>fascia_connection</td><td>Will the roof be connected to fascia?</td><td>yes, no</td></tr>
-      <tr><td>engineer_spec</td><td>Will it be connected per engineers specs?</td><td>yes, no</td></tr>
-      <tr><td>stormwater</td><td>Will roofwater be disposed into existing stormwater system?</td><td>yes, no</td></tr>
-      <tr><td>drainage</td><td>Will the structure interfere with existing drainage or flow paths?</td><td>yes, no</td></tr>
-      <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
-      <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
-      <tr><td>non_combustible</td><td>Will the patio be constructed of non-combustible materials?</td><td>yes, no</td></tr>
-    </tbody>
-  </table>
-</body>
-</html>
-"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <title>Patio Assessment Attributes</title>
+        <style>
+            body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            }
+            h2 {
+            color: #2c3e50;
+            }
+            table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            }
+            th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            }
+            th {
+            background-color: #f4f4f4;
+            }
+            caption {
+            caption-side: top;
+            font-weight: bold;
+            margin-bottom: 10px;
+            }
+        </style>
+        </head>
+        <body>
+        <h2>Patio Assessment Attributes</h2>
+        <p>For patio assessment, the JSON file must contain the following attributes:</p>
+        <table>
+            <thead>
+            <tr>
+                <th>Attribute Name</th>
+                <th>Description</th>
+                <th>Valid Options</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>address</td><td>Address of development</td><td></td></tr>
+            <tr><td>development</td><td>Type of development</td><td>patio</td></tr>
+            <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
+            <tr><td>structure_type</td><td>New development or replacing existing structure?</td><td>new, replacement</td></tr>
+            <tr><td>height_existing</td><td>Height of existing structure from ground level (in meters)</td><td>numeric</td></tr>
+            <tr><td>material_quality</td><td>Will the structure use equivalent or better quality materials?</td><td>yes, no</td></tr>
+            <tr><td>same_size</td><td>Will the structure be the same height and size as existing?</td><td>yes, no</td></tr>
+            <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
+            <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
+            <tr><td>area</td><td>Planned area of structure (in m²)</td><td>numeric</td></tr>
+            <tr><td>land_size</td><td>Land size (in m²)</td><td>numeric</td></tr>
+            <tr><td>total_structures_area</td><td>Total area of planned + existing structures (in m²)</td><td>numeric</td></tr>
+            <tr><td>wall_height</td><td>Will any wall exceed 1.4m in height?</td><td>yes, no</td></tr>
+            <tr><td>behind_building_line</td><td>Is the structure behind the building line of road frontage?</td><td>yes, no</td></tr>
+            <tr><td>boundary_distance</td><td>Distance from site boundary (in mm)</td><td>numeric</td></tr>
+            <tr><td>metal</td><td>Will the structure use metal components?</td><td>yes, no</td></tr>
+            <tr><td>reflective</td><td>Are metal components non-reflective or factory coloured?</td><td>yes, no</td></tr>
+            <tr><td>floor_height</td><td>Floor height from ground level (in mm)</td><td>numeric</td></tr>
+            <tr><td>roof</td><td>Will the structure have a roof?</td><td>yes, no</td></tr>
+            <tr><td>overhang</td><td>Roof overhang on any side (in mm)</td><td>numeric</td></tr>
+            <tr><td>attached</td><td>Will the roof be attached to the dwelling?</td><td>yes, no</td></tr>
+            <tr><td>above_gutter</td><td>Will the roof extend above the gutter line?</td><td>yes, no</td></tr>
+            <tr><td>roof_height</td><td>Roof height above ground level (in meters)</td><td>numeric</td></tr>
+            <tr><td>fascia_connection</td><td>Will the roof be connected to fascia?</td><td>yes, no</td></tr>
+            <tr><td>engineer_spec</td><td>Will it be connected per engineers specs?</td><td>yes, no</td></tr>
+            <tr><td>stormwater</td><td>Will roofwater be disposed into existing stormwater system?</td><td>yes, no</td></tr>
+            <tr><td>drainage</td><td>Will the structure interfere with existing drainage or flow paths?</td><td>yes, no</td></tr>
+            <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
+            <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
+            <tr><td>non_combustible</td><td>Will the patio be constructed of non-combustible materials?</td><td>yes, no</td></tr>
+            </tbody>
+        </table>
+        </body>
+        </html>
+        """
 
-
-
+    # Run the API
     #app.run(debug=True)
     app.run()
-
-
-
-
 
 
 
