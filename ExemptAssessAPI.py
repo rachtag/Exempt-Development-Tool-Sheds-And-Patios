@@ -409,10 +409,10 @@ def API_assessment_help():
     return get_shed_help + get_patio_help
 
 # Define route to retrieve and display all logged assessments from the database in a simple HTML table
-@app.route('/get-logging-db/', methods=['GET'])
+@app.route("/get-logging-db/", methods=["GET"])
 def get_logging_db():
     # Connect to the SQLite database
-    conn = sqlite3.connect('assessments.db')
+    conn = sqlite3.connect("assessments.db")
     cursor = conn.cursor()
 
     # Fetch all rows from the assessments table
