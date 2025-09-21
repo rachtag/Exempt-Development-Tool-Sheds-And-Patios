@@ -1,6 +1,38 @@
 const input = document.getElementById('address');
 const resultsDiv = document.getElementById('results');
 
+// --- Configurable list of allowed postcodes ---
+const PostCodes = ["2640", "2641", "3691"];
+
+// --- Fetch property info from backend ---
+async function fetchPropertyInfo(address) {
+  try {
+    const response = await fetch("/address-info", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("Error:", data.error);
+      return;
+    }
+
+    // Populate form fields
+    if (data.zoning) document.getElementById("zoning").value = data.zoning;
+    if (data.heritage) document.getElementById("heritage").value = data.heritage.toLowerCase();
+    if (data.bushfire) document.getElementById("bushfire").value = data.bushfire.toLowerCase();
+    if (data.sensitive_area) document.getElementById("sensitive_area").value = data.sensitive_area.toLowerCase();
+    if (data.land_size) document.getElementById("land_size").value = data.land_size;
+
+  } catch (err) {
+    console.error("Fetch to backend failed", err);
+  }
+}
+
+// --- Autocomplete handler ---
 input.addEventListener('input', async () => {
   const query = input.value.trim();
   resultsDiv.innerHTML = '';
@@ -16,7 +48,7 @@ input.addEventListener('input', async () => {
     const data = await response.json();
 
     data
-      .filter(item => item.address.endsWith("2640") || item.address.endsWith("2641"))
+      .filter(item => PostCodes.some(pc => item.address.endsWith(pc)))
       .forEach(item => {
         const div = document.createElement('div');
         div.className = 'item';
@@ -25,11 +57,12 @@ input.addEventListener('input', async () => {
         div.onclick = () => {
           input.value = item.address;
           resultsDiv.innerHTML = '';
+          fetchPropertyInfo(item.address); // fetch attributes immediately
         };
 
         resultsDiv.appendChild(div);
       });
   } catch (err) {
-    console.error("Fetch failed", err);
+    console.error("Autocomplete fetch failed", err);
   }
 });

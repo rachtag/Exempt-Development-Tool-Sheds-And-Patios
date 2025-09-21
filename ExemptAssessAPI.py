@@ -135,7 +135,7 @@ def parse_float(value, default=0.0):
         return default
 
 
-def patio_check():
+def patio_check(attributes):
     """ This function provides the rule-set for Exempt Development of a Patio under the SEPP
         returning a strings indicating if the proposed development is Exempt or if not, returning
         a list of strings indicating reasons for Not Exempt under SEPP"""
@@ -201,7 +201,7 @@ def patio_check():
             relevant_sections.append("sec.2.12 (1)(f)(ii)")
 
         if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
-            results.append("The structure must be at least 5m from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
+            results.append("The structure must be at least 5000mm from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.12 (1)(f)(i)")
 
         if attributes["metal"] == "yes":
@@ -241,7 +241,7 @@ def patio_check():
             relevant_sections.append("sec.2.12 (1)(m)") 
 
         if attributes["bushfire"] == "yes":
-            if attributes["distance_dwelling"] < 5:
+            if attributes["distance_dwelling"] < 5000:
                 if attributes["non_combustible"] == "no":
                     results.append("The bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions:")
                     relevant_sections.append("sec.2.12 (1)(n)")
@@ -263,7 +263,7 @@ def patio_check():
         return results, relevant_sections, context
 
 
-def shed_check():
+def shed_check(attributes):
     """ This function provides the rule-set for Exempt Development of a Shed under the SEPP
         returning a strings indicating if the proposed development is Exempt or if not, returning
         a list of strings indicating reasons for Not Exempt under SEPP"""
@@ -333,7 +333,7 @@ def shed_check():
                 relevant_sections.append("sec.2.18 (1)(h)")
 
         if attributes["bushfire"] == "yes":
-            if attributes["distance_dwelling"] < 5:
+            if attributes["distance_dwelling"] < 5000:
                 if attributes["non_combustible"] == "no":
                     results.append("The bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions:")
                     relevant_sections.append("sec.2.18 (1)(i)")
@@ -381,11 +381,140 @@ from flask import render_template_string
 from assessment_db import AssessmentDB
 import sqlite3
 import json
+from flask_cors import CORS
+import requests
+
+# === ArcGIS API Key and URLs ===
+API_KEY = "AAPTxy8BH1VEsoebNVZXo8HurHzfgxLVkHjpJSI16IyXF90a3frVQP6JnfRorQv4SIpDR3qW1FbrjDIwnCCnm5s7uaqa_PHWPTxsM9KUyJWdbAb3fr9OtXJ3joDuZ2AZF_JlRVgKOQN_u_p9__ShFAVsX5wQxp2keNqhclFtAijUlwRvDsMbxRwdDbjUHoG2jfYRDpsh8-fPEEK6GhAoJSORSRIRkhb3bUQQ3AZtwa6qY_k.AT1_CtpJzaOC"
+
+GEOCODE_URL = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+ZONING_URL = "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Primary_Planning_Layers/MapServer/2/query"
+HERITAGE_URL = "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Primary_Planning_Layers/MapServer/0/query"
+BUSHFIRE_URL = "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Fire/BFPL/MapServer/0/query"
+FBL_URL = "https://mapprod1.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Development_Control_Layers/MapServer/1/query"
+FEATURESERVER_URL = "https://services1.arcgis.com/UytyQvWmxkbjUtjg/arcgis/rest/services/Property_Boundaries/FeatureServer/5/query"
+BIODIVERSITY_URL = "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/ePlanning/BiodiversityValuesMap/MapServer/1/query"
+
+def safe_bool(val):
+    return "yes" if str(val).lower() == "yes" else "no"
+
+
+
+
+# === Helper functions ===
+def get_coordinates(address):
+    params = {"f": "json", "singleLine": address, "outFields": "Match_addr,Addr_type", "token": API_KEY}
+    response = requests.get(GEOCODE_URL, params=params, timeout=10).json()
+    if "candidates" in response and response["candidates"]:
+        best = response["candidates"][0]
+        return best["address"], best["location"]["x"], best["location"]["y"]
+    return None, None, None
+
+
+def get_zoning(x, y):
+    params = {
+        "geometry": json.dumps({"x": x, "y": y}),
+        "geometryType": "esriGeometryPoint",
+        "inSR": 4326,
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "SYM_CODE",
+        "f": "json"
+    }
+    data = requests.get(ZONING_URL, params=params, timeout=10).json()
+    if "features" in data and data["features"]:
+        return data["features"][0]["attributes"].get("SYM_CODE", "N/A")
+    return None
+
+
+def get_heritage(x, y):
+    params = {
+        "geometry": json.dumps({"x": x, "y": y}),
+        "geometryType": "esriGeometryPoint",
+        "inSR": 4326,
+        "spatialRel": "esriSpatialRelIntersects",
+        "f": "json"
+    }
+    data = requests.get(HERITAGE_URL, params=params, timeout=10).json()
+    return "Yes" if data.get("features") else "No"
+
+
+def get_lot_size(address):
+    geo_params = {"SingleLine": address, "f": "json", "token": API_KEY}
+    geo_res = requests.get(GEOCODE_URL, params=geo_params, timeout=10).json()
+    if not geo_res.get("candidates"):
+        return None
+    candidate = geo_res["candidates"][0]
+    x, y = candidate["location"]["x"], candidate["location"]["y"]
+
+    params = {
+        "geometry": f"{x},{y}",
+        "geometryType": "esriGeometryPoint",
+        "inSR": 4326,
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "*",
+        "f": "json"
+    }
+    res = requests.get(FEATURESERVER_URL, params=params, timeout=10).json()
+    if not res.get("features"):
+        return None
+    feature = res["features"][0]["attributes"]
+    lot_size = feature.get("LOT_SIZE") or feature.get("AREA_SQM") or feature.get("Shape__Area")
+    units = (feature.get("UNITS") or "").lower()
+    if lot_size:
+        return round(lot_size * 10000) if "ha" in units else round(lot_size)
+    return None
+
+
+def get_bushfire(x, y):
+    params = {
+        "geometry": json.dumps({"x": x, "y": y}),
+        "geometryType": "esriGeometryPoint",
+        "inSR": 4326,
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "Category",
+        "f": "json"
+    }
+    data = requests.get(BUSHFIRE_URL, params=params, timeout=10).json()
+    if "features" in data and data["features"]:
+        return "Yes"
+    return "No"
+
+
+def get_foreshore(x, y):
+    params = {
+        "geometry": json.dumps({"x": x, "y": y}),
+        "geometryType": "esriGeometryPoint",
+        "inSR": 4326,
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "MAP_TYPE",
+        "f": "json"
+    }
+    data = requests.get(FBL_URL, params=params, timeout=10).json()
+    if "features" in data:
+        for f in data["features"]:
+            if f["attributes"].get("MAP_TYPE") == "FBL":
+                return "Yes"
+    return "No"
+
+
+def get_biodiversity(x, y):
+    params = {
+        "geometry": f"{x},{y}",
+        "geometryType": "esriGeometryPoint",
+        "inSR": "4326",
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "BV_Category",
+        "f": "json"
+    }
+    data = requests.get(BIODIVERSITY_URL, params=params, timeout=10).json()
+    if data.get("features"):
+        return "Yes"
+    return "No"
 
 # Create API
 # Initialize Flask application instance
 app = Flask(__name__)
-
+CORS(app)
 # Define route for homepage; serves the main HTML form interface for shed/patio assessment
 @app.route("/")
 def index():
@@ -393,20 +522,60 @@ def index():
     return render_template("index.html")
 
 # Define route page to return assessment results based on user input via POST or provide help info via GET
+@app.route("/address-info", methods=["POST"])
+def address_info():
+    address = request.json.get("address")
+    if not address:
+        return jsonify({"error": "No address provided"}), 400
+
+    full_addr, x, y = get_coordinates(address)
+    
+
+    if not x or not y:
+        return jsonify({"error": "Address not found"}), 404
+
+    result = {
+        "address": full_addr,
+        "zoning": get_zoning(x, y) or "N/A",
+        "heritage": get_heritage(x, y),
+        "land_size": get_lot_size(address) or "Unknown",
+        "bushfire": get_bushfire(x, y),
+        "foreshore": get_foreshore(x, y),
+        "sensitive_area": get_biodiversity(x, y)
+    }
+    return jsonify(result)
 
 @app.route("/get-assessment-result/", methods=["POST"])
 def API_assessment():
     # Store incoming attributes globally for access across functions
-    global attributes 
+    #global attributes 
     # Parse JSON payload from frontend form submission
-    attributes = request.get_json()
+    attributes = request.get_json(force=True)
     # Pass attributes to assessment engine and return result
-    return Assess(attributes)
+    # Debug print/log all received attributes
 
+    # print(" DEBUG: Received JSON attributes from frontend:")
+    # print(json.dumps(attributes, indent=4))
+
+    #return Assess(attributes)
+    result = Assess(attributes)
+
+    # print(" DEBUG: Assessment engine output:")
+    # for line in result:
+    #     print(line)
+
+
+
+    return "\n".join(result)    
 @app.route("/get-assessment-help/", methods=["GET"])
 def API_assessment_help():
     # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
-    return get_shed_help + get_patio_help
+    #return get_shed_help + get_patio_help
+    return f"{get_shed_help}{get_patio_help}"
+
+
+
+
 
 # Define route to retrieve and display all logged assessments from the database in a simple HTML table
 @app.route("/get-logging-db/", methods=["GET"])
@@ -472,33 +641,44 @@ def Assess(attributes):
 
     # Extract address for logging or future audit trail (default fallback if missing)
     address = attributes.get("address", "No address provided")
-    
-    # Do some basic validation of input attributes
+    #Get resolved address and coordinates from address
+    full_addr, x, y = get_coordinates(address) if address else (None, None, None)
+
+    # Store them back into attributes for logging
+    attributes["resolved_address"] = full_addr
+    attributes["coordinate_x"] = x
+    attributes["coordinate_y"] = y
+
+
+    # Define numeric fields that should always be cast to float
+    numeric_fields = [
+        "area", "height", "boundary_distance", "height_existing", "land_size",
+        "total_structures_area", "floor_height", "overhang", "roof_height", "distance_dwelling"
+    ]
+
+    # Validate and normalise all attributes
     for attrib in attributes:
-        # Normalise string inputs to lowercase and strip whitespace (except zoning which should be uppercase)
-        if isinstance(attributes[attrib], str):
-            if attrib == "zoning":  # Zones should be in capital letters
+        if attrib in numeric_fields:
+            attributes[attrib] = parse_float(attributes[attrib], default=0.0)
+        elif isinstance(attributes[attrib], str):
+            if attrib == "zoning":  # Zones should be uppercase
                 attributes[attrib] = attributes[attrib].upper().strip()
             else:
-                attributes[attrib] = attributes[attrib].lower().strip() 
-            
-        # Validate numeric inputs, defaulting to 0.0 if invalid or missing
+                attributes[attrib] = attributes[attrib].lower().strip()
         elif isinstance(attributes[attrib], (int, float)):
-            attributes[attrib] = parse_float(attributes[attrib], default=0.0)   
-        else:
-            # For any other data types, retain the original value
-            attributes[attrib] = attributes[attrib]
-        # Default any missing string attributes to "no" for binary yes/no fields
+            attributes[attrib] = float(attributes[attrib])
+
+        # Default empty strings to "no" for yes/no fields
         if attributes[attrib] == "":
             attributes[attrib] = "no"
 
     # Route to appropriate rules engine based on development type
     if attributes["development"] == "patio":
         # Applies patio-specific rules from schema
-        result, relevant_sections, context = patio_check()  
+        result, relevant_sections, context = patio_check(attributes)
     elif attributes["development"] == "shed":
         # Applies shed-specific rules from schema
-        result, relevant_sections, context = shed_check()
+        result, relevant_sections, context = shed_check(attributes)
     else:
         # Handle invalid development type with fallback messaging and context flag
         result, relevant_sections, context = ["The development type is not supported."], ["Please use 'shed' or 'patio' as the development type."], "Invalid"
@@ -536,7 +716,10 @@ def Assess(attributes):
     db.save_assessment(
         context = context,
         input_json = json.dumps(attributes_received),
-        response_json = json.dumps({"result": full_result})
+        response_json = json.dumps({"result": full_result}),
+        resolved_address=full_addr,
+        coordinate_x=x,
+        coordinate_y=y
         )
 
     db.close()
