@@ -425,24 +425,43 @@ function handleSubmit() {
     payload.deck_size_change     = valFrom(p, "#deck_size_change");
   }
 
-  fetch("/get-assessment-result/", {
+    fetch("/get-assessment-result/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
-  })
+    })
     .then(function (res) { return res.text(); })
-    .then(function (text) {
-      var summary = buildSummary(payload);
-      var output = "Your answers\n------------\n" + summary +
-        "\n\nAssessment result\n-----------------\n" + (text.trim() || "(no response)");
-      resultPre.textContent = output;
-      showDownloadIfReady();
+    .then(function (raw) {
+        var summary = buildSummary(payload);
+
+        // Build a nice-looking combined output:
+        // We use innerHTML so links are clickable, but preserve a simple text section for answers.
+        var answersBlock =
+        "Your answers\n------------\n" + summary;
+
+        var assessmentTitle =
+        "\n\nAssessment result\n-----------------\n";
+
+        // Beautify the server response (bullets + clickable links)
+        var assessmentHtml = formatAssessmentHtml(raw);
+
+        resultPre.innerHTML =
+        answersBlock.replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;") // escape answers (plain text)
+        + assessmentTitle.replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+        + assessmentHtml; // already HTML with links
+
+        showDownloadIfReady();
     })
     .catch(function (err) {
-      console.error(err);
-      resultPre.textContent = "An error occurred while submitting. Please try again.";
-      showDownloadIfReady();
+        console.error(err);
+        resultPre.textContent = "An error occurred while submitting. Please try again.";
+        showDownloadIfReady();
     });
+
 }
 
 // ======== SIMPLE READ HELPERS ========
@@ -461,11 +480,12 @@ function buildSummary(obj) {
   var lines = [];
   for (var k in obj) {
     var v = obj[k];
-    if (v === "" || v === null || v === undefined) v = "(not specified)";
+    if (v === "" || v === null || v === undefined) continue; 
     lines.push("• " + k + ": " + v);
   }
   return lines.join("\n");
 }
+
 
 function showDownloadIfReady() {
   if ((resultPre.textContent || "").trim()) {
@@ -556,4 +576,66 @@ function hideFieldAndClear(section, selector) {
   var f = fieldOf(el);
   if (f) hide(f);
   el.value = "";
+}
+
+
+// ======== ASSESSMENT RESULT ========
+
+// Turn URLs into clickable <a> tags
+function autoLink(text) {
+  var urlRe = /(https?:\/\/[^\s<>"']+)/g;
+  return text.replace(urlRe, function(url) {
+    var safe = url.replace(/"/g, "&quot;");
+    return '<a href="' + safe + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+  });
+}
+
+// Accept raw server text; if it's a JSON array, format into bullets with links.
+function formatAssessmentHtml(raw) {
+  var arr = null;
+
+  // Try parse as JSON array
+  try {
+    var parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) arr = parsed.map(String);
+  } catch (_) {}
+
+  // If not JSON array, fall back to splitting lines
+  if (!arr) {
+    arr = String(raw).split(/\r?\n/).filter(Boolean);
+  }
+
+  if (!arr.length) return "(no response)";
+
+  // The first line is usually a headline; keep it as a standalone line (no bullet)
+  var lines = [];
+  var first = arr[0] || "";
+  var rest  = arr.slice(1);
+
+  // Build bullet-y lines; when a line is just a URL, append it to the previous line
+  var buffer = [];
+  for (var i = 0; i < rest.length; i++) {
+    var s = (rest[i] || "").trim();
+    if (!s) continue;
+
+    var isUrl = /^https?:\/\//i.test(s);
+    if (isUrl && buffer.length) {
+      // glue link to previous item
+      buffer[buffer.length - 1] += " " + s;
+    } else {
+      buffer.push("- " + s);
+    }
+  }
+
+  var gap = "<br><br>"; // extra space between bullets
+
+  // Auto-link and join with <br> to keep compatibility with <pre>
+  var html = "";
+  if (first.trim()) {
+    html += autoLink(first) + "<br>";
+  }
+  if (buffer.length) {
+    html += autoLink(buffer.join("<br>"));
+  }
+  return html || "(no response)";
 }
