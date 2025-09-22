@@ -10,261 +10,461 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <div class="section">
-    <h1>Exempt Development Assessment - Sheds and Patios</h1>
-    <h4>Check if your shed or patio in Albury City qualifies as exempt development and can be built without council approval.</h4>
-  </div>
- <!-- Address section -->
- <div class="section">
-  <p>Please ensure your property is within Albury City before continuing.</p>
-   <label for="address">Enter the property address:</label>
-   <div class="address-container">
-     <input type="text" id="address" placeholder="553 Kiewa St, Albury NSW 2640">
-     <div id="results"></div>
-   </div>
-  </div>
-  <!-- Development type -->
-  <div class="section">
-    <label for="development">Please select the type of structure you are planning to build:</label>
-    <select id="development">
-      <option value="">-- Select --</option>
-      <option value="shed">Shed</option>
-      <option value="patio">Patio</option>
-    </select>
-  </div>
+  <header class="header">
+    <div class="container">
+      <h1 class="title">Exempt Development Assessment</h1>
+      <p class="subtitle">Sheds &amp; Patios — Albury City</p>
+      <p class="lead">
+        Check if your shed or patio qualifies as exempt development and can be built without council approval.
+      </p>
+    </div>
+  </header>
 
-  <!-- Common fields -->
-  <div class="section">
-    <p>If you are unsure about your property’s zoning, heritage status, or foreshore location, you can check it on the <a href="https://www.planningportal.nsw.gov.au/" target="_blank">NSW Planning Portal</a>.</p>
-    <label for="zoning">Which zoning applies to your property?</label>
-    <select id="zoning">
-      <option value="">-- Select --</option>
-      <option>R1</option><option>R2</option><option>R3</option><option>R4</option><option>R5</option>
-      <option>RU1</option><option>RU2</option><option>RU3</option><option>RU4</option><option>RU6</option>
-    </select>
+  <main class="container">
+    <!-- Address section -->
+    <section class="section card">
+      <h2 class="section-title">Property</h2>
+      <p class="muted">
+        Please ensure your property is within Albury City before continuing.
+      </p>
+      <div class="form-grid">
+        <div class="field">
+          <label for="address" class="label">Property address</label>
+          <input type="text" id="address" class="input" placeholder="553 Kiewa St, Albury NSW 2640">
+          <div id="results" class="autocomplete-results"></div>
+        </div>
+      </div>
+    </section>
 
-    <label>Is the property a heritage item?
-      <select id="heritage"><option>no</option><option>yes</option></select>
-    </label>
+    <!-- Development type -->
+    <section class="section card">
+      <h2 class="section-title">Development Type</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="development" class="label">What are you planning to build?</label>
+          <select id="development" class="select">
+            <option value="">-- Select --</option>
+            <option value="shed">Shed</option>
+            <option value="patio">Patio</option>
+          </select>
+        </div>
+      </div>
+    </section>
 
-    <label>Is the property in a foreshore area?
-      <select id="foreshore"><option>no</option><option>yes</option></select>
-    </label>
+    <!-- Common fields -->
+    <section class="section card">
+      <h2 class="section-title">Site Details</h2>
+      <p class="muted">
+        Unsure about zoning, heritage status, or foreshore? Check the
+        <a class="link" href="https://www.planningportal.nsw.gov.au/" target="_blank" rel="noopener">NSW Planning Portal</a>.
+      </p>
 
-    <!-- Only used for sheds -->
-    <label id="sensitive-area-label" class="hidden">Is the property in an environmentally sensitive area?
-      <select id="sensitive_area"><option>no</option><option>yes</option></select>
-    </label>
-  </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="zoning" class="label">Zoning</label>
+          <select id="zoning" class="select">
+            <option value="">-- Select --</option>
+            <option>R1</option><option>R2</option><option>R3</option><option>R4</option><option>R5</option>
+            <option>RU1</option><option>RU2</option><option>RU3</option><option>RU4</option><option>RU6</option>
+          </select>
+        </div>
 
-  <!-- Shed fields -->
-  <div id="shed-fields" class="section hidden">
-    <h2>Shed Details</h2>
-    <label>Planned shed area (in square metres, m²): <input type="number" id="area"></label>
-    <label>Planned shed height (in metres, m): <input type="number" step="0.1" id="height"></label>
-    <label>Distance from the property boundary (in millimetres, mm): <input type="number" id="boundary_distance"></label>
-    <label>Will the shed be located behind the building line?
-      <select id="building_line"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Is the shed a shipping container?
-      <select id="shipping_container"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Will the roofwater be disposed of into an existing stormwater drainage system?
-      <select id="stormwater"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Does the shed use metal components?
-      <select id="metal"><option>no</option><option>yes</option></select>
-    </label>
-    <label>If metal, are the components low-reflective or factory pre-coloured?
-      <select id="reflective"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Is the property on bushfire prone land?
-      <select id="bushfire"><option>no</option><option>yes</option></select>
-    </label>
-    <label>What will be the distance from the dwelling on the lot (in metres, m)?<input type="number" id="distance_dwelling"></label>
-    <label>Will the shed be constructed of non-combustible materials?
-      <select id="non_combustible"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Will the shed be adjacent to an existing building?
-      <select id="adjacent_building"><option>no</option><option>yes</option></select>
-    </label>
-    <label>If adjacent, will the shed interfere with entry/exit or fire safety measures of an adjacent building?
-      <select id="interfere"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Is the shed planned to be habitable?
-      <select id="habitable"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Will the shed be within 1 metre of a registered easement?
-      <select id="easement"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Will the shed have water or sewer connections?
-      <select id="services"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Are there already two of the following on the lot: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses?
-      <select id="existing_structures"><option>no</option><option>yes</option></select>
-    </label>
-  </div>
+        <div class="field">
+          <label class="label" for="heritage">Is the property a heritage item?</label>
+          <select id="heritage" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option>
+            <option>yes</option>
+          </select>
+        </div>
 
-  <!-- Patio fields -->
-  <div id="patio-fields" class="section hidden">
-    <h2>Patio Details</h2>
-    <label>Will this be a new development or are you replacing an existing structure?
-      <select id="structure_type"><option>new</option><option>replacement</option></select>
-    </label>
-    <label>What is the height of the existing structure from ground level (in metres, m): <input type="number" step="0.1" id="height_existing"></label>
-    <label>Will the new structure use equivalent or better quality materials?
-      <select id="material_quality"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Will the new structure be the same height and size as the existing?
-      <select id="same_size"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Planned patio area (in square metres, m²): <input type="number" id="area"></label>
-    <label>What is the property lot size (in square metres, m²): <input type="number" id="land_size"></label>
-    <label>>What is the total area of the planned + existing structures on the site (in square metres, m²): <input type="number" id="total_structures_area"></label>
-    <label>Will any wall exceed 1.4 metres in height?
-      <select id="wall_height"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Will the patio be located behind the building line?
-      <select id="behind_building_line"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Distance from the property boundary (in millimetres, mm): <input type="number" id="boundary_distance"></label>
-    <label>Does the patio use metal components?
-      <select id="metal"><option>no</option><option>yes</option></select>
-    </label>
-    <label>If metal, are the components low-reflective or factory pre-coloured?
-      <select id="reflective"><option>yes</option><option>no</option></select>
-    </label>
-    <label>What will be the floor height from ground level (in millimetres, mm)? <input type="number" id="floor_height"></label>
-    <label>Will the structure have a roof?
-      <select id="roof"><option>yes</option><option>no</option></select>
-    </label>
-    <label>What will be the roof overhang (in millimetres, mm)? <input type="number" id="overhang"></label>
-    <label>Does the roof attach to the dwelling?
-      <select id="attached"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Does the roof extend above the gutter line?
-      <select id="above_gutter"><option>no</option><option>yes</option></select>
-    </label>
-    <label>What will be the roof height (in metres, m)? <input type="number" step="0.1" id="roof_height"></label>
-    <label>Will the roof be connected to the fascia?
-      <select id="fascia_connection"><option>no</option><option>yes</option></select>
-    </label>
-    <label>If connected, is this as per engineer specs?
-      <select id="engineer_spec"><option>yes</option><option>no</option></select>
-    </label>
-    <label>Will the roofwater be disposed of into an existing stormwater drainage system?
-      <select id="stormwater"><option>yes</option><option>no</option></select>
-    </label>
-    <label>>Will the structure interfere with existing drainage or flow paths?
-      <select id="drainage"><option>no</option><option>yes</option></select>
-    </label>
-    <label>Is the property on bushfire prone land?
-      <select id="bushfire"><option>no</option><option>yes</option></select>
-    </label>
-    <label>What will be the distance from the dwelling on the lot (in metres, m)? <input type="number" id="distance_dwelling"></label>
-    <label>Will the patio be constructed of non-combustible materials?
-      <select id="non_combustible"><option>yes</option><option>no</option></select>
-    </label>
-  </div>
+        <div class="field">
+          <label class="label" for="foreshore">Is the property in a foreshore area?</label>
+          <select id="foreshore" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option>
+            <option>yes</option>
+          </select>
+        </div>
 
-  <!-- Submit -->
-  <button id="submit">Submit</button>
+        <!-- Only used for sheds -->
+        <div class="field full" id="sensitive-area-label" class="hidden">
+          <label class="label" for="sensitive_area">Is the property in an environmentally sensitive area?</label>
+          <select id="sensitive_area" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option>
+            <option>yes</option>
+          </select>
+        </div>
+      </div>
+    </section>
 
-  <!-- Result -->
-  <div class="section">
-    <h2>Result</h2>
-    <pre id="result"></pre>
-  </div>
+    <!-- Shed fields -->
+    <section id="shed-fields" class="section card hidden">
+      <h2 class="section-title">Shed Details</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label class="label" for="area">Planned shed area (m²)</label>
+          <input type="number" id="area" class="input">
+        </div>
 
-<script>
-const devSelect = document.getElementById("development");
-const shedFields = document.getElementById("shed-fields");
-const patioFields = document.getElementById("patio-fields");
-const sensitiveLabel = document.getElementById("sensitive-area-label");
+        <div class="field">
+          <label class="label" for="height">Planned shed height (m)</label>
+          <input type="number" step="0.1" id="height" class="input">
+        </div>
 
-devSelect.addEventListener("change", () => {
-  shedFields.classList.add("hidden");
-  patioFields.classList.add("hidden");
-  sensitiveLabel.classList.add("hidden");
-  if (devSelect.value === "shed") {
-    shedFields.classList.remove("hidden");
-    sensitiveLabel.classList.remove("hidden");
-  }
-  if (devSelect.value === "patio") {
-    patioFields.classList.remove("hidden");
-  }
-});
+        <div class="field">
+          <label class="label" for="boundary_distance">Distance from property boundary (mm)</label>
+          <input type="number" id="boundary_distance" class="input">
+        </div>
 
-document.getElementById("submit").addEventListener("click", async () => {
-  const dev = devSelect.value;
-  if (!dev) { alert("Select development type"); return; }
+        <div class="field">
+          <label class="label" for="building_line">Located behind the building line?</label>
+          <select id="building_line" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
 
-  let payload = { development: dev, zoning: document.getElementById("zoning").value };
+        <div class="field">
+          <label class="label" for="shipping_container">Is the shed a shipping container?</label>
+          <select id="shipping_container" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
 
-  payload["address"] = document.getElementById("address").value;
-  payload["heritage"] = document.getElementById("heritage").value;
-  payload["foreshore"] = document.getElementById("foreshore").value;
-  if (dev === "shed") payload["sensitive_area"] = document.getElementById("sensitive_area").value;
+        <div class="field">
+          <label class="label" for="stormwater">Roofwater to existing stormwater?</label>
+          <select id="stormwater" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
 
-  // Sheds
-  if (dev === "shed") {
-    payload["area"] = Number(document.getElementById("area").value);
-    payload["height"] = Number(document.getElementById("height").value);
-    payload["boundary_distance"] = Number(document.getElementById("boundary_distance").value);
-    payload["building_line"] = document.getElementById("building_line").value;
-    payload["shipping_container"] = document.getElementById("shipping_container").value;
-    payload["stormwater"] = document.getElementById("stormwater").value;
-    payload["metal"] = document.getElementById("metal").value;
-    payload["reflective"] = document.getElementById("reflective").value;
-    payload["bushfire"] = document.getElementById("bushfire").value;
-    payload["distance_dwelling"] = Number(document.getElementById("distance_dwelling").value);
-    payload["non_combustible"] = document.getElementById("non_combustible").value;
-    payload["adjacent_building"] = document.getElementById("adjacent_building").value;
-    payload["interfere"] = document.getElementById("interfere").value;
-    payload["habitable"] = document.getElementById("habitable").value;
-    payload["easement"] = document.getElementById("easement").value;
-    payload["services"] = document.getElementById("services").value;
-    payload["existing_structures"] = document.getElementById("existing_structures").value;
-  }
+        <div class="field">
+          <label class="label" for="metal">Uses metal components?</label>
+          <select id="metal" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
 
-  // Patios
-  if (dev === "patio") {
-    payload["structure_type"] = document.getElementById("structure_type").value;
-    payload["height_existing"] = Number(document.getElementById("height_existing").value);
-    payload["material_quality"] = document.getElementById("material_quality").value;
-    payload["same_size"] = document.getElementById("same_size").value;
-    payload["area"] = Number(document.getElementById("area").value);
-    payload["land_size"] = Number(document.getElementById("land_size").value);
-    payload["total_structures_area"] = Number(document.getElementById("total_structures_area").value);
-    payload["wall_height"] = document.getElementById("wall_height").value;
-    payload["behind_building_line"] = document.getElementById("behind_building_line").value;
-    payload["boundary_distance"] = Number(document.getElementById("boundary_distance").value);
-    payload["metal"] = document.getElementById("metal").value;
-    payload["reflective"] = document.getElementById("reflective").value;
-    payload["floor_height"] = Number(document.getElementById("floor_height").value);
-    payload["roof"] = document.getElementById("roof").value;
-    payload["overhang"] = Number(document.getElementById("overhang").value);
-    payload["attached"] = document.getElementById("attached").value;
-    payload["above_gutter"] = document.getElementById("above_gutter").value;
-    payload["roof_height"] = Number(document.getElementById("roof_height").value);
-    payload["fascia_connection"] = document.getElementById("fascia_connection").value;
-    payload["engineer_spec"] = document.getElementById("engineer_spec").value;
-    payload["stormwater"] = document.getElementById("stormwater").value;
-    payload["drainage"] = document.getElementById("drainage").value;
-    payload["bushfire"] = document.getElementById("bushfire").value;
-    payload["distance_dwelling"] = Number(document.getElementById("distance_dwelling").value);
-    payload["non_combustible"] = document.getElementById("non_combustible").value;
-  }
+        <div class="field">
+          <label class="label" for="reflective">Low-reflective / pre-coloured?</label>
+          <select id="reflective" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
 
-  const res = await fetch("/get-assessment-result/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const text = await res.text();
-  document.getElementById("result").textContent = text;
-});
-</script>
-<script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script> 
+        <div class="field">
+          <label class="label" for="bushfire">On bushfire prone land?</label>
+          <select id="bushfire" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="distance_dwelling">Distance from dwelling (m)</label>
+          <input type="number" id="distance_dwelling" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="non_combustible">Non-combustible materials?</label>
+          <select id="non_combustible" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="adjacent_building">Adjacent to an existing building?</label>
+          <select id="adjacent_building" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="interfere">Interfere with entry/exit or fire safety?</label>
+          <select id="interfere" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="habitable">Planned to be habitable?</label>
+          <select id="habitable" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="easement">Within 1 m of a registered easement?</label>
+          <select id="easement" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="services">Water or sewer connections?</label>
+          <select id="services" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label class="label" for="existing_structures">Already two of: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses?</label>
+          <select id="existing_structures" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Patio fields -->
+    <section id="patio-fields" class="section card hidden">
+      <h2 class="section-title">Patio Details</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label class="label" for="structure_type">New or replacement?</label>
+          <select id="structure_type" class="select">
+            <option value="">-- Select --</option>
+            <option>new</option><option>replacement</option>
+          </select>
+        </div>
+
+        <!-- Replacement-only questions -->
+        <div class="field hidden" id="field-deck-above-1m">
+          <label class="label" for="deck_above_1m">Deck is higher than 1m above the ground?</label>
+          <select class="select" id="deck_above_1m">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field hidden" id="field-materials-equivalent">
+          <label class="label" for="materials_equivalent">Uses equivalent or improved materials?</label>
+          <select class="select" id="materials_equivalent">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field hidden" id="field-deck-size-change">
+          <label class="label" for="deck_size_change">Changes the size or height of the existing deck?</label>
+          <select class="select" id="deck_size_change">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+
+
+        <div class="field">
+          <label class="label" for="height_existing">Existing structure height (m)</label>
+          <input type="number" step="0.1" id="height_existing" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="material_quality">Equivalent or better materials?</label>
+          <select id="material_quality" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="same_size">Same height &amp; size as existing?</label>
+          <select id="same_size" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="area">Planned patio area (m²)</label>
+          <input type="number" id="area" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="land_size">Lot size (m²)</label>
+          <input type="number" id="land_size" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="total_structures_area">Total planned + existing structures (m²)</label>
+          <input type="number" id="total_structures_area" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="wall_height">Any wall over 1.4 m?</label>
+          <select id="wall_height" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="behind_building_line">Behind building line?</label>
+          <select id="behind_building_line" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="boundary_distance">Distance from property boundary (mm)</label>
+          <input type="number" id="boundary_distance" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="metal">Uses metal components?</label>
+          <select id="metal" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="reflective">Low-reflective / pre-coloured?</label>
+          <select id="reflective" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="floor_height">Floor height more than 1m above level?</label>
+          <select id="floor_height" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="roof">Will the structure have a roof?</label>
+          <select id="roof" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="overhang">Roof overhang (mm)</label>
+          <input type="number" id="overhang" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="attached">Roof attached to dwelling?</label>
+          <select id="attached" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="above_gutter">Roof extends above gutter line?</label>
+          <select id="above_gutter" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="roof_height">Roof height (m)</label>
+          <input type="number" step="0.1" id="roof_height" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="fascia_connection">Connected to fascia?</label>
+          <select id="fascia_connection" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="engineer_spec">If connected, as per engineer specs?</label>
+          <select id="engineer_spec" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="stormwater">Roofwater connected to existing stormwater/drainage?</label>
+          <select id="stormwater" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="drainage">Interfere with drainage/flow paths?</label>
+          <select id="drainage" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="bushfire">On bushfire prone land?</label>
+          <select id="bushfire" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="distance_dwelling">Distance from dwelling (m)</label>
+          <input type="number" id="distance_dwelling" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label" for="non_combustible">Non-combustible materials?</label>
+          <select id="non_combustible" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option><option>yes</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="section card actions">
+      <div class="actions-bar">
+        <button id="submit" type="button" class="btn btn-primary">Submit</button>
+        <button id="reset" type="button" class="btn btn-ghost">New Assessment</button>
+      </div>
+    </section>
+
+    <!-- Result -->
+    <section class="section card">
+      <h2 class="section-title">Result</h2>
+      <pre id="result" class="result"></pre>
+      <button id="download-pdf" class="hidden">Download PDF</button>
+    </section>
+  </main>
+
+  <!-- Footer --> 
+  <footer class="footer">
+    <div class="container">
+      <p class="muted small">© Albury City · Exempt Development Checker</p>
+    </div>
+  </footer>
+
+  <!-- External JS -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script> 
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+
 </body>
 </html>
