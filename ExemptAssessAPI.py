@@ -685,10 +685,10 @@ def Assess(attributes):
         result, relevant_sections, context = ["The development type is not supported."], ["Please use 'shed' or 'patio' as the development type."], "Invalid"
 
     # Prepare and format the full result for output
-    # Add header and footer for clarity
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
-    full_result.append(f"📋 Assessment Result for : {address}")
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
+    # Add header and footer for clarity when output to console
+    print("--------------------------------------------------------------------------------------------------------------------")
+    print(f"📋 Assessment Result for : {address}")
+    print("--------------------------------------------------------------------------------------------------------------------")
   
     # Build the full result list for output including relevant SEPP sections and links
     # Iterate through each rule result and append to output list
@@ -704,15 +704,14 @@ def Assess(attributes):
             if relevant_sections[section] != "":
                 full_result.append(f"{SEPP_URL}{relevant_sections[section]}")
     
-    # Add footer with SEPP reference
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
-    full_result.append("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
-
     # Print the full result to console for logging/debugging purposes
     for line in full_result:
         print(line)
 
+    # Add footer with SEPP reference
+    print("--------------------------------------------------------------------------------------------------------------------")
+    print("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
+    print("--------------------------------------------------------------------------------------------------------------------")
     print("\n")
 
     # Save Assessment results to database
