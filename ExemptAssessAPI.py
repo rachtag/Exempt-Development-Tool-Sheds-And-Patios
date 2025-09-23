@@ -658,7 +658,7 @@ def Assess(attributes):
             # For any other data types, retain the original value
             attributes[attrib] = attributes[attrib]
         # Default any missing string attributes to "no" for binary yes/no fields
-        if attributes[attrib] == "":
+        if attributes[attrib] == "" or attributes[attrib] is None:
             attributes[attrib] = "no"
 
     # Route to appropriate rules engine based on development type and get assessment results
