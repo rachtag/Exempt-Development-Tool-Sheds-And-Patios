@@ -135,7 +135,7 @@ def parse_float(value, default=0.0):
         return default
 
 
-def patio_check():
+def patio_check(attributes):
     """ This function provides the rule-set for Exempt Development of a Patio under the SEPP
         returning a strings indicating if the proposed development is Exempt or if not, returning
         a list of strings indicating reasons for Not Exempt under SEPP"""
@@ -201,7 +201,7 @@ def patio_check():
             relevant_sections.append("sec.2.12 (1)(f)(ii)")
 
         if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
-            results.append("The structure must be at least 5m from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
+            results.append("The structure must be at least 5000mm from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.12 (1)(f)(i)")
 
         if attributes["metal"] == "yes":
@@ -263,7 +263,7 @@ def patio_check():
         return results, relevant_sections, context
 
 
-def shed_check():
+def shed_check(attributes):
     """ This function provides the rule-set for Exempt Development of a Shed under the SEPP
         returning a strings indicating if the proposed development is Exempt or if not, returning
         a list of strings indicating reasons for Not Exempt under SEPP"""
@@ -396,8 +396,6 @@ def index():
 
 @app.route("/get-assessment-result/", methods=["POST"])
 def API_assessment():
-    # Store incoming attributes globally for access across functions
-    global attributes 
     # Parse JSON payload from frontend form submission
     attributes = request.get_json()
     # Pass attributes to assessment engine and return result
@@ -495,10 +493,10 @@ def Assess(attributes):
     # Route to appropriate rules engine based on development type
     if attributes["development"] == "patio":
         # Applies patio-specific rules from schema
-        result, relevant_sections, context = patio_check()  
+        result, relevant_sections, context = patio_check(attributes)  
     elif attributes["development"] == "shed":
         # Applies shed-specific rules from schema
-        result, relevant_sections, context = shed_check()
+        result, relevant_sections, context = shed_check(attributes)
     else:
         # Handle invalid development type with fallback messaging and context flag
         result, relevant_sections, context = ["The development type is not supported."], ["Please use 'shed' or 'patio' as the development type."], "Invalid"
