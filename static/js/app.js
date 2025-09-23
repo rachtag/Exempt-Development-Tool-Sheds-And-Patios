@@ -432,12 +432,7 @@ function handleSubmit(e) {
     payload.easement = valFrom(r, "#easement");
     payload.services = valFrom(r, "#services");
     payload.existing_structures = valFrom(r, "#existing_structures");
-    payload.roof = valFrom(r, "#roof");
-    payload.overhang = numFrom(r, "#overhang");
-    payload.attached = valFrom(r, "#attached");
-    payload.above_gutter = valFrom(r, "#above_gutter");
-    payload.fascia_connection = valFrom(r, "#fascia_connection");
-    payload.engineer_spec = valFrom(r, "#engineer_spec");
+    
   }
 
   // Patio-only fields
@@ -468,8 +463,6 @@ function handleSubmit(e) {
     payload.bushfire = valFrom(p, "#bushfire");
     payload.distance_dwelling = numFrom(p, "#distance_dwelling");
     payload.non_combustible = valFrom(p, "#non_combustible");
-    payload.adjacent_building = valFrom(p, "#adjacent_building");
-    payload.interfere = valFrom(p, "#interfere");
 
     // replacement-only patio answers
     payload.deck_above_1m        = valFrom(p, "#deck_above_1m");
