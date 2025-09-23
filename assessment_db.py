@@ -15,7 +15,7 @@ class AssessmentDB:
             CREATE TABLE IF NOT EXISTS assessments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT,
-                context TEXT,         -- 'Exempt', 'Non-Exempt', 'Invalid'}
+                context TEXT,         -- 'Exempt', 'Non-Exempt', 'Invalid'
                 input_json TEXT,      -- raw input parameters
                 response_json TEXT    -- full backend response
             )
@@ -34,11 +34,19 @@ class AssessmentDB:
 
     def get_recent_assessments(self, limit=10):
         self.cursor.execute("""
-            SELECT timestamp, context, input_json, response_json
+            SELECT id, timestamp, context, input_json, response_json
             FROM assessments
             ORDER BY timestamp DESC
             LIMIT ?
         """, (limit,))
+        return self.cursor.fetchall()
+    
+    def get_assessment_id(self, assessment_id=1):
+        self.cursor.execute("""
+            SELECT id, timestamp, context, input_json, response_json
+            FROM assessments
+            WHERE id = ?
+        """, (assessment_id,))
         return self.cursor.fetchall()
 
     def close(self):

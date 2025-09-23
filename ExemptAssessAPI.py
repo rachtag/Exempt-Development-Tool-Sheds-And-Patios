@@ -125,8 +125,215 @@ in a heritage item or a draft heritage item, on land in a foreshore area or in a
     (2) There must not be more than 2 developments per lot.
 
 """
+
+# Import necessary libraries
+from flask import Flask, request, jsonify, render_template
+from flask import render_template_string
+from assessment_db import AssessmentDB
+import sqlite3
+import json
+
+# Some constants and helper functions
+# Below get_shed_help and get_patio_help provide HTML help information on the required attributes for each development type
+get_shed_help = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <title>Shed Assessment Attributes</title>
+        <style>
+            body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            }
+            h2 {
+            color: #2c3e50;
+            }
+            table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            }
+            th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            }
+            th {
+            background-color: #f4f4f4;
+            }
+            caption {
+            caption-side: top;
+            font-weight: bold;
+            margin-bottom: 10px;
+            }
+        </style>
+        </head>
+        <body>
+        <h2>Shed Assessment Attributes</h2>
+        <p>For shed assessment, the JSON file must contain the following attributes:</p>
+        <table>
+            <thead>
+            <tr>
+                <th>Attribute Name</th>
+                <th>Description</th>
+                <th>Valid Options</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>address</td><td>Address of development</td><td></td></tr>
+            <tr><td>development</td><td>Type of development</td><td>shed</td></tr>
+            <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
+            <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
+            <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
+            <tr><td>sensitive_area</td><td>Is the property in an environmentally sensitive area?</td><td>yes, no</td></tr>
+            <tr><td>area</td><td>Planned shed area (in m²)</td><td>numeric</td></tr>
+            <tr><td>height</td><td>Planned shed height from ground level (in meters)</td><td>numeric</td></tr>
+            <tr><td>boundary_distance</td><td>Distance from any site boundary (in mm)</td><td>numeric</td></tr>
+            <tr><td>building_line</td><td>Is the shed behind the building line of road frontage?</td><td>yes, no</td></tr>
+            <tr><td>shipping_container</td><td>Is the shed a shipping container?</td><td>yes, no</td></tr>
+            <tr><td>stormwater</td><td>Will roofwater be disposed of without causing nuisance to adjoining owners?</td><td>yes, no</td></tr>
+            <tr><td>metal</td><td>Will the shed use metal components?</td><td>yes, no</td></tr>
+            <tr><td>reflective</td><td>Are metal components low-reflective or factory pre-coloured?</td><td>yes, no</td></tr>
+            <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
+            <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
+            <tr><td>non_combustible</td><td>Will the shed be constructed of non-combustible materials?</td><td>yes, no</td></tr>
+            <tr><td>adjacent_building</td><td>Will the shed be adjacent to an existing building?</td><td>yes, no</td></tr>
+            <tr><td>interfere</td><td>Will it interfere with entry/exit or fire safety measures of adjacent building?</td><td>yes, no</td></tr>
+            <tr><td>habitable</td><td>Is the shed planned to be habitable?</td><td>yes, no</td></tr>
+            <tr><td>easement</td><td>Is the shed within 1m of a registered easement?</td><td>yes, no</td></tr>
+            <tr><td>services</td><td>Will the shed have water or sewer connections?</td><td>yes, no</td></tr>
+            <tr><td>existing_structures</td><td>Are there already two of the following on the lot: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses?</td><td>yes, no</td></tr>
+            </tbody>
+        </table>
+        </body>
+        </html>
+        """
+
+get_patio_help = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <title>Patio Assessment Attributes</title>
+        <style>
+            body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            }
+            h2 {
+            color: #2c3e50;
+            }
+            table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            }
+            th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            }
+            th {
+            background-color: #f4f4f4;
+            }
+            caption {
+            caption-side: top;
+            font-weight: bold;
+            margin-bottom: 10px;
+            }
+        </style>
+        </head>
+        <body>
+        <h2>Patio Assessment Attributes</h2>
+        <p>For patio assessment, the JSON file must contain the following attributes:</p>
+        <table>
+            <thead>
+            <tr>
+                <th>Attribute Name</th>
+                <th>Description</th>
+                <th>Valid Options</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>address</td><td>Address of development</td><td></td></tr>
+            <tr><td>development</td><td>Type of development</td><td>patio</td></tr>
+            <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
+            <tr><td>structure_type</td><td>New development or replacing existing structure?</td><td>new, replacement</td></tr>
+            <tr><td>height_existing</td><td>Height of existing structure from ground level (in meters)</td><td>numeric</td></tr>
+            <tr><td>material_quality</td><td>Will the structure use equivalent or better quality materials?</td><td>yes, no</td></tr>
+            <tr><td>same_size</td><td>Will the structure be the same height and size as existing?</td><td>yes, no</td></tr>
+            <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
+            <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
+            <tr><td>area</td><td>Planned area of structure (in m²)</td><td>numeric</td></tr>
+            <tr><td>land_size</td><td>Land size (in m²)</td><td>numeric</td></tr>
+            <tr><td>total_structures_area</td><td>Total area of planned + existing structures (in m²)</td><td>numeric</td></tr>
+            <tr><td>wall_height</td><td>Will any wall exceed 1.4m in height?</td><td>yes, no</td></tr>
+            <tr><td>behind_building_line</td><td>Is the structure behind the building line of road frontage?</td><td>yes, no</td></tr>
+            <tr><td>boundary_distance</td><td>Distance from site boundary (in mm)</td><td>numeric</td></tr>
+            <tr><td>metal</td><td>Will the structure use metal components?</td><td>yes, no</td></tr>
+            <tr><td>reflective</td><td>Are metal components non-reflective or factory coloured?</td><td>yes, no</td></tr>
+            <tr><td>floor_height</td><td>Floor height from ground level (in mm)</td><td>numeric</td></tr>
+            <tr><td>roof</td><td>Will the structure have a roof?</td><td>yes, no</td></tr>
+            <tr><td>overhang</td><td>Roof overhang on any side (in mm)</td><td>numeric</td></tr>
+            <tr><td>attached</td><td>Will the roof be attached to the dwelling?</td><td>yes, no</td></tr>
+            <tr><td>above_gutter</td><td>Will the roof extend above the gutter line?</td><td>yes, no</td></tr>
+            <tr><td>roof_height</td><td>Roof height above ground level (in meters)</td><td>numeric</td></tr>
+            <tr><td>fascia_connection</td><td>Will the roof be connected to fascia?</td><td>yes, no</td></tr>
+            <tr><td>engineer_spec</td><td>Will it be connected per engineers specs?</td><td>yes, no</td></tr>
+            <tr><td>stormwater</td><td>Will roofwater be disposed into existing stormwater system?</td><td>yes, no</td></tr>
+            <tr><td>drainage</td><td>Will the structure interfere with existing drainage or flow paths?</td><td>yes, no</td></tr>
+            <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
+            <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
+            <tr><td>non_combustible</td><td>Will the patio be constructed of non-combustible materials?</td><td>yes, no</td></tr>
+            </tbody>
+        </table>
+        </body>
+        </html>
+        """
+
+# HTML template with dynamic table rendering
+html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Assessment DB Contents</title>
+        <style>
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <h2>Assessment DB Contents</h2>
+        <table>
+            <thead>
+                <tr>
+                    {% for col in columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
+# URL for SEPP legislation reference
 SEPP_URL = "https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#"
 
+# Helper function for input validation of numeric inputs
 def parse_float(value, default=0.0):
     """ This function provides input validation for numeric inputs """
     try:
@@ -134,8 +341,8 @@ def parse_float(value, default=0.0):
     except (TypeError, ValueError):
         return default
 
-
-def patio_check():
+# Patio assessment function
+def patio_check(attributes):
     """ This function provides the rule-set for Exempt Development of a Patio under the SEPP
         returning a strings indicating if the proposed development is Exempt or if not, returning
         a list of strings indicating reasons for Not Exempt under SEPP"""
@@ -201,7 +408,7 @@ def patio_check():
             relevant_sections.append("sec.2.12 (1)(f)(ii)")
 
         if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
-            results.append("The structure must be at least 5m from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
+            results.append("The structure must be at least 5000mm from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.12 (1)(f)(i)")
 
         if attributes["metal"] == "yes":
@@ -263,7 +470,8 @@ def patio_check():
         return results, relevant_sections, context
 
 
-def shed_check():
+# Shed assessment function
+def shed_check(attributes):
     """ This function provides the rule-set for Exempt Development of a Shed under the SEPP
         returning a strings indicating if the proposed development is Exempt or if not, returning
         a list of strings indicating reasons for Not Exempt under SEPP"""
@@ -376,90 +584,63 @@ def shed_check():
         return results, relevant_sections, context
 
 
-from flask import Flask, request, jsonify, render_template
-from flask import render_template_string
-from assessment_db import AssessmentDB
-import sqlite3
-import json
-
 # Create API
 # Initialize Flask application instance
 app = Flask(__name__)
 
-# Define route for homepage; serves the main HTML form interface for shed/patio assessment
+# Define route for homepage; serves the main HTML form interface for shed/patio assessment (ExemptAssessAPI)
 @app.route("/")
 def index():
     # Render the frontend form (located in /templates/index.html)
     return render_template("index.html")
 
-# Define route page to return assessment results based on user input via POST or provide help info via GET
 
+# Define route page to return assessment results based on user input via POST request
 @app.route("/get-assessment-result/", methods=["POST"])
 def API_assessment():
-    # Store incoming attributes globally for access across functions
-    global attributes 
     # Parse JSON payload from frontend form submission
     attributes = request.get_json()
     # Pass attributes to assessment engine and return result
     return Assess(attributes)
 
+
+# Define route to return help information on required attributes for shed and patio assessments via GET request
 @app.route("/get-assessment-help/", methods=["GET"])
 def API_assessment_help():
     # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
     return get_shed_help + get_patio_help
 
-# Define route to retrieve and display all logged assessments from the database in a simple HTML table
-@app.route("/get-logging-db/", methods=["GET"])
-def get_logging_db():
-    # Connect to the SQLite database
-    conn = sqlite3.connect("assessments.db")
-    cursor = conn.cursor()
 
-    # Fetch all rows from the assessments table
-    cursor.execute("SELECT * FROM assessments")
-    rows = cursor.fetchall()
+# Define route to retrieve and display logged assessments from the database with optional filtering via GET request
+# This is primarily for demonstration, testing and debugging purposes
+# User can filter by assessment ID or limit number of recent entries returned
+# Usage examples:
+# /get-logging-db/?id=1  (to get assessment with ID 1)
+# /get-logging-db/?limit=10  (to get the 10 most recent assessments)
+# /get-logging-db/  (to get all assessments)
+# This should probably be changed to a more secure admin-only view in a production system
+@app.route("/get-logging-db/", methods=["GET"])
+def get_logging_dbx():
+    limited = request.args.get('limit', default=-1, type=int)
+    id = request.args.get('id', default=None, type=int)
+    
+    # Connect to the SQLite database
+    db = AssessmentDB()
+
+    # Fetch requested rows from the assessments database table
+    if id is not None:
+        # Get specific assessment by ID
+        rows = db.get_assessment_id(assessment_id=id)
+    else:
+        # Get limited number of recent assessments
+        rows = db.get_recent_assessments(limit=limited)
 
     # Get column names for header
-    column_names = [description[0] for description in cursor.description]
+    column_names = [description[0] for description in db.cursor.description]
 
-    conn.close()
+    db.close()
 
-    # HTML template with dynamic table rendering
-    html_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Assessment DB Contents</title>
-        <style>
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-        </style>
-    </head>
-    <body>
-        <h2>Assessment DB Contents</h2>
-        <table>
-            <thead>
-                <tr>
-                    {% for col in columns %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rows %}
-                    <tr>
-                        {% for cell in row %}
-                            <td>{{ cell }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </body>
-    </html>
-    """
-
+    # Render the results in an HTML table using the template
     return render_template_string(html_template, columns=column_names, rows=rows)
 
 
@@ -467,13 +648,14 @@ def get_logging_db():
 def Assess(attributes):
     # Initialise an empty list to hold the full result including relevant SEPP sections and explanatory links
     full_result = []
+
     # Make a copy of original attributes for logging purposes
     attributes_received = attributes.copy()
 
     # Extract address for logging or future audit trail (default fallback if missing)
     address = attributes.get("address", "No address provided")
     
-    # Do some basic validation of input attributes
+    # Do some basic validation of input attributes but this should really be done in the frontend
     for attrib in attributes:
         # Normalise string inputs to lowercase and strip whitespace (except zoning which should be uppercase)
         if isinstance(attributes[attrib], str):
@@ -481,7 +663,6 @@ def Assess(attributes):
                 attributes[attrib] = attributes[attrib].upper().strip()
             else:
                 attributes[attrib] = attributes[attrib].lower().strip() 
-            
         # Validate numeric inputs, defaulting to 0.0 if invalid or missing
         elif isinstance(attributes[attrib], (int, float)):
             attributes[attrib] = parse_float(attributes[attrib], default=0.0)   
@@ -489,20 +670,27 @@ def Assess(attributes):
             # For any other data types, retain the original value
             attributes[attrib] = attributes[attrib]
         # Default any missing string attributes to "no" for binary yes/no fields
-        if attributes[attrib] == "":
+        if attributes[attrib] == "" or attributes[attrib] is None:
             attributes[attrib] = "no"
 
-    # Route to appropriate rules engine based on development type
+    # Route to appropriate rules engine based on development type and get assessment results
     if attributes["development"] == "patio":
         # Applies patio-specific rules from schema
-        result, relevant_sections, context = patio_check()  
+        result, relevant_sections, context = patio_check(attributes)  
     elif attributes["development"] == "shed":
         # Applies shed-specific rules from schema
-        result, relevant_sections, context = shed_check()
+        result, relevant_sections, context = shed_check(attributes)
     else:
         # Handle invalid development type with fallback messaging and context flag
         result, relevant_sections, context = ["The development type is not supported."], ["Please use 'shed' or 'patio' as the development type."], "Invalid"
 
+    # Prepare and format the full result for output
+    # Add header and footer for clarity
+    full_result.append("--------------------------------------------------------------------------------------------------------------------")
+    full_result.append(f"📋 Assessment Result for : {address}")
+    full_result.append("--------------------------------------------------------------------------------------------------------------------")
+  
+    # Build the full result list for output including relevant SEPP sections and links
     # Iterate through each rule result and append to output list
     for section in range(len(relevant_sections)):
             full_result.append(result[section])
@@ -515,16 +703,16 @@ def Assess(attributes):
             # If SEPP section is provided, append full URL for user reference
             if relevant_sections[section] != "":
                 full_result.append(f"{SEPP_URL}{relevant_sections[section]}")
+    
+    # Add footer with SEPP reference
+    full_result.append("--------------------------------------------------------------------------------------------------------------------")
+    full_result.append("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
+    full_result.append("--------------------------------------------------------------------------------------------------------------------")
 
-
-    print("--------------------------------------------------------------------------------------------------------------------")
-    print(f"📋 Assessment Result for : {address}")
-    print("--------------------------------------------------------------------------------------------------------------------")
+    # Print the full result to console for logging/debugging purposes
     for line in full_result:
         print(line)
-    print("--------------------------------------------------------------------------------------------------------------------")
-    print("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
-    print("--------------------------------------------------------------------------------------------------------------------")
+
     print("\n")
 
     # Save Assessment results to database
@@ -547,168 +735,6 @@ def Assess(attributes):
 
 
 if __name__ == "__main__":
-    
-    # Below get_shed_help and get_patio_help provide HTML help information on the required attributes for each development type using GET method
-
-    get_shed_help = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-        <meta charset="UTF-8">
-        <title>Shed Assessment Attributes</title>
-        <style>
-            body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            }
-            h2 {
-            color: #2c3e50;
-            }
-            table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            }
-            th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-            vertical-align: top;
-            }
-            th {
-            background-color: #f4f4f4;
-            }
-            caption {
-            caption-side: top;
-            font-weight: bold;
-            margin-bottom: 10px;
-            }
-        </style>
-        </head>
-        <body>
-        <h2>Shed Assessment Attributes</h2>
-        <p>For shed assessment, the JSON file must contain the following attributes:</p>
-        <table>
-            <thead>
-            <tr>
-                <th>Attribute Name</th>
-                <th>Description</th>
-                <th>Valid Options</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr><td>address</td><td>Address of development</td><td></td></tr>
-            <tr><td>development</td><td>Type of development</td><td>shed</td></tr>
-            <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
-            <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
-            <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
-            <tr><td>sensitive_area</td><td>Is the property in an environmentally sensitive area?</td><td>yes, no</td></tr>
-            <tr><td>area</td><td>Planned shed area (in m²)</td><td>numeric</td></tr>
-            <tr><td>height</td><td>Planned shed height from ground level (in meters)</td><td>numeric</td></tr>
-            <tr><td>boundary_distance</td><td>Distance from any site boundary (in mm)</td><td>numeric</td></tr>
-            <tr><td>building_line</td><td>Is the shed behind the building line of road frontage?</td><td>yes, no</td></tr>
-            <tr><td>shipping_container</td><td>Is the shed a shipping container?</td><td>yes, no</td></tr>
-            <tr><td>stormwater</td><td>Will roofwater be disposed of without causing nuisance to adjoining owners?</td><td>yes, no</td></tr>
-            <tr><td>metal</td><td>Will the shed use metal components?</td><td>yes, no</td></tr>
-            <tr><td>reflective</td><td>Are metal components low-reflective or factory pre-coloured?</td><td>yes, no</td></tr>
-            <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
-            <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
-            <tr><td>non_combustible</td><td>Will the shed be constructed of non-combustible materials?</td><td>yes, no</td></tr>
-            <tr><td>adjacent_building</td><td>Will the shed be adjacent to an existing building?</td><td>yes, no</td></tr>
-            <tr><td>interfere</td><td>Will it interfere with entry/exit or fire safety measures of adjacent building?</td><td>yes, no</td></tr>
-            <tr><td>habitable</td><td>Is the shed planned to be habitable?</td><td>yes, no</td></tr>
-            <tr><td>easement</td><td>Is the shed within 1m of a registered easement?</td><td>yes, no</td></tr>
-            <tr><td>services</td><td>Will the shed have water or sewer connections?</td><td>yes, no</td></tr>
-            <tr><td>existing_structures</td><td>Are there already two of the following on the lot: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses?</td><td>yes, no</td></tr>
-            </tbody>
-        </table>
-        </body>
-        </html>
-        """
-
-    get_patio_help = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-        <meta charset="UTF-8">
-        <title>Patio Assessment Attributes</title>
-        <style>
-            body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            }
-            h2 {
-            color: #2c3e50;
-            }
-            table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            }
-            th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-            vertical-align: top;
-            }
-            th {
-            background-color: #f4f4f4;
-            }
-            caption {
-            caption-side: top;
-            font-weight: bold;
-            margin-bottom: 10px;
-            }
-        </style>
-        </head>
-        <body>
-        <h2>Patio Assessment Attributes</h2>
-        <p>For patio assessment, the JSON file must contain the following attributes:</p>
-        <table>
-            <thead>
-            <tr>
-                <th>Attribute Name</th>
-                <th>Description</th>
-                <th>Valid Options</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr><td>address</td><td>Address of development</td><td></td></tr>
-            <tr><td>development</td><td>Type of development</td><td>patio</td></tr>
-            <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
-            <tr><td>structure_type</td><td>New development or replacing existing structure?</td><td>new, replacement</td></tr>
-            <tr><td>height_existing</td><td>Height of existing structure from ground level (in meters)</td><td>numeric</td></tr>
-            <tr><td>material_quality</td><td>Will the structure use equivalent or better quality materials?</td><td>yes, no</td></tr>
-            <tr><td>same_size</td><td>Will the structure be the same height and size as existing?</td><td>yes, no</td></tr>
-            <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
-            <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
-            <tr><td>area</td><td>Planned area of structure (in m²)</td><td>numeric</td></tr>
-            <tr><td>land_size</td><td>Land size (in m²)</td><td>numeric</td></tr>
-            <tr><td>total_structures_area</td><td>Total area of planned + existing structures (in m²)</td><td>numeric</td></tr>
-            <tr><td>wall_height</td><td>Will any wall exceed 1.4m in height?</td><td>yes, no</td></tr>
-            <tr><td>behind_building_line</td><td>Is the structure behind the building line of road frontage?</td><td>yes, no</td></tr>
-            <tr><td>boundary_distance</td><td>Distance from site boundary (in mm)</td><td>numeric</td></tr>
-            <tr><td>metal</td><td>Will the structure use metal components?</td><td>yes, no</td></tr>
-            <tr><td>reflective</td><td>Are metal components non-reflective or factory coloured?</td><td>yes, no</td></tr>
-            <tr><td>floor_height</td><td>Floor height from ground level (in mm)</td><td>numeric</td></tr>
-            <tr><td>roof</td><td>Will the structure have a roof?</td><td>yes, no</td></tr>
-            <tr><td>overhang</td><td>Roof overhang on any side (in mm)</td><td>numeric</td></tr>
-            <tr><td>attached</td><td>Will the roof be attached to the dwelling?</td><td>yes, no</td></tr>
-            <tr><td>above_gutter</td><td>Will the roof extend above the gutter line?</td><td>yes, no</td></tr>
-            <tr><td>roof_height</td><td>Roof height above ground level (in meters)</td><td>numeric</td></tr>
-            <tr><td>fascia_connection</td><td>Will the roof be connected to fascia?</td><td>yes, no</td></tr>
-            <tr><td>engineer_spec</td><td>Will it be connected per engineers specs?</td><td>yes, no</td></tr>
-            <tr><td>stormwater</td><td>Will roofwater be disposed into existing stormwater system?</td><td>yes, no</td></tr>
-            <tr><td>drainage</td><td>Will the structure interfere with existing drainage or flow paths?</td><td>yes, no</td></tr>
-            <tr><td>bushfire</td><td>Is the property on bushfire prone land?</td><td>yes, no</td></tr>
-            <tr><td>distance_dwelling</td><td>Distance from dwelling (in meters)</td><td>numeric</td></tr>
-            <tr><td>non_combustible</td><td>Will the patio be constructed of non-combustible materials?</td><td>yes, no</td></tr>
-            </tbody>
-        </table>
-        </body>
-        </html>
-        """
-
     # Run the API
     #app.run(debug=True)
     app.run()
