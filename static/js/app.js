@@ -346,10 +346,62 @@ function applyDevVisibility() {
   }
 }
 
+// ======== REQUIRED CHECKS (non-empty) ========
+function labelFor(el) {
+  const lbl = document.querySelector("label[for='" + el.id + "']");
+  return (lbl ? lbl.textContent.trim() : (el.getAttribute("placeholder") || el.id || "Field"));
+}
+
+function validateRequired() {
+  const errors = [];
+  let first = null;
+
+  // Always required top fields
+  const topIds = ["address", "development", "zoning", "heritage", "foreshore"];
+  topIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const v = (el.value || "").trim();
+    if (!v) {
+      errors.push(labelFor(el) + " is required.");
+      if (!first) first = el;
+    }
+  });
+
+  // All other **visible** inputs/selects inside .field blocks
+  const visible = document.querySelectorAll(
+    ".field:not(.hidden) input, .field:not(.hidden) select, .field:not(.hidden) textarea"
+  );
+  visible.forEach(el => {
+    if (topIds.includes(el.id)) return;          // already checked above
+    if (el.closest(".hidden")) return;           // safety
+    const v = (el.value || "").trim();
+    if (!v) {
+      errors.push(labelFor(el) + " is required.");
+      if (!first) first = el;
+    }
+  });
+
+  // Show errors (either a #form-errors element or alert fallback)
+  if (errors.length) {
+    const box = document.getElementById("form-errors");
+    if (box) { box.textContent = errors.join(" "); box.classList.remove("hidden"); }
+    else { alert(errors.join("\n")); }
+    if (first) first.focus();
+    return false;
+  } else {
+    const box = document.getElementById("form-errors");
+    if (box) { box.textContent = ""; box.classList.add("hidden"); }
+    return true;
+  }
+}
+
+
 // ======== SUBMIT ========
-function handleSubmit() {
-  var dev = devSelect.value;
-  if (!dev) { alert("Select development type"); return; }
+function handleSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault(); // just in case it's a real <form>
+  if (!validateRequired()) return;               // <-- block submit until all visible fields filled
+  var dev = devSelect.value;                     // safe now
 
   var payload = {
     development: dev,
