@@ -631,9 +631,6 @@ def get_logging_dbx():
     if id is not None:
         # Get specific assessment by ID
         rows = db.get_assessment_id(assessment_id=id)
-    elif limited is None or limited < 0:
-        # Get all assessments
-        rows = db.get_recent_assessments()
     else:
         # Get limited number of recent assessments
         rows = db.get_recent_assessments(limit=limited)
