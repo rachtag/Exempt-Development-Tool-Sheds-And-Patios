@@ -294,6 +294,42 @@ get_patio_help = """
         </html>
         """
 
+# HTML template with dynamic table rendering
+html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Assessment DB Contents</title>
+        <style>
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <h2>Assessment DB Contents</h2>
+        <table>
+            <thead>
+                <tr>
+                    {% for col in columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
 # URL for SEPP legislation reference
 SEPP_URL = "https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#"
 
@@ -575,60 +611,39 @@ def API_assessment_help():
     return get_shed_help + get_patio_help
 
 
-# Define route to retrieve and display all logged assessments from the database in a simple HTML table via GET request
+# Define route to retrieve and display logged assessments from the database with optional filtering via GET request
 # This is primarily for demonstration, testing and debugging purposes
+# User can filter by assessment ID or limit number of recent entries returned
+# Usage examples:
+# /get-logging-db/?id=1  (to get assessment with ID 1)
+# /get-logging-db/?limit=10  (to get the 10 most recent assessments)
+# /get-logging-db/  (to get all assessments)
 # This should probably be changed to a more secure admin-only view in a production system
 @app.route("/get-logging-db/", methods=["GET"])
-def get_logging_db():
+def get_logging_dbx():
+    limited = request.args.get('limit', default=-1, type=int)
+    id = request.args.get('id', default=None, type=int)
+    
     # Connect to the SQLite database
-    conn = sqlite3.connect("assessments.db")
-    cursor = conn.cursor()
+    db = AssessmentDB()
 
-    # Fetch all rows from the assessments table
-    cursor.execute("SELECT * FROM assessments")
-    rows = cursor.fetchall()
+    # Fetch requested rows from the assessments database table
+    if id is not None:
+        # Get specific assessment by ID
+        rows = db.get_assessment_id(assessment_id=id)
+    elif limited is None or limited < 0:
+        # Get all assessments
+        rows = db.get_recent_assessments()
+    else:
+        # Get limited number of recent assessments
+        rows = db.get_recent_assessments(limit=limited)
 
     # Get column names for header
-    column_names = [description[0] for description in cursor.description]
+    column_names = [description[0] for description in db.cursor.description]
 
-    conn.close()
+    db.close()
 
-    # HTML template with dynamic table rendering
-    html_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Assessment DB Contents</title>
-        <style>
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-        </style>
-    </head>
-    <body>
-        <h2>Assessment DB Contents</h2>
-        <table>
-            <thead>
-                <tr>
-                    {% for col in columns %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rows %}
-                    <tr>
-                        {% for cell in row %}
-                            <td>{{ cell }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </body>
-    </html>
-    """
-
+    # Render the results in an HTML table using the template
     return render_template_string(html_template, columns=column_names, rows=rows)
 
 
