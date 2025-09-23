@@ -1,4 +1,5 @@
 {
+    "address" : "123 Example St, Sampletown NSW 2000",
     "development" : "patio",
     "zoning" : "R1",
     "structure_type" : "new",
