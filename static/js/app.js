@@ -205,48 +205,54 @@ function setupStructureTypeReplacement(section) {
   var type = section.querySelector("#structure_type");
   if (!type) return;
 
-  // replacement-only
-  var deck1m = section.querySelector("#deck_above_1m");
-  var matEq  = section.querySelector("#materials_equivalent");
-  var sizeCh = section.querySelector("#deck_size_change");
-  var deck1mField = fieldOf(deck1m);
-  var matEqField  = fieldOf(matEq);
-  var sizeChField = fieldOf(sizeCh);
-
-  // overlapping originals
-  var matQual = section.querySelector("#material_quality");
+  // All six fields we want only in "replacement" mode
+  var deck1m   = section.querySelector("#deck_above_1m");
+  var matEq    = section.querySelector("#materials_equivalent");
+  var sizeCh   = section.querySelector("#deck_size_change");
+  var hExisting= section.querySelector("#height_existing");
+  var matQual  = section.querySelector("#material_quality");
   var sameSize = section.querySelector("#same_size");
-  var matQualField = fieldOf(matQual);
+
+  // Bail if the replacement trio doesn’t exist (means this isn’t the patio section)
+  if (!deck1m || !matEq || !sizeCh) return;
+
+  var deck1mField   = fieldOf(deck1m);
+  var matEqField    = fieldOf(matEq);
+  var sizeChField   = fieldOf(sizeCh);
+  var hExistingField= fieldOf(hExisting);
+  var matQualField  = fieldOf(matQual);
   var sameSizeField = fieldOf(sameSize);
 
-  // if the replacement fields aren't present, bail safely
-  if (!deck1mField || !matEqField || !sizeChField) return;
+  function clear(el) { if (el) el.value = ""; }
+  function showIf(f)  { if (f) show(f); }
+  function hideIf(f)  { if (f) hide(f); }
 
   function update() {
     var isReplacement = (type.value || "").toLowerCase() === "replacement";
 
     if (isReplacement) {
-      // show replacement-only fields
-      show(deck1mField);
-      show(matEqField);
-      show(sizeChField);
-      // hide overlapping originals
-      if (matQualField) { hide(matQualField); if (matQual) matQual.value = ""; }
-      if (sameSizeField) { hide(sameSizeField); if (sameSize) sameSize.value = ""; }
+      // show ALL six
+      showIf(deck1mField);
+      showIf(matEqField);
+      showIf(sizeChField);
+      showIf(hExistingField);
+      showIf(matQualField);
+      showIf(sameSizeField);
     } else {
-      // hide replacement-only
-      hide(deck1mField);  if (deck1m) deck1m.value = "";
-      hide(matEqField);   if (matEq)  matEq.value  = "";
-      hide(sizeChField);  if (sizeCh) sizeCh.value = "";
-      // show originals again
-      if (matQualField) show(matQualField);
-      if (sameSizeField) show(sameSizeField);
+      // hide & clear ALL six
+      hideIf(deck1mField);    clear(deck1m);
+      hideIf(matEqField);     clear(matEq);
+      hideIf(sizeChField);    clear(sizeCh);
+      hideIf(hExistingField); clear(hExisting);
+      hideIf(matQualField);   clear(matQual);
+      hideIf(sameSizeField);  clear(sameSize);
     }
   }
 
   type.addEventListener("change", update);
   update();
 }
+
 
 // 6) roof === "yes" -> show overhang
 function setupRoofOverhang(section) {
@@ -639,10 +645,11 @@ function resetForm() {
   hideFieldAndClear(patioFields, "#deck_above_1m");
   hideFieldAndClear(patioFields, "#materials_equivalent");
   hideFieldAndClear(patioFields, "#deck_size_change");
-
-  // overlapping originals (ensure they’re hidden if patio was replacement)
+  hideFieldAndClear(patioFields, "#height_existing");
   hideFieldAndClear(patioFields, "#material_quality");
   hideFieldAndClear(patioFields, "#same_size");
+
+
 
   // NEW: conditionally shown fields
   hideFieldAndClear(patioFields, "#overhang");
