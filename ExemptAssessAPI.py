@@ -97,7 +97,7 @@ The following development is specified for this code—
     (3) Subclause (1)(h) does not apply to development carried out in connection with a building used for the purposes of farm stay accommodation, farm gate premises or farm experience premises.
 
 
-Division 2, Subdivision 9 Cabanas, cubby houses, ferneries, garden sheds,
+Part 2, Division 2, Subdivision 9 Cabanas, cubby houses, ferneries, garden sheds,
 gazebos and greenhouses
 2.17 Specified development
 The construction or installation of a cabana, cubby house, fernery, garden shed, gazebo or greenhouse is development specified for this code if it is not constructed or installed on or
@@ -123,6 +123,29 @@ in a heritage item or a draft heritage item, on land in a foreshore area or in a
         (m) be located at least 1m from any registered easement, and
         (n) in relation to a cabana—not be connected to water supply or sewerage services.
     (2) There must not be more than 2 developments per lot.
+
+
+Part 2, Division 2, Subdivision 15 Earthworks, retaining walls and structural support
+ 2.29 Specified development
+ Earthworks and the construction or installation of a retaining wall or other form of structural support is development specified for this code if it is not carried out,
+ constructed or installed on or in a heritage item or a draft heritage item, on a flood control lot or in an environmentally sensitive area.
+ 2.30 Development standards
+ The standards specified for that development are that the development must—
+    (a) not be a cut or fill of more than 600mm below or above ground level (existing), and
+    (b) be located at least 1m from each lot boundary, and
+    (c) if it is carried out, constructed or installed in a heritage conservation area or a draft heritage conservation area — be located in the rear yard, and
+    (d) be located at least 40m from a waterbody (natural), and
+    (e) not redirect the flow of any surface water or ground water or cause sediment to be transported onto an adjoining property, and
+    (f) if it is a retaining wall or structural support for excavation or fill, or a combination of  both—
+        (i) be not be more than 600mm high, measured vertically from the base of the development to its uppermost portion, and
+        (ii) be separated from any retaining wall or other structural support on the site by at least 2m, measured horizontally, and
+        (iii) be located at least 1m from any registered easement, sewer main or water main, and
+        (iv) have adequate drainage lines connected to the existing stormwater drainage system for the site, and
+    (g) if the fill is more than 150mm deep—not occupy more than 25% of the area of the lot, and
+    (h) if the fill is imported to the site—be free of building and other demolition waste, and only contain virgin excavated natural material (VENM) as 
+        defined in Part 3 of Schedule 1 to the Protection of the Environment Operations Act 1997, and
+    (i) if the land is in a rural or conservation zone — not be fill of more than 100 cubic metres on each lot.
+
 
 """
 
@@ -298,6 +321,84 @@ get_patio_help = """
         </html>
         """
 
+get_retain_wall_help = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <title>Retaining Wall Assessment Attributes</title>
+        <style>
+            body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            }
+            h2 {
+            color: #2c3e50;
+            }
+            table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            }
+            th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            }
+            th {
+            background-color: #f4f4f4;
+            }
+            caption {
+            caption-side: top;
+            font-weight: bold;
+            margin-bottom: 10px;
+            }
+        </style>
+        </head>
+        <body>
+        <h2>Retaining Wall Assessment Attributes</h2>
+        <p>For retaining wall assessment, the JSON file must contain the following attributes:</p>
+        <table>
+            <thead>
+            <tr>
+                <th>Attribute Name</th>
+                <th>Description</th>
+                <th>Valid Options</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>address</td><td>Address of development</td><td></td></tr>
+            <tr><td>development</td><td>Type of development</td><td>retain</td></tr>
+            <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
+            <tr><td>heritage</td><td>Is the property a heritage item? </td><td>yes, no</td></tr>
+            <tr><td>heritage_conserv</td><td>Is the property in a heritage conservation area?</td><td>yes, no</td></tr>
+            <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
+            <tr><td>flood_control_lot</td><td>Is the property in a flood control area?</td><td>yes, no</td></tr>
+            <tr><td>cut_or_fill</td><td>Depth of cut or fill required for retaining wall (in mm):</td><td>numeric</td></tr>
+            <tr><td>boundary_distance</td><td>Distance from site boundary (in mm): </td><td>numeric</td></tr>
+            <tr><td>rear_yard</td><td>Is retaining wall planned to be built in rear yard?</td><td>yes, no</td></tr>
+            <tr><td>waterbody_within_40m</td><td>Is lot less than 40m from a natural water body?</td><td>yes, no</td></tr>
+            <tr><td>sediment_transfer</td><td>Will planned retaining wall redirect the flow of any surface water or ground water or cause sediment to be transported onto an adjoining property?</td><td>yes, no</td></tr>
+            <tr><td>height</td><td>Planned height of retaining wall (in mm):</td><td>numeric</td></tr>
+            <tr><td>distance_other</td><td>Closest distance from planned retaining wall to any other structural support (in mm):</td><td>numeric</td></tr>
+            <tr><td>distance_easement</td><td>Closest distance from planned retaining wall to an easement or services main (in mm): </td><td>numeric</td></tr>
+            <tr><td>stormwater</td><td>Will planned retaining wall have adequate drainage lines connected into existing stormwater system? </td><td>yes, no</td></tr>
+            <tr><td>fill_depth</td><td>Depth of fill for retaining wall (in mm):</td><td>numeric</td></tr>
+            <tr><td>fill_area</td><td>Area of fill for retaining wall (in m²):</td><td>numeric</td></tr>
+            <tr><td>fill_volume</td><td>Volume of fill for retaining wall (in m³):</td><td>numeric</td></tr>
+            <tr><td>land_size</td><td>Land size (in m²)</td><td>numeric</td></tr>
+            <tr><td>imported_fill</td><td>Will retaining wall be back filled with imported filler? </td><td>yes, no</td></tr>
+            <tr><td>venm</td><td>Is imported fill VENM (Virgin Excavated Natural Material)?</td><td>yes, no</td></tr>
+            </tbody>
+        </table>
+        </body>
+        </html>
+        """
+
+
+
+
 # HTML template with dynamic table rendering
 html_template = """
     <!DOCTYPE html>
@@ -336,6 +437,9 @@ html_template = """
 
 # URL for SEPP legislation reference
 SEPP_URL = "https://legislation.nsw.gov.au/view/html/inforce/current/epi-2008-0572#"
+
+# HTML template for embedded SEPP link in results
+SEPP_link_template = """<a href="{{ SEPP_URL_link }}">SEPP</a>"""
 
 # Helper function for input validation of numeric inputs
 def parse_float(value, default=0.0):
@@ -588,6 +692,118 @@ def shed_check(attributes):
         return results, relevant_sections, context
 
 
+def retain_wall_check(attributes):
+    """ This function provides the rule-set for Exempt Development of a retaining wall under the SEPP
+    returning a strings indicating if the proposed development is Exempt or if not, returning
+    a list of strings indicating reasons for Not Exempt under SEPP"""
+
+    print("\n🔧 Retaining Wall Development Check")
+    # Initialise a results list for NON-EXEMPT reasons and a list for relevant sections in SEPP for reference
+    results = [] 
+    relevant_sections = [] 
+    # Initialise an assessment context variable for database logging
+    # Possible values: "Exempt", "Non-Exempt", "Invalid"
+    context = "Invalid"
+    
+    try:
+        # Clause 2.29
+        if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
+            results.append("This tool does not currently support your zone type.")
+            relevant_sections.append("Please contact Albury City Council for further assistance.")
+
+        if attributes["heritage"] == "yes":
+            results.append("The property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions:")
+            relevant_sections.append("sec.2.29")    
+
+        if attributes["foreshore"] == "yes":
+            results.append("The property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions:")
+            relevant_sections.append("sec.2.29")
+
+        if attributes["flood_control_lot"] == "yes":
+            results.append("The property is located in an flood control lot. Please refer to the SEPP legislation for flood control lot restrictions:")
+            relevant_sections.append("sec.2.29")
+
+        # Clause 2.30(a)
+        if attributes["cut_or_fill"] > 600:
+            results.append("Cut or Fill of Retaining Wall exceeds 600mm.  Please refer to the SEPP legislation for cut and fill restrictions:")
+            relevant_sections.append("sec.2.30 (a)")
+
+        # Clause 2.30(b)
+        if attributes["boundary_distance"] < 1000:
+            results.append("The Retaining Wall must be at least 1000mm from any lot boundary. Please refer to the SEPP legislation for boundary distance restrictions:")
+            relevant_sections.append("sec.2.30 (b)")
+
+        # Clause 2.30(c)
+        if attributes["heritage_conserv"] == "yes":
+            if attributes["rear_yard"] == "no":
+                results.append("For a property in a heritage conservation area, development must be in rear yard. Please refer to the SEPP legislation for heritage conservation area restrictions:")
+                relevant_sections.append("sec.2.30 (c)") 
+
+        # Clause 2.30(d)
+        if attributes["waterbody_within_40m"] == "yes":
+            results.append("The retaining wall is less than 40m from a natural waterbody. Please refer to the SEPP legislation for natural waterbody restrictions:")
+            relevant_sections.append("sec.2.30 (d)")
+
+        # Clause 2.30(e)
+        if attributes["sediment_transfer"] == "yes":
+            results.append("The retaining wall may causes sediment transfer to adjoining property. Please refer to the SEPP legislation for water flow restrictions:")
+            relevant_sections.append("sec.2.30 (e)")
+
+        # Clause 2.30(f)(i)
+        if attributes["height"] > 600:
+            results.append("The retaining wall exceeds 600mm in height. Please refer to the SEPP legislation for retaining wall height restrictions:")
+            relevant_sections.append("sec.2.30 (f)(i)")
+
+        # Clause 2.30(f)(ii)
+        if attributes["distance_other"] < 2000:
+            results.append("The retaining wall is less than 2000mm from another structural support. Please refer to the SEPP legislation for structural support distance restrictions:")
+            relevant_sections.append("sec.2.30 (f)(ii)")
+
+        # Clause 2.30(f)(iii)
+        if attributes["distance_easement"] < 1000:
+            results.append("The retaining wall is less than 1000mm from a registered easement or services main. Please refer to the SEPP legislation for easement and services main distance restrictions:")
+            relevant_sections.append("sec.2.30 (f)(iii)")
+
+        # Clause 2.30(f)(iv)
+        if attributes["stormwater"] == "no":
+            results.append("The retaining wall does not dispose of stormwater adequately. Please refer to the SEPP legislation for stormwater disposal restrictions:")
+            relevant_sections.append("sec.2.30 (f)(iv)")
+
+        # Clause 2.30(g)
+        if attributes["fill_depth"] > 150:
+            if attributes["fill_area"] > 0.25 * attributes["land_size"]:
+                results.append("The fill exceeds 150mm and occupies more than 25% of the lot area. Please refer to the SEPP legislation for fill restrictions:")
+                relevant_sections.append("sec.2.30 (g)")
+
+        # Clause 2.30(h)
+        if attributes["imported_fill"] == "yes":
+            if attributes["venm"] == "no":
+                results.append("Imported fill must be VENM (virgin excavated natural material. Please refer to the SEPP legislation for imported fill restrictions:")
+                relevant_sections.append("sec.2.30 (h)")
+
+        # Clause 2.30(i)
+        if attributes["zoning"] in ["RU1", "RU2", "RU3", "RU4", "RU6"] or ["heritage_conserv"] == "yes":
+            if attributes["fill_volume"] > 100:
+                results.append("The fill volume exceeds 100m³ for rural zones or heritage conservation areas. Please refer to the SEPP legislation for fill volume restrictions:")
+                relevant_sections.append("sec.2.30 (i)")
+
+        if len(results) > 0:
+            results.insert(0,"The proposed structure DOES NOT qualify for exempt development for the following reasons:")
+            relevant_sections.insert(0, "")
+            context = "Non-Exempt"
+        else:
+            results.append("The proposed structure qualifies for exempt development. For more information, please refer to the SEPP legislation:")
+            relevant_sections.append("pt.2-div.1-sdiv.15")
+            context = "Exempt"
+
+        return results, relevant_sections, context
+    
+    except Exception:
+        results.append(f"Missing or invalid input data. Please check all required fields are provided and valid.")
+        relevant_sections.append(f"Attributes File: {attributes}")
+        return results, relevant_sections, context
+
+
 # Create API
 # Initialize Flask application instance
 app = Flask(__name__)
@@ -670,7 +886,7 @@ def API_assessment():
 @limiter.limit(HELP_LIMIT)  # Apply rate limit to help endpoint
 def API_assessment_help():
     # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
-    return get_shed_help + get_patio_help
+    return get_shed_help + get_patio_help + get_retain_wall_help
 
 
 # Define route to retrieve and display logged assessments from the database with optional filtering via GET request
@@ -745,15 +961,18 @@ def Assess(attributes):
     elif attributes["development"] == "shed":
         # Applies shed-specific rules from schema
         result, relevant_sections, context = shed_check(attributes)
+    elif attributes["development"] == "retain":
+        # Applies retaining wall-specific rules from schema
+        result, relevant_sections, context = retain_wall_check(attributes)
     else:
         # Handle invalid development type with fallback messaging and context flag
         result, relevant_sections, context = ["The development type is not supported."], ["Please use 'shed' or 'patio' as the development type."], "Invalid"
 
     # Prepare and format the full result for output
-    # Add header and footer for clarity
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
-    full_result.append(f"📋 Assessment Result for : {address}")
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
+    # Add header and footer for clarity when output to console
+    print("--------------------------------------------------------------------------------------------------------------------")
+    print(f"📋 Assessment Result for : {address}")
+    print("--------------------------------------------------------------------------------------------------------------------")
   
     # Build the full result list for output including relevant SEPP sections and links
     # Iterate through each rule result and append to output list
@@ -769,15 +988,14 @@ def Assess(attributes):
             if relevant_sections[section] != "":
                 full_result.append(f"{SEPP_URL}{relevant_sections[section]}")
     
-    # Add footer with SEPP reference
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
-    full_result.append("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
-    full_result.append("--------------------------------------------------------------------------------------------------------------------")
-
     # Print the full result to console for logging/debugging purposes
     for line in full_result:
         print(line)
 
+    # Add footer with SEPP reference
+    print("--------------------------------------------------------------------------------------------------------------------")
+    print("################ Subject to conditions listed in SEPP Division 2 - Exempt and Complying Development ################")
+    print("--------------------------------------------------------------------------------------------------------------------")
     print("\n")
 
     # Save Assessment results to database
