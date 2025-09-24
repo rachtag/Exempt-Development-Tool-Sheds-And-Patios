@@ -482,7 +482,19 @@ function handleSubmit(e) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
     })
-    .then(function (res) { return res.text(); })
+    .then(function (res){ 
+      if (res.status === 429) {
+        var retry = res.headers.get("Retry-After");      // seconds (string)
+        return res.json().catch(() => ({})).then(function (data) {
+          var msg = (data && data.message) ? data.message : "Too many requests.";
+          resultPre.textContent = retry
+            ? msg + " Try again in ~" + retry + " seconds."
+            : msg;
+          showDownloadIfReady();
+          throw new Error("rate_limited");
+    });
+  }
+      return res.text(); })
     .then(function (raw) {
         var summary = buildSummary(payload);
 
@@ -509,9 +521,10 @@ function handleSubmit(e) {
         showDownloadIfReady();
     })
     .catch(function (err) {
-        console.error(err);
-        resultPre.textContent = "An error occurred while submitting. Please try again.";
-        showDownloadIfReady();
+      if (err && err.message === "rate_limited") return; 
+      console.error(err);
+      resultPre.textContent = "An error occurred while submitting. Please try again.";
+      showDownloadIfReady();
     });
 
 }

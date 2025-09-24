@@ -594,10 +594,10 @@ app.config["RATELIMIT_HEADERS_ENABLED"] = True
 
 
 # Rate limiting setup 
-DEFAULT_LIMIT = os.getenv("RATE_LIMIT_DEFAULT", "2 per 10 seconds")
+DEFAULT_LIMIT = os.getenv("RATE_LIMIT_DEFAULT", "30 per minute")
 VALIDATE_LIMIT = os.getenv("RATE_LIMIT_VALIDATE", "10 per 30 seconds")  # for assessment endpoint
 LOGGING_LIMIT  = os.getenv("RATE_LIMIT_LOGGING",  "10 per minute")      # for /get-logging-db/
-HELP_LIMIT     = os.getenv("RATE_LIMIT_HELP",     "2 per 10 seconds")
+HELP_LIMIT     = os.getenv("RATE_LIMIT_HELP",     "30 per minute")
 STORAGE_URI    = os.getenv("LIMITER_STORAGE_URI", "memory://")          
 
 limiter = Limiter(
@@ -640,7 +640,6 @@ def API_assessment():
 
 # Define route to return help information on required attributes for shed and patio assessments via GET request
 @app.route("/get-assessment-help/", methods=["GET"])
-@limiter.limit("2 per 10 seconds")   # <- temporary for testing
 @limiter.limit(HELP_LIMIT)  # Apply rate limit to help endpoint
 def API_assessment_help():
     # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
@@ -680,12 +679,7 @@ def get_logging_dbx():
     # Render the results in an HTML table using the template
     return render_template_string(html_template, columns=column_names, rows=rows)
 
-# for testing
-# simple test route (most compatible form)
-@app.route("/ping", methods=["GET"])
-@limiter.limit("1 per 10 seconds")
-def ping():
-    return "ok"
+
 
 
 # Define the main assessment function that routes to specific development checks based on input attributes
