@@ -48,6 +48,7 @@ function init() {
   setupRoofOverhang(patioFields);
   setupRoofAttached(patioFields);
   setupRoofRoof_Height(patioFields);
+  setupRoofFascia_Connection(patioFields);
 
   // NEW: roof === "yes" -> show stormwater
   //setupRoofStormwater(shedFields);
@@ -318,6 +319,26 @@ function setupRoofRoof_Height(section) {
 }
 
 
+// 6) roof === "yes" -> show fascia_connection
+function setupRoofFascia_Connection(section) {
+  if (!section) return;
+  var roof = section.querySelector("#roof");
+  var fascia_connection = section.querySelector("#fascia_connection");
+  var fascia_connectionField = fieldOf(fascia_connection);
+  if (!roof || !fascia_connectionField) return;
+
+  function update() {
+    var v = (roof.value || "").toLowerCase();
+    if (v === "yes") {
+      show(fascia_connectionField);
+    } else {
+      hide(fascia_connectionField);
+      if (fascia_connection) fascia_connection.value = "";
+    }
+  }
+  roof.addEventListener("change", update);
+  update();
+}
 
 
 // NEW: roof === "yes" -> show stormwater
@@ -655,6 +676,7 @@ function resetForm() {
   hideFieldAndClear(patioFields, "#overhang");
   hideFieldAndClear(patioFields, "#attached");
   hideFieldAndClear(patioFields, "#roof_height");
+  hideFieldAndClear(patioFields, "#fascia_connection");
   hideFieldAndClear(shedFields,  "#overhang");
   hideFieldAndClear(patioFields, "#stormwater");
   //hideFieldAndClear(shedFields,  "#stormwater");
