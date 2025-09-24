@@ -132,6 +132,9 @@ from flask import render_template_string
 from assessment_db import AssessmentDB
 import sqlite3
 import json
+import os
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Some constants and helper functions
 # Below get_shed_help and get_patio_help provide HTML help information on the required attributes for each development type
@@ -587,6 +590,36 @@ def shed_check(attributes):
 # Create API
 # Initialize Flask application instance
 app = Flask(__name__)
+app.config["RATELIMIT_HEADERS_ENABLED"] = True
+
+
+# Rate limiting setup 
+DEFAULT_LIMIT = os.getenv("RATE_LIMIT_DEFAULT", "2 per 10 seconds")
+VALIDATE_LIMIT = os.getenv("RATE_LIMIT_VALIDATE", "10 per 30 seconds")  # for assessment endpoint
+LOGGING_LIMIT  = os.getenv("RATE_LIMIT_LOGGING",  "10 per minute")      # for /get-logging-db/
+HELP_LIMIT     = os.getenv("RATE_LIMIT_HELP",     "2 per 10 seconds")
+STORAGE_URI    = os.getenv("LIMITER_STORAGE_URI", "memory://")          
+
+limiter = Limiter(
+    key_func=get_remote_address,          # per-IP by default; swap to user-id if you add auth
+    default_limits=[DEFAULT_LIMIT],
+    storage_uri=STORAGE_URI
+)
+limiter.init_app(app)
+
+@app.after_request
+def expose_rate_limit_headers(resp):
+    # Make rate-limit headers readable by frontend JS (if on a different origin)
+    resp.headers["Access-Control-Expose-Headers"] = \
+        "X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After"
+    return resp
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    # Flask-Limiter will set Retry-After and X-RateLimit-* headers; return a friendly JSON
+    return jsonify({"error": "rate_limited",
+                    "message": "Too many requests. Please try again later."}), 429
+
 
 # Define route for homepage; serves the main HTML form interface for shed/patio assessment (ExemptAssessAPI)
 @app.route("/")
@@ -597,6 +630,7 @@ def index():
 
 # Define route page to return assessment results based on user input via POST request
 @app.route("/get-assessment-result/", methods=["POST"])
+@limiter.limit(VALIDATE_LIMIT)  # Apply rate limit to assessment endpoint
 def API_assessment():
     # Parse JSON payload from frontend form submission
     attributes = request.get_json()
@@ -606,6 +640,8 @@ def API_assessment():
 
 # Define route to return help information on required attributes for shed and patio assessments via GET request
 @app.route("/get-assessment-help/", methods=["GET"])
+@limiter.limit("2 per 10 seconds")   # <- temporary for testing
+@limiter.limit(HELP_LIMIT)  # Apply rate limit to help endpoint
 def API_assessment_help():
     # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
     return get_shed_help + get_patio_help
@@ -620,6 +656,7 @@ def API_assessment_help():
 # /get-logging-db/  (to get all assessments)
 # This should probably be changed to a more secure admin-only view in a production system
 @app.route("/get-logging-db/", methods=["GET"])
+@limiter.limit(LOGGING_LIMIT)   # Apply rate limit to logging endpoint
 def get_logging_dbx():
     limited = request.args.get('limit', default=-1, type=int)
     id = request.args.get('id', default=None, type=int)
@@ -642,6 +679,13 @@ def get_logging_dbx():
 
     # Render the results in an HTML table using the template
     return render_template_string(html_template, columns=column_names, rows=rows)
+
+# for testing
+# simple test route (most compatible form)
+@app.route("/ping", methods=["GET"])
+@limiter.limit("1 per 10 seconds")
+def ping():
+    return "ok"
 
 
 # Define the main assessment function that routes to specific development checks based on input attributes
