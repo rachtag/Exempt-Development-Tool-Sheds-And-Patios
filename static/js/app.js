@@ -46,9 +46,12 @@ function init() {
   // roof-driven fields
   setupRoofOverhang(shedFields);
   setupRoofOverhang(patioFields);
+  setupRoofAttached(patioFields);
+  setupRoofRoof_Height(patioFields);
+  setupRoofFascia_Connection(patioFields);
 
   // NEW: roof === "yes" -> show stormwater
-  setupRoofStormwater(shedFields);
+  //setupRoofStormwater(shedFields);
   setupRoofStormwater(patioFields);
 
   // NEW: attached === "yes" -> show above_gutter
@@ -203,48 +206,54 @@ function setupStructureTypeReplacement(section) {
   var type = section.querySelector("#structure_type");
   if (!type) return;
 
-  // replacement-only
-  var deck1m = section.querySelector("#deck_above_1m");
-  var matEq  = section.querySelector("#materials_equivalent");
-  var sizeCh = section.querySelector("#deck_size_change");
-  var deck1mField = fieldOf(deck1m);
-  var matEqField  = fieldOf(matEq);
-  var sizeChField = fieldOf(sizeCh);
-
-  // overlapping originals
-  var matQual = section.querySelector("#material_quality");
+  // All six fields we want only in "replacement" mode
+  var deck1m   = section.querySelector("#deck_above_1m");
+  var matEq    = section.querySelector("#materials_equivalent");
+  var sizeCh   = section.querySelector("#deck_size_change");
+  var hExisting= section.querySelector("#height_existing");
+  var matQual  = section.querySelector("#material_quality");
   var sameSize = section.querySelector("#same_size");
-  var matQualField = fieldOf(matQual);
+
+  // Bail if the replacement trio doesn’t exist (means this isn’t the patio section)
+  if (!deck1m || !matEq || !sizeCh) return;
+
+  var deck1mField   = fieldOf(deck1m);
+  var matEqField    = fieldOf(matEq);
+  var sizeChField   = fieldOf(sizeCh);
+  var hExistingField= fieldOf(hExisting);
+  var matQualField  = fieldOf(matQual);
   var sameSizeField = fieldOf(sameSize);
 
-  // if the replacement fields aren't present, bail safely
-  if (!deck1mField || !matEqField || !sizeChField) return;
+  function clear(el) { if (el) el.value = ""; }
+  function showIf(f)  { if (f) show(f); }
+  function hideIf(f)  { if (f) hide(f); }
 
   function update() {
     var isReplacement = (type.value || "").toLowerCase() === "replacement";
 
     if (isReplacement) {
-      // show replacement-only fields
-      show(deck1mField);
-      show(matEqField);
-      show(sizeChField);
-      // hide overlapping originals
-      if (matQualField) { hide(matQualField); if (matQual) matQual.value = ""; }
-      if (sameSizeField) { hide(sameSizeField); if (sameSize) sameSize.value = ""; }
+      // show ALL six
+      showIf(deck1mField);
+      showIf(matEqField);
+      showIf(sizeChField);
+      showIf(hExistingField);
+      showIf(matQualField);
+      showIf(sameSizeField);
     } else {
-      // hide replacement-only
-      hide(deck1mField);  if (deck1m) deck1m.value = "";
-      hide(matEqField);   if (matEq)  matEq.value  = "";
-      hide(sizeChField);  if (sizeCh) sizeCh.value = "";
-      // show originals again
-      if (matQualField) show(matQualField);
-      if (sameSizeField) show(sameSizeField);
+      // hide & clear ALL six
+      hideIf(deck1mField);    clear(deck1m);
+      hideIf(matEqField);     clear(matEq);
+      hideIf(sizeChField);    clear(sizeCh);
+      hideIf(hExistingField); clear(hExisting);
+      hideIf(matQualField);   clear(matQual);
+      hideIf(sameSizeField);  clear(sameSize);
     }
   }
 
   type.addEventListener("change", update);
   update();
 }
+
 
 // 6) roof === "yes" -> show overhang
 function setupRoofOverhang(section) {
@@ -266,6 +275,71 @@ function setupRoofOverhang(section) {
   roof.addEventListener("change", update);
   update();
 }
+
+// 6) roof === "yes" -> show attached
+function setupRoofAttached(section) {
+  if (!section) return;
+  var roof = section.querySelector("#roof");
+  var roofattached = section.querySelector("#attached");
+  var roofattachedField = fieldOf(roofattached);
+  if (!roof || !roofattachedField) return;
+
+  function update() {
+    var v = (roof.value || "").toLowerCase();
+    if (v === "yes") {
+      show(roofattachedField);
+    } else {
+      hide(roofattachedField);
+      if (roofattached) roofattached.value = "";
+    }
+  }
+  roof.addEventListener("change", update);
+  update();
+}
+
+// 6) roof === "yes" -> show Roof_Height
+function setupRoofRoof_Height(section) {
+  if (!section) return;
+  var roof = section.querySelector("#roof");
+  var roof_height = section.querySelector("#roof_height");
+  var roof_heightField = fieldOf(roof_height);
+  if (!roof || !roof_heightField) return;
+
+  function update() {
+    var v = (roof.value || "").toLowerCase();
+    if (v === "yes") {
+      show(roof_heightField);
+    } else {
+      hide(roof_heightField);
+      if (roof_height) roof_height.value = "";
+    }
+  }
+  roof.addEventListener("change", update);
+  update();
+}
+
+
+// 6) roof === "yes" -> show fascia_connection
+function setupRoofFascia_Connection(section) {
+  if (!section) return;
+  var roof = section.querySelector("#roof");
+  var fascia_connection = section.querySelector("#fascia_connection");
+  var fascia_connectionField = fieldOf(fascia_connection);
+  if (!roof || !fascia_connectionField) return;
+
+  function update() {
+    var v = (roof.value || "").toLowerCase();
+    if (v === "yes") {
+      show(fascia_connectionField);
+    } else {
+      hide(fascia_connectionField);
+      if (fascia_connection) fascia_connection.value = "";
+    }
+  }
+  roof.addEventListener("change", update);
+  update();
+}
+
 
 // NEW: roof === "yes" -> show stormwater
 function setupRoofStormwater(section) {
@@ -444,12 +518,7 @@ function handleSubmit(e) {
     payload.easement = valFrom(r, "#easement");
     payload.services = valFrom(r, "#services");
     payload.existing_structures = valFrom(r, "#existing_structures");
-    payload.roof = valFrom(r, "#roof");
-    payload.overhang = numFrom(r, "#overhang");
-    payload.attached = valFrom(r, "#attached");
-    payload.above_gutter = valFrom(r, "#above_gutter");
-    payload.fascia_connection = valFrom(r, "#fascia_connection");
-    payload.engineer_spec = valFrom(r, "#engineer_spec");
+    
   }
 
   // Patio-only fields
@@ -467,7 +536,7 @@ function handleSubmit(e) {
     payload.boundary_distance = numFrom(p, "#boundary_distance");
     payload.metal = valFrom(p, "#metal");
     payload.reflective = valFrom(p, "#reflective");
-    payload.floor_height = numFrom(p, "#floor_height");
+    payload.floor_height = valFrom(p, "#floor_height");
     payload.roof = valFrom(p, "#roof");
     payload.overhang = numFrom(p, "#overhang");
     payload.attached = valFrom(p, "#attached");
@@ -480,8 +549,6 @@ function handleSubmit(e) {
     payload.bushfire = valFrom(p, "#bushfire");
     payload.distance_dwelling = numFrom(p, "#distance_dwelling");
     payload.non_combustible = valFrom(p, "#non_combustible");
-    payload.adjacent_building = valFrom(p, "#adjacent_building");
-    payload.interfere = valFrom(p, "#interfere");
 
     // replacement-only patio answers
     payload.deck_above_1m        = valFrom(p, "#deck_above_1m");
@@ -527,7 +594,7 @@ function handleSubmit(e) {
         "Your answers\n------------\n" + summary;
 
         var assessmentTitle =
-        "\n\nAssessment result\n-----------------\n";
+        "\n\n\n";
 
         // Beautify the server response (bullets + clickable links)
         var assessmentHtml = formatAssessmentHtml(raw);
@@ -640,16 +707,20 @@ function resetForm() {
   hideFieldAndClear(patioFields, "#deck_above_1m");
   hideFieldAndClear(patioFields, "#materials_equivalent");
   hideFieldAndClear(patioFields, "#deck_size_change");
-
-  // overlapping originals (ensure they’re hidden if patio was replacement)
+  hideFieldAndClear(patioFields, "#height_existing");
   hideFieldAndClear(patioFields, "#material_quality");
   hideFieldAndClear(patioFields, "#same_size");
 
+
+
   // NEW: conditionally shown fields
   hideFieldAndClear(patioFields, "#overhang");
+  hideFieldAndClear(patioFields, "#attached");
+  hideFieldAndClear(patioFields, "#roof_height");
+  hideFieldAndClear(patioFields, "#fascia_connection");
   hideFieldAndClear(shedFields,  "#overhang");
   hideFieldAndClear(patioFields, "#stormwater");
-  hideFieldAndClear(shedFields,  "#stormwater");
+  //hideFieldAndClear(shedFields,  "#stormwater");
   hideFieldAndClear(patioFields, "#above_gutter");
   hideFieldAndClear(shedFields,  "#above_gutter");
   hideFieldAndClear(patioFields, "#engineer_spec");
