@@ -132,6 +132,10 @@ from flask import render_template_string
 from assessment_db import AssessmentDB
 import sqlite3
 import json
+import os
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 
 # Some constants and helper functions
 # Below get_shed_help and get_patio_help provide HTML help information on the required attributes for each development type
@@ -587,6 +591,47 @@ def shed_check(attributes):
 # Create API
 # Initialize Flask application instance
 app = Flask(__name__)
+app.config["RATELIMIT_HEADERS_ENABLED"] = True
+
+# Request/Response timeout
+EXECUTOR = ThreadPoolExecutor(max_workers=4)
+REQUEST_TIMEOUT_SECONDS = int(os.getenv("REQUEST_TIMEOUT_SECONDS", 30))
+
+def run_with_timeout(fn, *args, timeout=REQUEST_TIMEOUT_SECONDS):
+    fut = EXECUTOR.submit(fn, *args)
+    try:
+        return fut.result(timeout=timeout)
+    except FuturesTimeout:
+        fut.cancel()
+        raise
+
+# Rate limiting setup 
+DEFAULT_LIMIT = os.getenv("RATE_LIMIT_DEFAULT", "30 per minute")
+VALIDATE_LIMIT = os.getenv("RATE_LIMIT_VALIDATE", "10 per 30 seconds")  # for assessment endpoint
+LOGGING_LIMIT  = os.getenv("RATE_LIMIT_LOGGING",  "10 per minute")      # for /get-logging-db/
+HELP_LIMIT     = os.getenv("RATE_LIMIT_HELP",     "30 per minute")
+STORAGE_URI    = os.getenv("LIMITER_STORAGE_URI", "memory://")          
+
+limiter = Limiter(
+    key_func=get_remote_address,          # per-IP by default; swap to user-id if you add auth
+    default_limits=[DEFAULT_LIMIT],
+    storage_uri=STORAGE_URI
+)
+limiter.init_app(app)
+
+@app.after_request
+def expose_rate_limit_headers(resp):
+    # Make rate-limit headers readable by frontend JS (if on a different origin)
+    resp.headers["Access-Control-Expose-Headers"] = \
+        "X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After"
+    return resp
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    # Flask-Limiter will set Retry-After and X-RateLimit-* headers; return a friendly JSON
+    return jsonify({"error": "rate_limited",
+                    "message": "Too many requests. Please try again later."}), 429
+
 
 # Define route for homepage; serves the main HTML form interface for shed/patio assessment (ExemptAssessAPI)
 @app.route("/")
@@ -597,15 +642,32 @@ def index():
 
 # Define route page to return assessment results based on user input via POST request
 @app.route("/get-assessment-result/", methods=["POST"])
+@limiter.limit(VALIDATE_LIMIT)  # Apply rate limit to assessment endpoint
 def API_assessment():
-    # Parse JSON payload from frontend form submission
-    attributes = request.get_json()
-    # Pass attributes to assessment engine and return result
-    return Assess(attributes)
+    attributes = request.get_json(silent=True) or {}
 
+    # TESTING: debug slowness via query param (?debug_sleep=40)
+    #try:
+        #debug_sleep = int(request.args.get("debug_sleep", "0"))
+    #except ValueError:
+        #debug_sleep = 0
+    #if debug_sleep > 0:
+        #import time
+        #time.sleep(debug_sleep)
+    # end testing code
+        
+    try:
+        return run_with_timeout(Assess, attributes)
+    except FuturesTimeout:
+        return jsonify({
+            "error": "timeout",
+            "message": f"Processing took longer than {REQUEST_TIMEOUT_SECONDS}s. Please try again."
+        }), 504
+    
 
 # Define route to return help information on required attributes for shed and patio assessments via GET request
 @app.route("/get-assessment-help/", methods=["GET"])
+@limiter.limit(HELP_LIMIT)  # Apply rate limit to help endpoint
 def API_assessment_help():
     # Return combined help documentation for shed and patio attributes (used for frontend guidance or API introspection)
     return get_shed_help + get_patio_help
@@ -620,6 +682,7 @@ def API_assessment_help():
 # /get-logging-db/  (to get all assessments)
 # This should probably be changed to a more secure admin-only view in a production system
 @app.route("/get-logging-db/", methods=["GET"])
+@limiter.limit(LOGGING_LIMIT)   # Apply rate limit to logging endpoint
 def get_logging_dbx():
     limited = request.args.get('limit', default=-1, type=int)
     id = request.args.get('id', default=None, type=int)
@@ -642,6 +705,8 @@ def get_logging_dbx():
 
     # Render the results in an HTML table using the template
     return render_template_string(html_template, columns=column_names, rows=rows)
+
+
 
 
 # Define the main assessment function that routes to specific development checks based on input attributes
@@ -732,7 +797,27 @@ def Assess(attributes):
     # Return the full result list to the frontend for display
     return full_result
 
+# for testing timeout response
+#@app.get("/debug/sleep/<int:secs>")
+#def debug_sleep(secs):
+    #import time
+    #time.sleep(secs)
+    #return f"slept {secs}s"
 
+# for testing timeout response
+#@app.get("/debug/sleep_guarded/<int:secs>")
+#def debug_sleep_guarded(secs):
+    #import time
+    #def _work():
+        #time.sleep(secs)
+        #return f"slept {secs}s"
+    #try:
+        #return run_with_timeout(_work)          # uses REQUEST_TIMEOUT_SECONDS (e.g., 30)
+    #except FuturesTimeout:
+        #return jsonify({
+            #"error": "timeout",
+            #"message": f"Processing took longer than {REQUEST_TIMEOUT_SECONDS}s. Please try again."
+        #}), 504
 
 if __name__ == "__main__":
     # Run the API

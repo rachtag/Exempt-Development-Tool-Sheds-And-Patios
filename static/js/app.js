@@ -470,6 +470,18 @@ function validateRequired() {
   }
 }
 
+// TESTING: make the POST hit the debug sleep. 0 = no sleep, 40 = 40s sleep
+const DEBUG_SLEEP_SECS = 0; // change to 0 after testing
+
+// ====== TIMEOUT HELPER ======
+const REQUEST_TIMEOUT_MS = 15000; // 15s overall timeout
+
+function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(id));
+}
 
 // ======== SUBMIT ========
 function handleSubmit(e) {
@@ -544,12 +556,35 @@ function handleSubmit(e) {
     payload.deck_size_change     = valFrom(p, "#deck_size_change");
   }
 
-    fetch("/get-assessment-result/", {
+  // For testing: optionally add a "sleep" parameter to simulate a slow response  
+    //const url = DEBUG_SLEEP_SECS > 0
+      //? `/get-assessment-result/?debug_sleep=${DEBUG_SLEEP_SECS}`
+      //: `/get-assessment-result/`;
+
+
+    fetchWithTimeout("/get-assessment-result/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
     })
-    .then(function (res) { return res.text(); })
+    .then(function (res){ 
+      if (res.status === 429) {
+        var retry = res.headers.get("Retry-After");      // seconds (string)
+        return res.json().catch(() => ({})).then(function (data) {
+          var msg = (data && data.message) ? data.message : "Too many requests.";
+          resultPre.textContent = retry
+            ? msg + " Try again in ~" + retry + " seconds."
+            : msg;
+          showDownloadIfReady();
+          throw new Error("rate_limited");
+    });
+    }
+    if (!res.ok) {
+      return res.text().then(function (body) {
+        throw new Error(`server_error ${res.status}: ${body.slice(0,200)}...`);
+      });
+  }
+      return res.text(); })
     .then(function (raw) {
         var summary = buildSummary(payload);
 
@@ -576,9 +611,15 @@ function handleSubmit(e) {
         showDownloadIfReady();
     })
     .catch(function (err) {
-        console.error(err);
-        resultPre.textContent = "An error occurred while submitting. Please try again.";
-        showDownloadIfReady();
+      if (err && err.name === "AbortError") {
+      resultPre.textContent = "This is taking longer than expected. Please try again.";
+      showDownloadIfReady();
+      return;
+    }
+      if (err && err.message === "rate_limited") return; 
+      console.error(err);
+      resultPre.textContent = "An error occurred while submitting. Please try again.";
+      showDownloadIfReady();
     });
 
 }
