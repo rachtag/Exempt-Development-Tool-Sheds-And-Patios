@@ -135,6 +135,7 @@ import json
 import os
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 
 # Some constants and helper functions
 # Below get_shed_help and get_patio_help provide HTML help information on the required attributes for each development type
@@ -592,6 +593,17 @@ def shed_check(attributes):
 app = Flask(__name__)
 app.config["RATELIMIT_HEADERS_ENABLED"] = True
 
+# Request/Response timeout
+EXECUTOR = ThreadPoolExecutor(max_workers=4)
+REQUEST_TIMEOUT_SECONDS = int(os.getenv("REQUEST_TIMEOUT_SECONDS", 30))
+
+def run_with_timeout(fn, *args, timeout=REQUEST_TIMEOUT_SECONDS):
+    fut = EXECUTOR.submit(fn, *args)
+    try:
+        return fut.result(timeout=timeout)
+    except FuturesTimeout:
+        fut.cancel()
+        raise
 
 # Rate limiting setup 
 DEFAULT_LIMIT = os.getenv("RATE_LIMIT_DEFAULT", "30 per minute")
@@ -632,11 +644,26 @@ def index():
 @app.route("/get-assessment-result/", methods=["POST"])
 @limiter.limit(VALIDATE_LIMIT)  # Apply rate limit to assessment endpoint
 def API_assessment():
-    # Parse JSON payload from frontend form submission
-    attributes = request.get_json()
-    # Pass attributes to assessment engine and return result
-    return Assess(attributes)
+    attributes = request.get_json(silent=True) or {}
 
+    # TESTING: debug slowness via query param (?debug_sleep=40)
+    #try:
+        #debug_sleep = int(request.args.get("debug_sleep", "0"))
+    #except ValueError:
+        #debug_sleep = 0
+    #if debug_sleep > 0:
+        #import time
+        #time.sleep(debug_sleep)
+    # end testing code
+        
+    try:
+        return run_with_timeout(Assess, attributes)
+    except FuturesTimeout:
+        return jsonify({
+            "error": "timeout",
+            "message": f"Processing took longer than {REQUEST_TIMEOUT_SECONDS}s. Please try again."
+        }), 504
+    
 
 # Define route to return help information on required attributes for shed and patio assessments via GET request
 @app.route("/get-assessment-help/", methods=["GET"])
@@ -770,7 +797,27 @@ def Assess(attributes):
     # Return the full result list to the frontend for display
     return full_result
 
+# for testing timeout response
+#@app.get("/debug/sleep/<int:secs>")
+#def debug_sleep(secs):
+    #import time
+    #time.sleep(secs)
+    #return f"slept {secs}s"
 
+# for testing timeout response
+#@app.get("/debug/sleep_guarded/<int:secs>")
+#def debug_sleep_guarded(secs):
+    #import time
+    #def _work():
+        #time.sleep(secs)
+        #return f"slept {secs}s"
+    #try:
+        #return run_with_timeout(_work)          # uses REQUEST_TIMEOUT_SECONDS (e.g., 30)
+    #except FuturesTimeout:
+        #return jsonify({
+            #"error": "timeout",
+            #"message": f"Processing took longer than {REQUEST_TIMEOUT_SECONDS}s. Please try again."
+        #}), 504
 
 if __name__ == "__main__":
     # Run the API
