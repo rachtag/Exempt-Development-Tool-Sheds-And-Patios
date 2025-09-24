@@ -923,6 +923,16 @@ def get_logging_dbx():
     return render_template_string(html_template, columns=column_names, rows=rows)
 
 
+    # Define a route to clear the logging database (for testing purposes)
+    @app.route("/clear-logging-db/", methods=["GET"])
+    @limiter.limit(LOGGING_LIMIT)   # Apply rate limit to logging endpoint
+    def clear_logging_dbx():
+        db = AssessmentDB()
+        db.clear_assessments()
+        db.close()
+        return "Logging database cleared."
+    
+
 
 
 # Define the main assessment function that routes to specific development checks based on input attributes
