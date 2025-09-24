@@ -46,9 +46,11 @@ function init() {
   // roof-driven fields
   setupRoofOverhang(shedFields);
   setupRoofOverhang(patioFields);
+  setupRoofAttached(patioFields);
+  setupRoofRoof_Height(patioFields);
 
   // NEW: roof === "yes" -> show stormwater
-  setupRoofStormwater(shedFields);
+  //setupRoofStormwater(shedFields);
   setupRoofStormwater(patioFields);
 
   // NEW: attached === "yes" -> show above_gutter
@@ -267,6 +269,51 @@ function setupRoofOverhang(section) {
   update();
 }
 
+// 6) roof === "yes" -> show attached
+function setupRoofAttached(section) {
+  if (!section) return;
+  var roof = section.querySelector("#roof");
+  var roofattached = section.querySelector("#attached");
+  var roofattachedField = fieldOf(roofattached);
+  if (!roof || !roofattachedField) return;
+
+  function update() {
+    var v = (roof.value || "").toLowerCase();
+    if (v === "yes") {
+      show(roofattachedField);
+    } else {
+      hide(roofattachedField);
+      if (roofattached) roofattached.value = "";
+    }
+  }
+  roof.addEventListener("change", update);
+  update();
+}
+
+// 6) roof === "yes" -> show Roof_Height
+function setupRoofRoof_Height(section) {
+  if (!section) return;
+  var roof = section.querySelector("#roof");
+  var roof_height = section.querySelector("#roof_height");
+  var roof_heightField = fieldOf(roof_height);
+  if (!roof || !roof_heightField) return;
+
+  function update() {
+    var v = (roof.value || "").toLowerCase();
+    if (v === "yes") {
+      show(roof_heightField);
+    } else {
+      hide(roof_heightField);
+      if (roof_height) roof_height.value = "";
+    }
+  }
+  roof.addEventListener("change", update);
+  update();
+}
+
+
+
+
 // NEW: roof === "yes" -> show stormwater
 function setupRoofStormwater(section) {
   if (!section) return;
@@ -450,7 +497,7 @@ function handleSubmit(e) {
     payload.boundary_distance = numFrom(p, "#boundary_distance");
     payload.metal = valFrom(p, "#metal");
     payload.reflective = valFrom(p, "#reflective");
-    payload.floor_height = numFrom(p, "#floor_height");
+    payload.floor_height = valFrom(p, "#floor_height");
     payload.roof = valFrom(p, "#roof");
     payload.overhang = numFrom(p, "#overhang");
     payload.attached = valFrom(p, "#attached");
@@ -485,7 +532,7 @@ function handleSubmit(e) {
         "Your answers\n------------\n" + summary;
 
         var assessmentTitle =
-        "\n\nAssessment result\n-----------------\n";
+        "\n\n\n";
 
         // Beautify the server response (bullets + clickable links)
         var assessmentHtml = formatAssessmentHtml(raw);
@@ -599,9 +646,11 @@ function resetForm() {
 
   // NEW: conditionally shown fields
   hideFieldAndClear(patioFields, "#overhang");
+  hideFieldAndClear(patioFields, "#attached");
+  hideFieldAndClear(patioFields, "#roof_height");
   hideFieldAndClear(shedFields,  "#overhang");
   hideFieldAndClear(patioFields, "#stormwater");
-  hideFieldAndClear(shedFields,  "#stormwater");
+  //hideFieldAndClear(shedFields,  "#stormwater");
   hideFieldAndClear(patioFields, "#above_gutter");
   hideFieldAndClear(shedFields,  "#above_gutter");
   hideFieldAndClear(patioFields, "#engineer_spec");
