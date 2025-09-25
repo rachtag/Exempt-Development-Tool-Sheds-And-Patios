@@ -1,4 +1,15 @@
 // app.js
+import {
+  fetchAndFilterAddresses,
+  geocodeAddress,
+  queryZoneCode,
+  queryHeritage,
+  queryBushfire,
+  queryForeshore,
+  queryBiodiversity,
+  queryBoundary
+} from "/static/js/APIQuery.js";
+
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -79,7 +90,7 @@ function recheckAll(section) {
   if (!section) return;
   var metal = section.querySelector("#metal");
   if (metal) metal.dispatchEvent(new Event("change"));
-  var bush = section.querySelector("#bushfire");
+  var bush = section.querySelector("##bushfire_shed, #bushfire_patio");
   if (bush) bush.dispatchEvent(new Event("change"));
   var dist = section.querySelector("#distance_dwelling");
   if (dist) {
@@ -127,7 +138,8 @@ function setupMetalReflective(section) {
 // 2) bushfire === "yes" -> show distance_dwelling
 function setupBushfireDistance(section) {
   if (!section) return;
-  var bush = section.querySelector("#bushfire");
+   
+  var bush = section.querySelector("#bushfire_shed, #bushfire_patio");
   var dist = section.querySelector("#distance_dwelling");
   var distField = fieldOf(dist);
   if (!bush || !distField) return;
@@ -496,6 +508,11 @@ function handleSubmit(e) {
     heritage: document.getElementById("heritage").value,
     foreshore: document.getElementById("foreshore").value
   };
+  // Optional cords if available
+  if (window.latestCoords) {
+    payload.coordinate_x = window.latestCoords.x;
+    payload.coordinate_y = window.latestCoords.y;
+  }
 
   // Shed-only fields
   if (dev === "shed") {
@@ -509,7 +526,7 @@ function handleSubmit(e) {
     payload.stormwater = valFrom(r, "#stormwater"); // now conditional via roof
     payload.metal = valFrom(r, "#metal");
     payload.reflective = valFrom(r, "#reflective");
-    payload.bushfire = valFrom(r, "#bushfire");
+    payload.bushfire = valFrom(r, "#bushfire_shed");
     payload.distance_dwelling = numFrom(r, "#distance_dwelling");
     payload.non_combustible = valFrom(r, "#non_combustible");
     payload.adjacent_building = valFrom(r, "#adjacent_building");
@@ -546,7 +563,7 @@ function handleSubmit(e) {
     payload.engineer_spec = valFrom(p, "#engineer_spec");
     payload.stormwater = valFrom(p, "#stormwater"); // now conditional via roof
     payload.drainage = valFrom(p, "#drainage");
-    payload.bushfire = valFrom(p, "#bushfire");
+    payload.bushfire = valFrom(p, "#bushfire_patio");
     payload.distance_dwelling = numFrom(p, "#distance_dwelling");
     payload.non_combustible = valFrom(p, "#non_combustible");
 
@@ -783,11 +800,17 @@ function formatAssessmentHtml(raw) {
     if (!s) continue;
 
     var isUrl = /^https?:\/\//i.test(s);
-    if (isUrl && buffer.length) {
-      // glue link to previous item
-      buffer[buffer.length - 1] += " " + s;
+    if (isUrl) {
+      if (s.includes("https://legislation.nsw.gov.au/view/")) {
+       buffer.push("   " + s); // Porocess the link as exception 
+      } else if (buffer.length) {
+        buffer[buffer.length - 1] += " " + s;  
+      } else {
+        buffer.push(s);
+      }
+      
     } else {
-      buffer.push("- " + s);
+    buffer.push("- " + s);
     }
   }
 

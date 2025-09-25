@@ -30,7 +30,7 @@
       <div class="form-grid">
         <div class="field">
           <label for="address" class="label">Property address</label>
-          <input type="text" id="address" class="input" placeholder="553 Kiewa St, Albury NSW 2640">
+          <input type="text" id="address" class="input" placeholder="553 Kiewa St Albury NSW 2640">
           <div id="results" class="autocomplete-results"></div>
         </div>
       </div>
@@ -160,7 +160,7 @@
 
         <div class="field">
           <label class="label" for="bushfire">On bushfire prone land?</label>
-          <select id="bushfire" class="select">
+          <select id="bushfire_shed" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
           </select>
@@ -417,7 +417,7 @@
 
         <div class="field">
           <label class="label" for="bushfire">On bushfire prone land?</label>
-          <select id="bushfire" class="select">
+          <select id="bushfire_patio" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
           </select>
@@ -460,11 +460,18 @@
       <p class="muted small">© Albury City · Exempt Development Checker</p>
     </div>
   </footer>
+  
+
+  
+ 
 
   <!-- External JS -->
+  <script src="{{ url_for('static', filename='js/conf/js.conf') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script> 
-  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/APIQuery.js') }}"></script> 
+   <!-- <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script> -->
+  <!--<script defer src="{{ url_for('static', filename='js/app.js') }}"></script> -->
+  <script type="module" defer src="{{ url_for('static', filename='js/app.js') }}"></script>
 
 </body>
 </html>
