@@ -502,18 +502,16 @@ function handleSubmit(e) {
   var dev = devSelect.value;                     // safe now
 
   var payload = {
+    
+    address: document.getElementById("address").value,
+    longitude: window.latestCoords ? window.latestCoords.x : undefined,
+    latitude: window.latestCoords ? window.latestCoords.y : undefined,
     development: dev,
     zoning: document.getElementById("zoning").value,
-    address: document.getElementById("address").value,
     heritage: document.getElementById("heritage").value,
     foreshore: document.getElementById("foreshore").value
   };
-  // Optional cords if available
-  if (window.latestCoords) {
-    payload.coordinate_x = window.latestCoords.x;
-    payload.coordinate_y = window.latestCoords.y;
-  }
-
+  
   // Shed-only fields
   if (dev === "shed") {
     payload.sensitive_area = document.getElementById("sensitive_area").value;
