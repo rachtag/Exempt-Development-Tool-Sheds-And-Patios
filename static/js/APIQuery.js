@@ -7,7 +7,7 @@
 //   - Specific queries: zone code, heritage, bushfire, foreshore, biodiversity
 //   - Boundary query with geometry and lot size extraction
 //
-// REQUIREMENT: window.CONFIG must be loaded globally from ./conf/js.conf
+// 
 // Example CONFIG keys:
 //   ADDRESS_API, GEOCODE_URL, API_KEY
 //   ZONING_URL, HERITAGE_URL, BUSHFIRE_URL, FBL_URL, BIODIVERSITY_URL, FEATURESERVER_URL
@@ -16,7 +16,7 @@
 // =======================================================================
 // =============== Address Validation & Autocomplete =====================
 // =======================================================================
-console.log("Address_APIQuery.js loaded ");
+//console.log("APIQuery.js loaded ");
 
 /**
  * Filters NSW Planning API address results using postcode and suburb lists.
@@ -110,28 +110,27 @@ export async function fetchAndFilterAddresses(query) {
  */
 export async function geocodeAddress(address) {
   try {
-    if (!window.CONFIG?.GEOCODE_URL) throw new Error("CONFIG.GEOCODE_URL is missing.");
-    if (!window.CONFIG?.API_KEY) throw new Error("CONFIG.API_KEY is missing.");
-    if (!address || address.trim().length === 0) throw new Error("No address provided.");
+    if (!address || address.trim().length === 0) {
+      throw new Error("No address provided.");
+    }
 
-    const params = new URLSearchParams({
-      SingleLine: address,
-      f: "json",
-      token: window.CONFIG.API_KEY
-    });
+    // const response = await fetch("/geocode", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ address })
+    // });
+    const response = await fetch(`/geocode?address=${encodeURIComponent(address)}`);
+    if (!response.ok) {
+      throw new Error(`Backend geocode error: ${response.status}`);
+    }
 
-    const url = `${window.CONFIG.GEOCODE_URL}?${params.toString()}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Geocode API error: ${res.status}`);
-
-    const data = await res.json();
-    if (data.candidates?.length) {
-      const c = data.candidates[0];
-      return { x: c.location.x, y: c.location.y, score: c.score, address: c.address };
+    const data = await response.json();
+    if (data && data.x && data.y) {
+      return data;  // already {address, score, x, y}
     }
     return null;
   } catch (err) {
-    console.error("Geocoding failed:", err);
+    console.error("Geocoding via backend failed:", err);
     alert("Error: Failed to convert address to coordinates.");
     return null;
   }

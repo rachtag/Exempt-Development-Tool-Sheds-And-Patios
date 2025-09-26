@@ -160,6 +160,9 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 
+#### GIS Proxy required for geocoding
+from GISProxy import geocode_address
+
 # Some constants and helper functions
 # Below get_shed_help and get_patio_help provide HTML help information on the required attributes for each development type
 get_shed_help = """
@@ -922,7 +925,12 @@ def get_logging_dbx():
     # Render the results in an HTML table using the template
     return render_template_string(html_template, columns=column_names, rows=rows)
 
-
+#### GisProxy Route for Geocoding ########
+@app.route("/geocode", methods=["GET"])
+def API_geocode():
+    address = request.args.get("address")
+    result = geocode_address(address)
+    return jsonify(result)
 
 
 # Define the main assessment function that routes to specific development checks based on input attributes

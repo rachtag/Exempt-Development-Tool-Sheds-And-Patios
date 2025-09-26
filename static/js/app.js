@@ -90,7 +90,7 @@ function recheckAll(section) {
   if (!section) return;
   var metal = section.querySelector("#metal");
   if (metal) metal.dispatchEvent(new Event("change"));
-  var bush = section.querySelector("##bushfire_shed, #bushfire_patio");
+  var bush = section.querySelector("#bushfire_shed, #bushfire_patio");
   if (bush) bush.dispatchEvent(new Event("change"));
   var dist = section.querySelector("#distance_dwelling");
   if (dist) {
