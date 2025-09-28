@@ -49,6 +49,10 @@ class AssessmentDB:
         """, (assessment_id,))
         return self.cursor.fetchall()
 
+    def clear_assessments(self):
+        self.cursor.execute("DELETE FROM assessments")
+        self.conn.commit()
+
     def close(self):
         self.cursor.close()
         self.conn.close()
