@@ -2,3 +2,5 @@ flask
 gunicorn
 flask-limiter
 tzdata
+requests
+
