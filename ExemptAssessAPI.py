@@ -292,7 +292,7 @@ get_patio_help = """
             <tr><td>development</td><td>Type of development</td><td>patio</td></tr>
             <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
             <tr><td>structure_type</td><td>New development or replacing existing structure?</td><td>new, replacement</td></tr>
-            <tr><td>height_existing</td><td>Height of existing structure from ground level (in meters)</td><td>numeric</td></tr>
+            <tr><td>height_existing</td><td>Height of existing structure from ground level (in millimeters)</td><td>numeric</td></tr>
             <tr><td>material_quality</td><td>Will the structure use equivalent or better quality materials?</td><td>yes, no</td></tr>
             <tr><td>same_size</td><td>Will the structure be the same height and size as existing?</td><td>yes, no</td></tr>
             <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
@@ -472,7 +472,7 @@ def patio_check(attributes):
             relevant_sections.append("Please contact Albury City Council for further assistance.")
 
         if attributes["structure_type"] == "replacement":
-            if attributes["height_existing"] > 1:
+            if attributes["height_existing"] > 1000:
                 results.append("The proposed structure is higher than 1m above ground level. Please refer to the SEPP legislation for height restrictions:")
                 relevant_sections.append("sec.2.11 (b)")
 
