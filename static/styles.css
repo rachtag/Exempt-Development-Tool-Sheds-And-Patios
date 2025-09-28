@@ -17,6 +17,7 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
+  
   margin:0;
   font-family: "Roboto", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
   color: var(--gray-700);
@@ -100,6 +101,9 @@ body{
   outline: none;
   transition: box-shadow .15s ease, border-color .15s ease, transform .02s ease;
 }
+
+ 
+
 .select{
   background-image:
     linear-gradient(45deg, transparent 50%, var(--gray-500) 50%),
@@ -181,3 +185,5 @@ body{
 
 
 #result { line-height: 1.6; }
+
+ 
