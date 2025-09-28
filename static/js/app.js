@@ -441,49 +441,45 @@ function labelFor(el) {
   const lbl = document.querySelector("label[for='" + el.id + "']");
   return (lbl ? lbl.textContent.trim() : (el.getAttribute("placeholder") || el.id || "Field"));
 }
-
+// Single-message validation: ignore hidden/disabled, stop at first empty
 function validateRequired() {
-  const errors = [];
-  let first = null;
+  // clear any previous highlight
+  document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-  // Always required top fields
-  const topIds = ["address", "development", "zoning", "heritage", "foreshore"];
-  topIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const v = (el.value || "").trim();
-    if (!v) {
-      errors.push(labelFor(el) + " is required.");
-      if (!first) first = el;
-    }
-  });
-
-  // All other **visible** inputs/selects inside .field blocks
-  const visible = document.querySelectorAll(
-    ".field:not(.hidden) input, .field:not(.hidden) select, .field:not(.hidden) textarea"
+  // find all inputs/selects/textareas that are inside a .field
+  const nodes = document.querySelectorAll(
+    ".field input, .field select, .field textarea"
   );
-  visible.forEach(el => {
-    if (topIds.includes(el.id)) return;          // already checked above
-    if (el.closest(".hidden")) return;           // safety
-    const v = (el.value || "").trim();
-    if (!v) {
-      errors.push(labelFor(el) + " is required.");
-      if (!first) first = el;
-    }
-  });
 
-  // Show errors (either a #form-errors element or alert fallback)
-  if (errors.length) {
-    const box = document.getElementById("form-errors");
-    if (box) { box.textContent = errors.join(" "); box.classList.remove("hidden"); }
-    else { alert(errors.join("\n")); }
-    if (first) first.focus();
-    return false;
-  } else {
-    const box = document.getElementById("form-errors");
-    if (box) { box.textContent = ""; box.classList.add("hidden"); }
-    return true;
+  for (const el of nodes) {
+    // skip anything not relevant
+    if (el.disabled) continue;                 // programmatically disabled
+    if (el.closest('.hidden')) continue;       // any hidden ancestor (e.g., whole section hidden)
+
+    // compute "empty"
+    const tag  = el.tagName;
+    const type = (el.getAttribute('type') || '').toLowerCase();
+    let empty  = false;
+
+    if (tag === 'SELECT') {
+      empty = (el.value === '');                                 // "-- Select --"
+    } else if (type === 'number') {
+      empty = (el.value === '' || isNaN(Number(el.value)));       // blank or NaN
+    } else {
+      empty = (String(el.value || '').trim() === '');
+    }
+
+    if (empty) {
+      // highlight & focus first missing only
+      el.classList.add('is-invalid');
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.focus({ preventScroll: true });
+      alert("Please complete all required fields before submitting.");
+      return false;
+    }
   }
+
+  return true; // everything visible & enabled is filled
 }
 
 // TESTING: make the POST hit the debug sleep. 0 = no sleep, 40 = 40s sleep
