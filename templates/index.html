@@ -15,7 +15,7 @@
       <h1 class="title">Exempt Development Assessment</h1>
       <p class="subtitle">Sheds &amp; Patios — Albury City</p>
       <p class="lead">
-        Check if your shed or patio qualifies as exempt development and can be built without council approval.
+        Check if a shed or patio qualifies as exempt development and can be built without council approval.
       </p>
     </div>
   </header>
@@ -25,11 +25,11 @@
     <section class="section card">
       <h2 class="section-title">Property</h2>
       <p class="muted">
-        Please ensure your property is within Albury City before continuing.
+        Please ensure the property is within Albury City before continuing.
       </p>
       <div class="form-grid">
         <div class="field">
-          <label for="address" class="label">Property address</label>
+          <label for="address" class="label">Enter the property address</label>
           <input type="text" id="address" class="input" placeholder="553 Kiewa St Albury NSW 2640">
           <div id="results" class="autocomplete-results"></div>
         </div>
@@ -41,7 +41,7 @@
       <h2 class="section-title">Development Type</h2>
       <div class="form-grid">
         <div class="field">
-          <label for="development" class="label">What are you planning to build?</label>
+          <label for="development" class="label">Select the structure to be built</label>
           <select id="development" class="select">
             <option value="">-- Select --</option>
             <option value="shed">Shed</option>
@@ -55,8 +55,8 @@
     <section class="section card">
       <h2 class="section-title">Site Details</h2>
       <p class="muted">
-        Unsure about zoning, heritage status, or foreshore? Check the
-        <a class="link" href="https://www.planningportal.nsw.gov.au/" target="_blank" rel="noopener">NSW Planning Portal</a>.
+        Please indicate if any of the following apply to the property. If zoning, heritage status, or foreshore information is unknown, check the 
+        <a class="link" href="https://www.planningportal.nsw.gov.au/" target="_blank" rel="noopener">NSW Planning Portal</a> for details.
       </p>
 
       <div class="form-grid">
@@ -71,7 +71,7 @@
        
       
         <div class="field">
-          <label for="zoning" class="label">Zoning</label>
+          <label for="zoning" class="label">Land zoning</label>
           <select id="zoning" class="select"  required >
             <option value="">-- Select --</option>
             <option>R1</option><option>R2</option><option>R3</option><option>R4</option><option>R5</option> 
@@ -87,7 +87,7 @@
 
 
         <div class="field">
-          <label class="label" for="heritage">Is the property a heritage item?</label>
+          <label class="label" for="heritage">Heritage item</label>
           <select id="heritage" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -96,7 +96,7 @@
         </div>
 
         <div class="field">
-          <label class="label" for="foreshore">Is the property in a foreshore area?</label>
+          <label class="label" for="foreshore">Foreshore area</label>
           <select id="foreshore" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -106,7 +106,7 @@
 
         <!-- Only used for sheds -->
         <div class="field full" id="sensitive-area-label" class="hidden">
-          <label class="label" for="sensitive_area">Is the property in an environmentally sensitive area?</label>
+          <label class="label" for="sensitive_area">Environmentally sensitive area</label>
           <select id="sensitive_area" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -119,14 +119,15 @@
     <!-- Shed fields -->
     <section id="shed-fields" class="section card hidden">
       <h2 class="section-title">Shed Details</h2>
+      <p class="muted">Please provide information about your planned structure.</p>
       <div class="form-grid">
         <div class="field">
-          <label class="label" for="area">Planned shed area (m²)</label>
+          <label class="label" for="area">Shed area (m²)</label>
           <input type="number" id="area" class="input">
         </div>
 
         <div class="field">
-          <label class="label" for="height">Planned shed height (m)</label>
+          <label class="label" for="height">Structure height from ground level (m)</label>
           <input type="number" step="0.1" id="height" class="input">
         </div>
 
@@ -139,12 +140,12 @@
           <label class="label" for="building_line">Located behind the building line?</label>
           <select id="building_line" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="shipping_container">Is the shed a shipping container?</label>
+          <label class="label" for="shipping_container">Shed is a shipping container?</label>
           <select id="shipping_container" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -152,31 +153,31 @@
         </div>
 
         <div class="field">
-          <label class="label" for="stormwater">Roofwater to existing stormwater?</label>
+          <label class="label" for="stormwater">Roofwater disposed of without nuisance to adjoining lots?</label>
           <select id="stormwater" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="metal">Uses metal components?</label>
+          <label class="label" for="metal">Metal components used?</label>
           <select id="metal" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="reflective">Low-reflective / pre-coloured?</label>
+          <label class="label" for="reflective">Low-reflective / pre-coloured metal?</label>
           <select id="reflective" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="bushfire">On bushfire prone land?</label>
+          <label class="label" for="bushfire">Bushfire prone land?</label>
           <select id="bushfire_shed" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -192,7 +193,7 @@
           <label class="label" for="non_combustible">Non-combustible materials?</label>
           <select id="non_combustible" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
@@ -205,7 +206,7 @@
         </div>
 
         <div class="field">
-          <label class="label" for="interfere">Interfere with entry/exit or fire safety?</label>
+          <label class="label" for="interfere">Interferes with entry/exit or fire safety?</label>
           <select id="interfere" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -221,7 +222,7 @@
         </div>
 
         <div class="field">
-          <label class="label" for="easement">Within 1 m of a registered easement?</label>
+          <label class="label" for="easement">Within 1 metre of a registered easement?</label>
           <select id="easement" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -237,7 +238,7 @@
         </div>
 
         <div class="field full">
-          <label class="label" for="existing_structures">Already two of: cabanas, cubby houses, ferneries, garden sheds, gazebos, greenhouses?</label>
+          <label class="label" for="existing_structures">Existing structures: two or more cabanas, cubby houses, ferneries, garden sheds, gazebos, or greenhouses on the site?</label>
           <select id="existing_structures" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -249,6 +250,7 @@
     <!-- Patio fields -->
     <section id="patio-fields" class="section card hidden">
       <h2 class="section-title">Patio Details</h2>
+      <p class="muted">Please provide information about your planned structure.</p>
       <div class="form-grid">
         <div class="field">
           <label class="label" for="structure_type">New or replacement?</label>
@@ -259,6 +261,7 @@
         </div>
 
         <!-- Replacement-only questions -->
+        <!--
         <div class="field hidden" id="field-deck-above-1m">
           <label class="label" for="deck_above_1m">Deck is higher than 1m above the ground?</label>
           <select class="select" id="deck_above_1m">
@@ -266,15 +269,19 @@
             <option>no</option><option>yes</option>
           </select>
         </div>
+        -->
 
+        <!--  
         <div class="field hidden" id="field-materials-equivalent">
-          <label class="label" for="materials_equivalent">Uses equivalent or improved materials?</label>
-          <select class="select" id="materials_equivalent">
-            <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
-          </select>
-        </div>
+            <label class="label" for="materials_equivalent">Uses equivalent or improved materials?</label>
+            <select class="select" id="materials_equivalent">
+              <option value="">-- Select --</option>
+              <option>no</option><option>yes</option>
+            </select>
+          </div>
+        -->
 
+        <!--
         <div class="field hidden" id="field-deck-size-change">
           <label class="label" for="deck_size_change">Changes the size or height of the existing deck?</label>
           <select class="select" id="deck_size_change">
@@ -282,19 +289,18 @@
             <option>no</option><option>yes</option>
           </select>
         </div>
-
-
+        -->
 
         <div class="field">
-          <label class="label" for="height_existing">Existing structure height (m)</label>
-          <input type="number" step="0.1" id="height_existing" class="input">
+          <label class="label" for="height_existing">Existing floor height (mm)</label>
+          <input type="number" id="height_existing" class="input">
         </div>
 
         <div class="field">
           <label class="label" for="material_quality">Equivalent or better materials?</label>
           <select id="material_quality" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
@@ -302,12 +308,12 @@
           <label class="label" for="same_size">Same height &amp; size as existing?</label>
           <select id="same_size" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="area">Planned patio area (m²)</label>
+          <label class="label" for="area">Patio area (m²)</label>
           <input type="number" id="area" class="input">
         </div>
 
@@ -317,12 +323,12 @@
         </div>
 
         <div class="field">
-          <label class="label" for="total_structures_area">Total planned + existing structures (m²)</label>
+          <label class="label" for="total_structures_area">Existing &amp; planned structures combined area (excludes dwelling) (m²)</label>
           <input type="number" id="total_structures_area" class="input">
         </div>
 
         <div class="field">
-          <label class="label" for="wall_height">Any wall over 1.4 m?</label>
+          <label class="label" for="wall_height">Any wall to exceed 1.4 metres?</label>
           <select id="wall_height" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -330,10 +336,10 @@
         </div>
 
         <div class="field">
-          <label class="label" for="behind_building_line">Behind building line?</label>
+          <label class="label" for="behind_building_line">Located behind the building line?</label>
           <select id="behind_building_line" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
@@ -343,31 +349,28 @@
         </div>
 
         <div class="field">
-          <label class="label" for="metal">Uses metal components?</label>
+          <label class="label" for="metal">Metal components used?</label>
           <select id="metal" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="reflective">Low-reflective / pre-coloured?</label>
+          <label class="label" for="reflective">Low-reflective / pre-coloured metal?</label>
           <select id="reflective" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="floor_height">Floor height more than 1m above level?</label>
-          <select id="floor_height" class="select">
-            <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
-          </select>
+          <label class="label" for="floor_height">Planned floor height (mm)</label>
+          <input type="number" id="floor_height" class="input">
         </div>
 
         <div class="field">
-          <label class="label" for="roof">Will the structure have a roof?</label>
+          <label class="label" for="roof">Structure to have a roof?</label>
           <select id="roof" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -401,7 +404,7 @@
         </div>
 
         <div class="field">
-          <label class="label" for="fascia_connection">Connected to fascia?</label>
+          <label class="label" for="fascia_connection">Roof connected to dwelling fascia?</label>
           <select id="fascia_connection" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -409,23 +412,23 @@
         </div>
 
         <div class="field">
-          <label class="label" for="engineer_spec">If connected, as per engineer specs?</label>
+          <label class="label" for="engineer_spec">If connected, as per Engineer specs?</label>
           <select id="engineer_spec" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="stormwater">Roofwater connected to existing stormwater/drainage?</label>
+          <label class="label" for="stormwater">Roofwater connected to existing stormwater drainage system?</label>
           <select id="stormwater" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label" for="drainage">Interfere with drainage/flow paths?</label>
+          <label class="label" for="drainage">Structure to interfere with existing drainage/flow paths?</label>
           <select id="drainage" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -433,7 +436,7 @@
         </div>
 
         <div class="field">
-          <label class="label" for="bushfire">On bushfire prone land?</label>
+          <label class="label" for="bushfire">Bushfire prone land?</label>
           <select id="bushfire_patio" class="select">
             <option value="">-- Select --</option>
             <option>no</option><option>yes</option>
@@ -449,7 +452,7 @@
           <label class="label" for="non_combustible">Non-combustible materials?</label>
           <select id="non_combustible" class="select">
             <option value="">-- Select --</option>
-            <option>no</option><option>yes</option>
+            <option>yes</option><option>no</option>
           </select>
         </div>
       </div>

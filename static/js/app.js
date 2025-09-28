@@ -61,16 +61,14 @@ function init() {
   setupRoofRoof_Height(patioFields);
   setupRoofFascia_Connection(patioFields);
 
-  // NEW: roof === "yes" -> show stormwater
+  // roof === "yes" -> show stormwater
   //setupRoofStormwater(shedFields);
   setupRoofStormwater(patioFields);
 
-  // NEW: attached === "yes" -> show above_gutter
-  setupAttachedAboveGutter(shedFields);
+  // attached === "yes" -> show above_gutter
   setupAttachedAboveGutter(patioFields);
 
-  // NEW: fascia_connection === "yes" -> show engineer_spec
-  setupFasciaEngineerSpec(shedFields);
+  // fascia_connection === "yes" -> show engineer_spec
   setupFasciaEngineerSpec(patioFields);
 
   // first pass
@@ -104,7 +102,7 @@ function recheckAll(section) {
   var stype = section.querySelector("#structure_type");
   if (stype) stype.dispatchEvent(new Event("change"));
 
-  // NEW re-triggers for added conditionals
+  // re-triggers for roof conditionals
   var roof = section.querySelector("#roof");
   if (roof) roof.dispatchEvent(new Event("change"));
   var attached = section.querySelector("#attached");
@@ -219,19 +217,19 @@ function setupStructureTypeReplacement(section) {
   if (!type) return;
 
   // All six fields we want only in "replacement" mode
-  var deck1m   = section.querySelector("#deck_above_1m");
-  var matEq    = section.querySelector("#materials_equivalent");
-  var sizeCh   = section.querySelector("#deck_size_change");
+  // var deck1m   = section.querySelector("#deck_above_1m");
+  // var matEq    = section.querySelector("#materials_equivalent");
+  // var sizeCh   = section.querySelector("#deck_size_change");
   var hExisting= section.querySelector("#height_existing");
   var matQual  = section.querySelector("#material_quality");
   var sameSize = section.querySelector("#same_size");
 
   // Bail if the replacement trio doesn’t exist (means this isn’t the patio section)
-  if (!deck1m || !matEq || !sizeCh) return;
+  if (!hExisting || !matQual || !sameSize) return;
 
-  var deck1mField   = fieldOf(deck1m);
-  var matEqField    = fieldOf(matEq);
-  var sizeChField   = fieldOf(sizeCh);
+  /// var deck1mField   = fieldOf(deck1m);
+  /// var matEqField    = fieldOf(matEq);
+  /// var sizeChField   = fieldOf(sizeCh);
   var hExistingField= fieldOf(hExisting);
   var matQualField  = fieldOf(matQual);
   var sameSizeField = fieldOf(sameSize);
@@ -245,17 +243,17 @@ function setupStructureTypeReplacement(section) {
 
     if (isReplacement) {
       // show ALL six
-      showIf(deck1mField);
-      showIf(matEqField);
-      showIf(sizeChField);
+      // showIf(deck1mField);
+      // showIf(matEqField);
+      // showIf(sizeChField);
       showIf(hExistingField);
       showIf(matQualField);
       showIf(sameSizeField);
     } else {
       // hide & clear ALL six
-      hideIf(deck1mField);    clear(deck1m);
-      hideIf(matEqField);     clear(matEq);
-      hideIf(sizeChField);    clear(sizeCh);
+      // hideIf(deck1mField);    clear(deck1m);
+      // hideIf(matEqField);     clear(matEq);
+      // hideIf(sizeChField);    clear(sizeCh);
       hideIf(hExistingField); clear(hExisting);
       hideIf(matQualField);   clear(matQual);
       hideIf(sameSizeField);  clear(sameSize);
@@ -267,7 +265,7 @@ function setupStructureTypeReplacement(section) {
 }
 
 
-// 6) roof === "yes" -> show overhang
+// 6) roof === "yes" -> show overhang / roof-dependent fields
 function setupRoofOverhang(section) {
   if (!section) return;
   var roof = section.querySelector("#roof");
@@ -282,6 +280,12 @@ function setupRoofOverhang(section) {
     } else {
       hide(overhangField);
       if (overhang) overhang.value = "";
+      hideFieldAndClear(section, "#attached");
+      hideFieldAndClear(section, "#roof_height");
+      hideFieldAndClear(section, "#fascia_connection");
+      hideFieldAndClear(section, "#stormwater");
+      hideFieldAndClear(section, "#above_gutter");
+      hideFieldAndClear(section, "#engineer_spec");
     }
   }
   roof.addEventListener("change", update);
@@ -353,7 +357,7 @@ function setupRoofFascia_Connection(section) {
 }
 
 
-// NEW: roof === "yes" -> show stormwater
+// roof === "yes" -> show stormwater
 function setupRoofStormwater(section) {
   if (!section) return;
   var roof = section.querySelector("#roof");
@@ -374,7 +378,7 @@ function setupRoofStormwater(section) {
   update();
 }
 
-// NEW: attached === "yes" -> show above_gutter
+// attached === "yes" -> show above_gutter
 function setupAttachedAboveGutter(section) {
   if (!section) return;
   var attached = section.querySelector("#attached");
@@ -395,7 +399,7 @@ function setupAttachedAboveGutter(section) {
   update();
 }
 
-// NEW: fascia_connection === "yes" -> show engineer_spec
+// fascia_connection === "yes" -> show engineer_spec
 function setupFasciaEngineerSpec(section) {
   if (!section) return;
   var fascia = section.querySelector("#fascia_connection");
@@ -540,9 +544,6 @@ function handleSubmit(e) {
   if (dev === "patio") {
     var p = patioFields;
     payload.structure_type = valFrom(p, "#structure_type");
-    payload.height_existing = numFrom(p, "#height_existing");
-    payload.material_quality = valFrom(p, "#material_quality");
-    payload.same_size = valFrom(p, "#same_size");
     payload.area = numFrom(p, "#area");
     payload.land_size = numFrom(p, "#land_size");
     payload.total_structures_area = numFrom(p, "#total_structures_area");
@@ -551,8 +552,23 @@ function handleSubmit(e) {
     payload.boundary_distance = numFrom(p, "#boundary_distance");
     payload.metal = valFrom(p, "#metal");
     payload.reflective = valFrom(p, "#reflective");
-    payload.floor_height = valFrom(p, "#floor_height");
+    payload.floor_height = numFrom(p, "#floor_height");
     payload.roof = valFrom(p, "#roof");
+    payload.drainage = valFrom(p, "#drainage");
+    payload.bushfire = valFrom(p, "#bushfire_patio");
+    payload.distance_dwelling = numFrom(p, "#distance_dwelling");
+    payload.non_combustible = valFrom(p, "#non_combustible");
+
+    // replacement-only patio answers
+    // payload.deck_above_1m        = valFrom(p, "#deck_above_1m");
+    // payload.materials_equivalent = valFrom(p, "#materials_equivalent");
+    // payload.deck_size_change     = valFrom(p, "#deck_size_change");
+    payload.height_existing = numFrom(p, "#height_existing");
+    payload.material_quality = valFrom(p, "#material_quality");
+    payload.same_size = valFrom(p, "#same_size");
+
+
+    // roof-driven fields
     payload.overhang = numFrom(p, "#overhang");
     payload.attached = valFrom(p, "#attached");
     payload.above_gutter = valFrom(p, "#above_gutter");
@@ -560,15 +576,6 @@ function handleSubmit(e) {
     payload.fascia_connection = valFrom(p, "#fascia_connection");
     payload.engineer_spec = valFrom(p, "#engineer_spec");
     payload.stormwater = valFrom(p, "#stormwater"); // now conditional via roof
-    payload.drainage = valFrom(p, "#drainage");
-    payload.bushfire = valFrom(p, "#bushfire_patio");
-    payload.distance_dwelling = numFrom(p, "#distance_dwelling");
-    payload.non_combustible = valFrom(p, "#non_combustible");
-
-    // replacement-only patio answers
-    payload.deck_above_1m        = valFrom(p, "#deck_above_1m");
-    payload.materials_equivalent = valFrom(p, "#materials_equivalent");
-    payload.deck_size_change     = valFrom(p, "#deck_size_change");
   }
 
   // For testing: optionally add a "sleep" parameter to simulate a slow response  
@@ -719,9 +726,9 @@ function resetForm() {
   hideFieldAndClear(patioFields, "#interfere");
 
   // replacement-only patio fields
-  hideFieldAndClear(patioFields, "#deck_above_1m");
-  hideFieldAndClear(patioFields, "#materials_equivalent");
-  hideFieldAndClear(patioFields, "#deck_size_change");
+  // hideFieldAndClear(patioFields, "#deck_above_1m");
+  // hideFieldAndClear(patioFields, "#materials_equivalent");
+  // hideFieldAndClear(patioFields, "#deck_size_change");
   hideFieldAndClear(patioFields, "#height_existing");
   hideFieldAndClear(patioFields, "#material_quality");
   hideFieldAndClear(patioFields, "#same_size");
