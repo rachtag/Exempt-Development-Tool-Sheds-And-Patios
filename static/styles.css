@@ -197,3 +197,33 @@ body{
 #result { line-height: 1.6; }
 
  
+/* ====== Typography Requirements ====== */
+/* 1) Line spacing ≥ 1.5× font size */
+html, body { line-height: 1.5; }
+
+/* 2) Spacing between paragraphs = 2× font size */
+p { margin: 0 0 2em; }          /* bottom margin creates the between-paragraph spacing */
+
+/* 3) Letter spacing ≥ 0.12× font size */
+/* 4) Word spacing = 0.16× font size */
+/*body { letter-spacing: 0.12em; word-spacing: 0.16em; }*/
+body {word-spacing: 0.16em; }
+
+/* Make sure common text blocks follow the spacing too */
+p, li, blockquote {
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+
+/* Headings: ensure ≥ 0.12em (overrides earlier 0.3px on .title) */
+.title, .subtitle, h1, h2, h3, h4, h5, h6 { letter-spacing: 0.12em; }
+
+/* Don’t apply wide spacing to form controls & buttons for usability */
+input, textarea, select, button,
+.input, .select, .btn {
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal; /* form controls handle their own line-height */
+}
+

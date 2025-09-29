@@ -794,6 +794,22 @@ function formatAssessmentHtml(raw) {
   var first = arr[0] || "";
   var rest  = arr.slice(1);
 
+  //ADDING THE iCON 
+  function headlineBadge(text) {
+    var t = (text || "").toLowerCase();
+
+    // Strong match for your exact phrasing first:
+    if (t.includes("does not qualify")) {
+      return '<span class="status-badge status-bad">❌</span> ';
+    }
+    if (t.includes("qualifies")) {
+      return '<span class="status-badge status-ok">✅</span> ';
+    }
+    // Fallback: no badge
+    return "";
+  }
+
+
   // Build bullet-y lines; when a line is just a URL, append it to the previous line
   var buffer = [];
   for (var i = 0; i < rest.length; i++) {
@@ -820,10 +836,36 @@ function formatAssessmentHtml(raw) {
   // Auto-link and join with <br> to keep compatibility with <pre>
   var html = "";
   if (first.trim()) {
-    html += autoLink(first) + "<br>";
+    var badge = headlineBadge(first);
+    html += badge + autoLink(first) + "<br>";
   }
   if (buffer.length) {
     html += autoLink(buffer.join("<br>"));
   }
   return html || "(no response)";
 }
+
+//Adding check for negative value
+function enforceNonNegativeOnBlur() {
+  document.querySelectorAll('input[type="number"]').forEach((input) => {
+    input.min = '0';
+    input.addEventListener('blur', function () {
+      if (this.value.trim() === '') return;
+      const v = parseFloat(this.value);
+      if (!isNaN(v) && v < 0) {
+        this.value = ''; // optional
+        this.setCustomValidity('Negative values are not allowed.');
+        this.reportValidity();        
+        this.focus();                 
+      } else {
+        this.setCustomValidity('');   // clear message
+      }
+    });
+
+    // clear the message as the user types again
+    input.addEventListener('input', function () {
+      this.setCustomValidity('');
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', enforceNonNegativeOnBlur);
