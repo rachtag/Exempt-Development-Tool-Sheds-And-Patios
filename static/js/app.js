@@ -682,29 +682,85 @@ function showDownloadIfReady() {
   }
 }
 
+// function exportPdf() {
+//   var text = (resultPre.textContent || "").trim() || "No result.";
+//   var jsPDFLib = window.jspdf;
+//   var doc = new jsPDFLib.jsPDF({ unit: "pt", format: "a4" });
+//   var margin = 40;
+//   var pageW = doc.internal.pageSize.getWidth();
+//   var pageH = doc.internal.pageSize.getHeight();
+//   var maxW = pageW - margin * 2;
+//   var lineH = 14;
+
+//   doc.setFont("courier", "normal");
+//   doc.setFontSize(11);
+
+//   var lines = doc.splitTextToSize(text, maxW);
+//   var y = margin;
+
+//   for (var i = 0; i < lines.length; i++) {
+//     if (y > pageH - margin) { doc.addPage(); y = margin; }
+//     doc.text(lines[i], margin, y);
+//     y += lineH;
+//   }
+
+//   doc.save("assessment-result.pdf");
+// }
+
+
+
+
+
+
+// ======== RESET ========
+
 function exportPdf() {
-  var text = (resultPre.textContent || "").trim() || "No result.";
-  var jsPDFLib = window.jspdf;
-  var doc = new jsPDFLib.jsPDF({ unit: "pt", format: "a4" });
-  var margin = 40;
-  var pageW = doc.internal.pageSize.getWidth();
-  var pageH = doc.internal.pageSize.getHeight();
-  var maxW = pageW - margin * 2;
-  var lineH = 14;
+  const { jsPDF } = window.jspdf;
+  const input = document.body; // Or the main container ID
 
-  doc.setFont("courier", "normal");
-  doc.setFontSize(11);
+  // 1. Define the IDs of the buttons to hide
+  const buttonIds = ['submit', 'reset', 'download-pdf'];
+  
+  // 2. Hide all specified buttons
+  const buttonsToHide = buttonIds
+    .map(id => document.getElementById(id))
+    .filter(btn => btn !== null); // Ensure the button element actually exists
 
-  var lines = doc.splitTextToSize(text, maxW);
-  var y = margin;
+  buttonsToHide.forEach(btn => {
+    btn.style.display = 'none';
+  });
 
-  for (var i = 0; i < lines.length; i++) {
-    if (y > pageH - margin) { doc.addPage(); y = margin; }
-    doc.text(lines[i], margin, y);
-    y += lineH;
-  }
+  // Use html2canvas to render the HTML element to a canvas
+  html2canvas(input, { scale: 2 }).then((canvas) => {
+    
+    // 3. IMMEDIATELY show all buttons again after capture
+    buttonsToHide.forEach(btn => {
+      btn.style.display = ''; // Restore the default display style
+    });
 
-  doc.save("assessment-result.pdf");
+    const imgData = canvas.toDataURL('image/png');
+
+    // PDF generation logic (same as before)
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210; 
+    const pageHeight = 295; 
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    // Save the PDF file
+    pdf.save('assessment-result.pdf');
+  });
 }
 
 // ======== RESET ========
