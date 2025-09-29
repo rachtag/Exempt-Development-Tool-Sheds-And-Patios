@@ -467,115 +467,144 @@ def patio_check(attributes):
     context = "Invalid"
     
     try:
+        # Clause Part 1, Division 2 Exempt and complying development - Zoning check
         if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
             results.append("This tool does not currently support your zone type.")
             relevant_sections.append("Please contact Albury City Council for further assistance.")
 
+        # Clause 2.11 and 2.12 - Patio
+        # Replacement patio
+        # Clause 2.11 (b) - Replacement patio standards
         if attributes["structure_type"] == "replacement":
             if attributes["height_existing"] > 1000:
                 results.append("The proposed structure is higher than 1m above ground level. Please refer to the SEPP legislation for height restrictions:")
                 relevant_sections.append("sec.2.11 (b)")
 
+            # Clause 2.12 (2)(a) - Replacement patio standards
             if attributes["material_quality"] == "no":
                 results.append("The replacement must use materials of equal or better quality. Please refer to the SEPP legislation for material quality restrictions:")
                 relevant_sections.append("sec.2.12 (2)(a)")
     
+            # clause 2.12 (2)(b) - Replacement patio standards
             if attributes["same_size"] == "no":
                 results.append("The replacement must be the same size and height as the existing structure. Please refer to the SEPP legislation for size and height restrictions:")
                 relevant_sections.append("sec.2.12 (2)(b)")
 
+        # New patio
+        # Clause 2.11 (a) - Heritage item
         if attributes["heritage"] == "yes":
             results.append("The property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions:")
             relevant_sections.append("sec.2.11 (a)")
 
+        # Clause 2.11 (b) - Foreshore area
         if attributes["foreshore"] == "yes":
             results.append("The property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions:")
             relevant_sections.append("sec.2.11 (b)")
 
+        # Clause 2.11 (b) - Environmentally sensitive area
         if attributes["area"] > 25:
             results.append("The structure floor area is more than 25 m². Please refer to the SEPP legislation for floor area restrictions:")
             relevant_sections.append("sec.2.12 (1)(b)")
         else:
+            # Clause 2.12 (1)(c) - Total floor area of all such structures on the lot (for lot size greater than 300m2)
             if attributes["land_size"] > 300:
                 if attributes["total_structures_area"] > 0.15 * attributes["land_size"]:
                     results.append("The combined floor area of similar structures is over the limit for this lot size. Please refer to the SEPP legislation for total floor area restrictions:")
                     relevant_sections.append("sec.2.12 (1)(c)(i)")
 
             else:
+                # Clause 2.12 (1)(c)(ii) - Total floor area of all such structures on the lot (for lot 300m2 or less)
                 if attributes["total_structures_area"] > 25:
                     results.append("The combined floor area of similar structures is over the limit for this lot size. Please refer to the SEPP legislation for total floor area restrictions:")
                     relevant_sections.append("sec.2.12 (1)(c)(ii)") 
 
+        # Clause 2.12 (1)(d) - Wall height
         if attributes["wall_height"] == "yes":
             results.append("The wall height exceeds 1.4m. Please refer to the SEPP legislation for wall height restrictions:")
             relevant_sections.append("sec.2.12 (1)(d)") 
 
+        # Clause 2.12 (1)(e) - Building line
         if attributes["behind_building_line"] == "no":
             results.append("The structure must be behind the front building line of road frontage. Please refer to the SEPP legislation for building line restrictions:")
             relevant_sections.append("sec.2.12 (1)(e)")
 
+        # Clause 2.12 (1)(f)(ii) - Boundary distance
         if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes["boundary_distance"] < 900:
             results.append("The structure must be at least 900mm from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.12 (1)(f)(ii)")
 
+        # Clause 2.12 (1)(f)(i) - Boundary distance
         if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
             results.append("The structure must be at least 5000mm from any lot boundary for this zone type. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.12 (1)(f)(i)")
 
+        # Clause 2.12 (1)(h) - Metal components
         if attributes["metal"] == "yes":
             if attributes["reflective"] == "no":
                 results.append("The metal components must be low-reflective and factory pre-coloured. Please refer to the SEPP legislation for metal component restrictions:")
                 relevant_sections.append("sec.2.12 (1)(h)")
 
+        # Clause 2.12 (1)(i) - Floor height
         if attributes["floor_height"] > 1000:
             results.append("The floor height exceeds 1m above ground level. Please refer to the SEPP legislation for floor height restrictions:")
             relevant_sections.append("sec.2.12 (1)(i)")
 
+        # Clause 2.12 (1)(i1) - Roof overhang
         if attributes["roof"] == "yes":
             if attributes["overhang"] > 600:
                 results.append("The roof overhang exceeds 600mm. Please refer to the SEPP legislation for roof overhang restrictions:")
                 relevant_sections.append("sec.2.12 (1)(i1)")
 
+            # Clause 2.12 (1)(j) - Attached roof
             if attributes["attached"] == "yes":
                 if attributes["above_gutter"] == "yes":
                     results.append("The roof must not extend above the dwelling’s gutter line. Please refer to the SEPP legislation for roof height restrictions:")
                     relevant_sections.append("sec.2.12 (1)(j)")
 
+                # Clause 2.12 (1)(j1) - Roof height
                 if attributes["roof_height"] > 3:
                     results.append("The roof’s highest point is over 3m above ground level. Please refer to the SEPP legislation for roof height restrictions:")
                     relevant_sections.append("sec.2.12 (1)(j1)")
 
+                # Clause 2.12 (1)(k) - Fascia connection
                 if attributes["fascia_connection"] == "yes":
                     if attributes["engineer_spec"] == "no":
                         results.append("The fascia connection is not compliant with professional specifications. Please refer to the SEPP legislation for fascia connection restrictions:")
                         relevant_sections.append("sec.2.12 (1)(k)")
 
+            # Clause 2.12 (1)(l) - Stormwater disposal
                 if attributes["stormwater"] == "no":
                     results.append("The roofwater does not dispose into an stormwater drainage system. Please refer to the SEPP legislation for stormwater disposal restrictions:")
                     relevant_sections.append("sec.2.12 (1)(l)")
 
+        # Clause 2.12 (1)(m) - Drainage interference
         if attributes["drainage"] == "yes":
             results.append("The proposed development interferes with existing drainage fixtures or flow paths. Please refer to the SEPP legislation for drainage restrictions:")
             relevant_sections.append("sec.2.12 (1)(m)") 
 
+        # Clause 2.12 (1)(n) - Bushfire prone land
         if attributes["bushfire"] == "yes":
             if attributes["distance_dwelling"] < 5:
                 if attributes["non_combustible"] == "no":
                     results.append("The bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions:")
                     relevant_sections.append("sec.2.12 (1)(n)")
 
+        # Check if any NON-EXEMPT reasons were found and prepare final output
         if len(results) > 0:
             results.insert(0,"The proposed structure DOES NOT qualify for exempt development for the following reasons:")
             relevant_sections.insert(0, "")
             context = "Non-Exempt"
         else:
+            # No NON-EXEMPT reasons found, so development is Exempt
             results.append("The proposed structure qualifies for exempt development. For more information, please refer to the SEPP legislation:")
             relevant_sections.append("pt.2-div.1-sdiv.6")
             context = "Exempt"
-
+        
+        # Return results, relevant sections and context
         return results, relevant_sections, context
     
     except Exception:
+        # Catch any exceptions and return an error message
         results.append(f"Missing or invalid input data. Please check all required fields are provided and valid.")
         relevant_sections.append(f"Attributes File: {attributes}")
         return results, relevant_sections, context
@@ -596,100 +625,123 @@ def shed_check(attributes):
     context = "Invalid"
     
     try:
-
+        # Clause Part 1, Division 2 Exempt and complying development - Zoning check
         if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
             results.append("This tool does not currently support your zone type.")
             relevant_sections.append("Please contact Albury City Council for further assistance.")
 
+        # Clause 2.17 and 2.18 - Shed
+        # Clause 2.17 (a) - Heritage item   
         if attributes["heritage"] == "yes":
             results.append("The property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions:")
             relevant_sections.append("sec.2.17 (a)")    
 
+        # Clause 2.17 (b) - Foreshore area
         if attributes["foreshore"] == "yes":
             results.append("The property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions:")
             relevant_sections.append("sec.2.17 (b)")
 
+        # Clause 2.17 (b) - Environmentally sensitive area
         if attributes["sensitive_area"] == "yes":
             results.append("The property is located in an environmentally sensitive area. Please refer to the SEPP legislation for environmentally sensitive area restrictions:")
             relevant_sections.append("sec.2.17 (b)")
 
+        # Clause 2.18 (1)(b)(ii) - Floor area for zones R1, R2, R3, R4
         if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes ["area"] > 20:
             results.append("The proposed structure's floor area exceeds the limit of 20m². Please refer to the SEPP legislation for floor area restrictions:")
             relevant_sections.append("sec.2.18 (1)(b)(ii)")
 
+        # Clause 2.18 (1)(b)(i) - Floor area for zones R5, RU1, RU2, RU3, RU4, RU6
         if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes ["area"] > 50:
             results.append("The proposed structure's floor area exceeds the limit of 50m². Please refer to the SEPP legislation for floor area restrictions:")
             relevant_sections.append("sec.2.18 (1)(b)(i)")
 
+        # Clause 2.18 (1)(c) - Height restriction
         if attributes["height"] > 3:
             results.append("The proposed structure is higher than 3m above ground level. Please refer to the SEPP legislation for height restrictions:")
             relevant_sections.append("sec.2.18 (1)(c)")
 
+        # Clause 2.18 (1)(d)(ii) - Boundary distance for zones R1, R2, R3, R4
         if attributes["zoning"] in ["R1", "R2", "R3", "R4"] and attributes["boundary_distance"] < 900:
             results.append("The structure must be at least 900mm from any lot boundary. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.18 (1)(d)(ii)")
     
+        # Clause 2.18 (1)(d)(i) - Boundary distance for zones R5, RU1, RU2, RU3, RU4, RU6
         if attributes["zoning"] in ["R5", "RU1", "RU2", "RU3", "RU4", "RU6"] and attributes["boundary_distance"] < 5000:
             results.append("The structure must be at least 5000mm from any lot boundary. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.18 (1)(d)(i)")
 
+        # Clause 2.18 (1)(e) - Building line
         if attributes["building_line"] == "no":
             if attributes["zoning"] not in ["RU1", "RU2", "RU3", "RU4", "RU6"]:
                 results.append("The structure must be behind the building line of road frontage. Please refer to the SEPP legislation for building line restrictions:")
                 relevant_sections.append("sec.2.18 (1)(e)")
 
+        # Clause 2.18 (1)(f) - Shipping container
         if attributes["shipping_container"] == "yes":
             results.append("Shipping containers are not allowed. Please refer to the SEPP legislation for shipping container restrictions:")
             relevant_sections.append("sec.2.18 (1)(f)")
 
+        # Clause 2.18 (1)(g) - Stormwater disposal
         if attributes["stormwater"] == "no":
             results.append("The roofwater disposal may affect your neighbours. Please refer to the SEPP legislation for stormwater disposal restrictions:")
             relevant_sections.append("sec.2.18 (1)(g)")
 
+        # Clause 2.18 (1)(h) - Metal components
         if attributes["metal"] == "yes":
             if attributes["reflective"] == "no":
                 results.append("The metal components are not compliant. Please refer to the SEPP legislation for metal component restrictions:")
                 relevant_sections.append("sec.2.18 (1)(h)")
 
+        # Clause 2.18 (1)(i) - Bushfire prone land
         if attributes["bushfire"] == "yes":
             if attributes["distance_dwelling"] < 5:
                 if attributes["non_combustible"] == "no":
                     results.append("The bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions:")
                     relevant_sections.append("sec.2.18 (1)(i)")
 
+        # Clause 2.18 (1)(j) - Distance from dwelling
         if attributes["adjacent_building"] == "yes":
             if attributes["interfere"] == "yes":
                 results.append("The structure interferes with building access or safety. Please refer to the SEPP legislation for adjacent building restrictions:")
                 relevant_sections.append("sec.2.18 (1)(k)")
 
+        # Clause 2.18 (1)(l) - Habitable buildings
         if attributes["habitable"] == "yes":
             results.append("The proposed structure cannot be used as habitable buildings. Please refer to the SEPP legislation for habitable building restrictions:")
             relevant_sections.append("sec.2.18 (1)(l)")
 
+        # Clause 2.18 (1)(m) - Easements
         if attributes["easement"] == "yes":
             results.append("The proposed structure must be at least 1m from any easement. Please refer to the SEPP legislation for easement restrictions:")
             relevant_sections.append("sec.2.18 (1)(m)")
 
+        # Clause 2.18 (1)(n) - Services
         if attributes["services"] == "yes":
             results.append("Service connections are not allowed. Please refer to the SEPP legislation for service connection restrictions:")
             relevant_sections.append("sec.2.18 (1)(n) ")
 
+        # Clause 2.18 (2) - Existing structures
         if attributes["existing_structures"] == "yes":
             results.append("More than two similar structures already exist on the property. Please refer to the SEPP legislation for existing structure restrictions:")
             relevant_sections.append("sec.2.18 (2)")
 
+        # Check if any NON-EXEMPT reasons were found and prepare final output
         if len(results) > 0:
             results.insert(0,"The proposed structure DOES NOT qualify for exempt development for the following reasons:")
             relevant_sections.insert(0, "")
             context = "Non-Exempt"
         else:
+            # No NON-EXEMPT reasons found, so development is Exempt
             results.append("The proposed structure qualifies for exempt development. For more information, please refer to the SEPP legislation:")
             relevant_sections.append("pt.2-div.1-sdiv.9")
             context = "Exempt"
 
+        # Return results, relevant sections and context
         return results, relevant_sections, context
     
     except Exception:
+        # Catch any exceptions and return an error message
         results.append(f"Missing or invalid input data. Please check all required fields are provided and valid.")
         relevant_sections.append(f"Attributes File: {attributes}")
         return results, relevant_sections, context
@@ -709,99 +761,106 @@ def retain_wall_check(attributes):
     context = "Invalid"
     
     try:
-        # Clause 2.29
+        # Clause Part 1, Division 2 Exempt and complying development - Zoning check
         if attributes["zoning"] not in ["R1", "R2", "R3", "R4", "R5", "RU1", "RU2", "RU3", "RU4", "RU6"]:
             results.append("This tool does not currently support your zone type.")
             relevant_sections.append("Please contact Albury City Council for further assistance.")
 
+        # Clause 2.29 - Heritage item
         if attributes["heritage"] == "yes":
             results.append("The property is a heritage item. Please refer to the SEPP legislation for heritage item restrictions:")
             relevant_sections.append("sec.2.29")    
 
+        # Clause 2.29 - Foreshore area
         if attributes["foreshore"] == "yes":
             results.append("The property is located in a foreshore area. Please refer to the SEPP legislation for foreshore area restrictions:")
             relevant_sections.append("sec.2.29")
 
+        # Clause 2.29 - Flood control lot
         if attributes["flood_control_lot"] == "yes":
             results.append("The property is located in an flood control lot. Please refer to the SEPP legislation for flood control lot restrictions:")
             relevant_sections.append("sec.2.29")
 
-        # Clause 2.30(a)
+        # Clause 2.30(a) - Cut or fill depth
         if attributes["cut_or_fill"] > 600:
             results.append("Cut or Fill of Retaining Wall exceeds 600mm.  Please refer to the SEPP legislation for cut and fill restrictions:")
             relevant_sections.append("sec.2.30 (a)")
 
-        # Clause 2.30(b)
+        # Clause 2.30(b) - Boundary distance
         if attributes["boundary_distance"] < 1000:
             results.append("The Retaining Wall must be at least 1000mm from any lot boundary. Please refer to the SEPP legislation for boundary distance restrictions:")
             relevant_sections.append("sec.2.30 (b)")
 
-        # Clause 2.30(c)
+        # Clause 2.30(c) - Heritage conservation area
         if attributes["heritage_conserv"] == "yes":
             if attributes["rear_yard"] == "no":
                 results.append("For a property in a heritage conservation area, development must be in rear yard. Please refer to the SEPP legislation for heritage conservation area restrictions:")
                 relevant_sections.append("sec.2.30 (c)") 
 
-        # Clause 2.30(d)
+        # Clause 2.30(d) - Natural waterbody
         if attributes["waterbody_within_40m"] == "yes":
             results.append("The retaining wall is less than 40m from a natural waterbody. Please refer to the SEPP legislation for natural waterbody restrictions:")
             relevant_sections.append("sec.2.30 (d)")
 
-        # Clause 2.30(e)
+        # Clause 2.30(e) - Sediment transfer
         if attributes["sediment_transfer"] == "yes":
             results.append("The retaining wall may causes sediment transfer to adjoining property. Please refer to the SEPP legislation for water flow restrictions:")
             relevant_sections.append("sec.2.30 (e)")
 
-        # Clause 2.30(f)(i)
+        # Clause 2.30(f)(i) - Height restriction
         if attributes["height"] > 600:
             results.append("The retaining wall exceeds 600mm in height. Please refer to the SEPP legislation for retaining wall height restrictions:")
             relevant_sections.append("sec.2.30 (f)(i)")
 
-        # Clause 2.30(f)(ii)
+        # Clause 2.30(f)(ii) - Distance to other structural support
         if attributes["distance_other"] < 2000:
             results.append("The retaining wall is less than 2000mm from another structural support. Please refer to the SEPP legislation for structural support distance restrictions:")
             relevant_sections.append("sec.2.30 (f)(ii)")
 
-        # Clause 2.30(f)(iii)
+        # Clause 2.30(f)(iii) - Distance to easement or services main
         if attributes["distance_easement"] < 1000:
             results.append("The retaining wall is less than 1000mm from a registered easement or services main. Please refer to the SEPP legislation for easement and services main distance restrictions:")
             relevant_sections.append("sec.2.30 (f)(iii)")
 
-        # Clause 2.30(f)(iv)
+        # Clause 2.30(f)(iv) - Stormwater disposal
         if attributes["stormwater"] == "no":
             results.append("The retaining wall does not dispose of stormwater adequately. Please refer to the SEPP legislation for stormwater disposal restrictions:")
             relevant_sections.append("sec.2.30 (f)(iv)")
 
-        # Clause 2.30(g)
+        # Clause 2.30(g) - Fill depth and area
         if attributes["fill_depth"] > 150:
             if attributes["fill_area"] > 0.25 * attributes["land_size"]:
                 results.append("The fill exceeds 150mm and occupies more than 25% of the lot area. Please refer to the SEPP legislation for fill restrictions:")
                 relevant_sections.append("sec.2.30 (g)")
 
-        # Clause 2.30(h)
+        # Clause 2.30(h) - Imported fill
         if attributes["imported_fill"] == "yes":
             if attributes["venm"] == "no":
                 results.append("Imported fill must be VENM (virgin excavated natural material. Please refer to the SEPP legislation for imported fill restrictions:")
                 relevant_sections.append("sec.2.30 (h)")
 
-        # Clause 2.30(i)
+        # Clause 2.30(i) - Fill volume for rural zones or heritage conservation area
         if attributes["zoning"] in ["RU1", "RU2", "RU3", "RU4", "RU6"] or ["heritage_conserv"] == "yes":
             if attributes["fill_volume"] > 100:
                 results.append("The fill volume exceeds 100m³ for rural zones or heritage conservation areas. Please refer to the SEPP legislation for fill volume restrictions:")
                 relevant_sections.append("sec.2.30 (i)")
 
+        # Check if any NON-EXEMPT reasons were found and prepare final output
         if len(results) > 0:
             results.insert(0,"The proposed structure DOES NOT qualify for exempt development for the following reasons:")
             relevant_sections.insert(0, "")
             context = "Non-Exempt"
         else:
+            # No NON-EXEMPT reasons found, so development is Exempt
             results.append("The proposed structure qualifies for exempt development. For more information, please refer to the SEPP legislation:")
             relevant_sections.append("pt.2-div.1-sdiv.15")
             context = "Exempt"
 
+        # Return results, relevant sections and context
         return results, relevant_sections, context
     
     except Exception:
+        # Catch any exceptions and return an error message
         results.append(f"Missing or invalid input data. Please check all required fields are provided and valid.")
         relevant_sections.append(f"Attributes File: {attributes}")
         return results, relevant_sections, context
