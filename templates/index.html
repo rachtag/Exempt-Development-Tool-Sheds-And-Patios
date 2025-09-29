@@ -22,19 +22,33 @@
 
   <main class="container">
     <!-- Address section -->
-    <section class="section card">
-      <h2 class="section-title">Property</h2>
-      <p class="muted">
-        Please ensure the property is within Albury City before continuing.
+<section class="section card">
+  <h2 class="section-title">Property</h2>
+  <p class="muted">
+    Please ensure your property is within Albury City before continuing.
+  </p>
+
+  <div class="form-grid">
+    <div class="field">
+      <label for="address" class="label">Enter the property address</label>
+      <input
+        type="text"
+        id="address"
+        class="input"
+        placeholder="553 Kiewa St Albury NSW 2640"
+        autocomplete="off"
+      >
+      <div id="results" class="autocomplete-results"></div>
+
+      <!-- Disclosure footnote -->
+      <p class="muted small disclosure">
+        Your property address will only be used to check zoning and planning rules
+        from official NSW planning data sources. It is not stored, shared, or used for any
+        other purpose, in accordance with the Australian Privacy Principles (APPs).
       </p>
-      <div class="form-grid">
-        <div class="field">
-          <label for="address" class="label">Enter the property address</label>
-          <input type="text" id="address" class="input" placeholder="553 Kiewa St Albury NSW 2640">
-          <div id="results" class="autocomplete-results"></div>
-        </div>
-      </div>
-    </section>
+    </div>
+  </div>
+</section>
 
     <!-- Development type -->
     <section class="section card">
