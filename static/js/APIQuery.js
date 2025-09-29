@@ -20,49 +20,52 @@
 
 /**
  * Filters NSW Planning API address results using postcode and suburb lists.
+/**
+ * Filters NSW Planning API address results using postcode (last token only).
  * @param {Array} data - Raw address results from NSW Planning API
  * @returns {Array} Filtered address results
  */
 
+
 export async function validateAddressList(data) {
   try {
     if (!window.CONFIG) {
-      throw new Error("CONFIG is not loaded. Please ensure ./static/js/conf/js.conf is loaded first.");
+      throw new Error("CONFIG is not loaded. Please make sure ./static/js/conf/js.conf is loaded first.");
     }
 
-    // --- Parse postcodes ---
+    // --- Extract postcode list from config ---
     let postcodes = [];
     if (window.CONFIG.ADDRESS_POSTCODE) {
       postcodes = window.CONFIG.ADDRESS_POSTCODE
-        .replace("[", "")
-        .replace("]", "")
         .split(",")
-        .map(pc => pc.trim().replace(/['"]/g, ""))
-        .filter(pc => pc.length > 0);
+        .map(pc => pc.replace(/[^\d]/g, ""))  // keep only digits
+        .filter(pc => pc.length === 4);       // only 4-digit numbers
     }
 
-    // --- Parse suburbs ---
-    let suburbs = [];
+    // --- Extract suburb from config ---
+    let suburb = "";
     if (window.CONFIG.ADDRESS_SUBURB) {
-      suburbs = window.CONFIG.ADDRESS_SUBURB
-        .replace("[", "")
-        .replace("]", "")
-        .split(",")
-        .map(s => s.trim().replace(/['"]/g, ""))
-        .filter(s => s.length > 0);
+      suburb = window.CONFIG.ADDRESS_SUBURB.trim().toLowerCase();
     }
+
+    // Debug log
+    //console.log("Loaded postcodes from config:", postcodes);
+    //console.log("Loaded suburb from config:", suburb);
 
     // --- Filtering logic ---
     return data.filter(item => {
       const addr = (item.address || "").trim();
+      if (!addr) return false;
 
-      const matchPostcode = postcodes.some(pc => addr.endsWith(pc));
-      const matchSuburb = suburbs.some(suburb =>
-        addr.toLowerCase().includes(suburb.toLowerCase())
-      );
+      const parts = addr.split(/\s+/);
+      const lastToken = parts[parts.length - 1]; // postcode
+
+      const matchPostcode = postcodes.includes(lastToken);
+      const matchSuburb = suburb && addr.toLowerCase().includes(suburb);
 
       return matchPostcode || matchSuburb;
     });
+
   } catch (err) {
     console.error("Validation failed:", err);
     alert("Error: Address validation failed. Please check configuration.");
@@ -71,12 +74,12 @@ export async function validateAddressList(data) {
 }
 
 
-
 /**
  * Fetches address suggestions from NSW Planning API and applies postcode/suburb filtering.
  * @param {string} query - User input address string
  * @returns {Array} Filtered address suggestions
  */
+
 export async function fetchAndFilterAddresses(query) {
   try {
     if (!window.CONFIG?.ADDRESS_API) {
@@ -86,18 +89,38 @@ export async function fetchAndFilterAddresses(query) {
       return []; // Skip short queries
     }
 
-    const url = `${window.CONFIG.ADDRESS_API}?a=${encodeURIComponent(query)}&noOfRecords=5`;
+    // Fetch more from API to capture wider matches
+    const url = `${window.CONFIG.ADDRESS_API}?a=${encodeURIComponent(query)}&noOfRecords=15`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Address API request failed: ${res.status}`);
 
     const data = await res.json();
-    return await validateAddressList(data);
+    const filtered = await validateAddressList(data);
+
+    // Deduplicate by 'address' field
+    const unique = [];
+    const seen = new Set();
+    for (const item of filtered) {
+      if (!seen.has(item.address)) {
+        seen.add(item.address);
+        unique.push(item);
+      }
+    }
+
+    // Limit to maximum 5 suggestions shown in dropdown
+    return unique.slice(0, 5);
+
   } catch (err) {
     console.error("Fetch and filter failed:", err);
     alert("Error: Could not fetch address suggestions.");
     return [];
   }
 }
+
+
+
+
+
 
 // =======================================================================
 // =============== Geocoding =============================================
