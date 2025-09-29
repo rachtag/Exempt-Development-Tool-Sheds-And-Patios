@@ -197,3 +197,39 @@ body{
 #result { line-height: 1.6; }
 
  
+:root{
+  --lh-min: 1.5;      /* line-height >= 1.5 */
+  --p-after-min: 2em; /* spacing after paragraphs >= 2x font size */
+  --ls-min: 0.12em;   /* letter-spacing >= 0.12x font size */
+  --ws-min: 0.16em;   /* word-spacing >= 0.16x font size */
+}
+
+/* 1) Line height */
+body{ line-height: var(--lh-min); }
+
+/* 2) Paragraph spacing (after) */
+p{ margin-block: 0 var(--p-after-min); }
+/* Keep your lead paragraph consistent with spacing */
+.lead{ margin-bottom: var(--p-after-min); }
+
+/* 3) Letter spacing (tracking) & 4) Word spacing
+   Apply to body text elements, not headings/UI */
+p, li, blockquote, .disclosure, .result{
+  letter-spacing: var(--ls-min);
+  word-spacing: var(--ws-min);
+}
+
+/* Exempt headings & controls so UI stays crisp */
+.title, .subtitle, .section-title,
+.btn, .label, .input, .select, input, textarea, select {
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+/* Utility to opt-out anywhere explicitly */
+.tight{
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+  line-height: normal !important;
+  margin-block-end: initial !important;
+}
