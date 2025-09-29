@@ -227,3 +227,11 @@ input, textarea, select, button,
   line-height: normal; /* form controls handle their own line-height */
 }
 
+
+.short-link {
+  display: inline-block;
+  max-width: 22ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

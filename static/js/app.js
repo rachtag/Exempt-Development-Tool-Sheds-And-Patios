@@ -617,14 +617,23 @@ function handleSubmit(e) {
         // Beautify the server response (bullets + clickable links)
         var assessmentHtml = formatAssessmentHtml(raw);
 
+        // resultPre.innerHTML =
+        // answersBlock.replace(/&/g, "&amp;")
+        //             .replace(/</g, "&lt;")
+        //             .replace(/>/g, "&gt;") // escape answers (plain text)
+        // + assessmentTitle.replace(/&/g, "&amp;")
+        //                 .replace(/</g, "&lt;")
+        //                 .replace(/>/g, "&gt;")
+        // + assessmentHtml; // already HTML with links
+
         resultPre.innerHTML =
-        answersBlock.replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;") // escape answers (plain text)
-        + assessmentTitle.replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-        + assessmentHtml; // already HTML with links
+          answersBlock.replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;") // plain text
+          + assessmentTitle.replace(/&/g, "&amp;")
+                          .replace(/</g, "&lt;")
+                          .replace(/>/g, "&gt;")
+          + prettifyLinks(assessmentHtml, { mode: "domain+page" }); // short link text
 
         showDownloadIfReady();
     })
@@ -869,3 +878,31 @@ function enforceNonNegativeOnBlur() {
   });
 }
 document.addEventListener('DOMContentLoaded', enforceNonNegativeOnBlur);
+
+
+function prettifyLinks(html, {mode = "domain"} = {}) {
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  tpl.content.querySelectorAll("a[href]").forEach(a => {
+    const url = new URL(a.getAttribute("href"), location.href);
+
+    // Only rewrite if the link text is the raw URL or is very long
+    const text = a.textContent.trim();
+    if (text === a.href || text.length > 50) {
+      if (mode === "domain") {
+        a.textContent = url.hostname.replace(/^www\./, "");
+      } else if (mode === "domain+page") {
+        const parts = url.pathname.split("/").filter(Boolean);
+        const last = parts[parts.length - 1] || "";
+        a.textContent = url.hostname.replace(/^www\./, "") + (last ? `/${decodeURIComponent(last).slice(0,30)}${last.length>30?"…":""}` : "");
+      } else if (mode === "label") {
+        a.textContent = "View source";
+      }
+    }
+
+    // (Optional) open in new tab safely
+    a.setAttribute("target", "_blank");
+    a.setAttribute("rel", "noopener noreferrer");
+  });
+  return tpl.innerHTML;
+}
