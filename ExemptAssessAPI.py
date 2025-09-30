@@ -216,6 +216,8 @@ get_shed_help = """
             <tr><td>development</td><td>Type of development</td><td>shed</td></tr>
             <tr><td>zoning</td><td>Land zoning</td><td>R1, R2, R3, R4, R5, RU1, RU2, RU3, RU4, RU6</td></tr>
             <tr><td>heritage</td><td>Is the property a heritage item?</td><td>yes, no</td></tr>
+            <tr><td>heritage_conserv</td><td>Is the property in a heritage conservation area?</td><td>yes, no</td></tr>
+            <tr><td>rear_yard</td><td>Will the shed be built in rear yard?</td><td>yes, no</td></tr>
             <tr><td>foreshore</td><td>Is the property in a foreshore area?</td><td>yes, no</td></tr>
             <tr><td>sensitive_area</td><td>Is the property in an environmentally sensitive area?</td><td>yes, no</td></tr>
             <tr><td>area</td><td>Planned shed area (in m²)</td><td>numeric</td></tr>
@@ -702,7 +704,15 @@ def shed_check(attributes):
                         results.append("The bushfire material standards are not met. Please refer to the SEPP legislation for bushfire restrictions:")
                         relevant_sections.append("sec.2.18 (1)(i)")
 
-            # Clause 2.18 (1)(j) - Distance from dwelling
+            # Clause 2.18 (1)(j) - Heritage conservation area
+            # Check if heritage_conserv and rear_yard attributes exists to avoid key error (for backward compatibility)
+            if "heritage_conserv" in attributes and "rear_yard" in attributes:
+                if attributes["heritage_conserv"] == "yes":
+                    if attributes["rear_yard"] == "no":
+                        results.append("The structure must be in the rear yard if in a heritage conservation area. Please refer to the SEPP legislation for heritage conservation area restrictions:")
+                        relevant_sections.append("sec.2.18 (1)(j)")
+
+            # Clause 2.18 (1)(k) - Distance from dwelling
             if attributes["adjacent_building"] == "yes":
                 if attributes["interfere"] == "yes":
                     results.append("The structure interferes with building access or safety. Please refer to the SEPP legislation for adjacent building restrictions:")
