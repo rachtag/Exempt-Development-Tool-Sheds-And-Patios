@@ -227,3 +227,44 @@ input, textarea, select, button,
   line-height: normal; /* form controls handle their own line-height */
 }
 
+
+.short-link {
+  display: inline-block;
+  max-width: 22ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* Update your .pdf-prep-mode CSS to include this block */
+.pdf-prep-mode input, 
+.pdf-prep-mode select, 
+.pdf-prep-mode textarea {
+  /* Box Integrity Fix (from previous step) */
+  height: 40px !important; 
+  padding-top: 10px !important; 
+  padding-bottom: 10px !important;
+  line-height: 1 !important; 
+  -webkit-appearance: none !important; 
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background: white !important; 
+}
+
+/* *** Eliminate all unnecessary margins/padding to stop page splits *** */
+.pdf-prep-mode, 
+.pdf-prep-mode > div,
+.pdf-prep-mode h1, 
+.pdf-prep-mode h2, 
+.pdf-prep-mode p,
+.pdf-prep-mode .result-section-parent { /* Target elements that hold headers and content */
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+/* Ensure the result section content itself has a little buffer */
+.pdf-prep-mode .result-content { 
+  padding-bottom: 10px !important; 
+}

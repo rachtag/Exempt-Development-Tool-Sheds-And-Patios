@@ -604,27 +604,40 @@ function handleSubmit(e) {
   }
       return res.text(); })
     .then(function (raw) {
-        var summary = buildSummary(payload);
+        // var summary = buildSummary(payload);
 
         // Build a nice-looking combined output:
         // We use innerHTML so links are clickable, but preserve a simple text section for answers.
-        var answersBlock =
-        "Your answers\n------------\n" + summary;
+        // var answersBlock =
+        // "\n" + summary;
 
         var assessmentTitle =
-        "\n\n\n";
+        "\n";
 
         // Beautify the server response (bullets + clickable links)
         var assessmentHtml = formatAssessmentHtml(raw);
 
+        // resultPre.innerHTML =
+        // answersBlock.replace(/&/g, "&amp;")
+        //             .replace(/</g, "&lt;")
+        //             .replace(/>/g, "&gt;") // escape answers (plain text)
+        // + assessmentTitle.replace(/&/g, "&amp;")
+        //                 .replace(/</g, "&lt;")
+        //                 .replace(/>/g, "&gt;")
+        // + assessmentHtml; // already HTML with links
+
+        var reasonsToExport = '<div id="rejection-reasons">'
+            + prettifyLinks(assessmentHtml, { mode: "label", label: "SEPP", force: true }) 
+            + '</div>';        
+        
         resultPre.innerHTML =
-        answersBlock.replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;") // escape answers (plain text)
-        + assessmentTitle.replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-        + assessmentHtml; // already HTML with links
+          // answersBlock.replace(/&/g, "&amp;")
+          //             .replace(/</g, "&lt;")
+          //             .replace(/>/g, "&gt;") // plain text
+          assessmentTitle.replace(/&/g, "&amp;")
+                          .replace(/</g, "&lt;")
+                          .replace(/>/g, "&gt;")
+          + reasonsToExport; // short link text
 
         showDownloadIfReady();
     })
@@ -654,15 +667,15 @@ function numFrom(root, selector) {
 }
 
 // ======== SUMMARY + PDF ========
-function buildSummary(obj) {
-  var lines = [];
-  for (var k in obj) {
-    var v = obj[k];
-    if (v === "" || v === null || v === undefined) continue; 
-    lines.push("• " + k + ": " + v);
-  }
-  return lines.join("\n");
-}
+// function buildSummary(obj) {
+//   var lines = [];
+//   for (var k in obj) {
+//     var v = obj[k];
+//     if (v === "" || v === null || v === undefined) continue; 
+//     lines.push("• " + k + ": " + v);
+//   }
+//   return lines.join("\n");
+// }
 
 
 function showDownloadIfReady() {
@@ -673,29 +686,110 @@ function showDownloadIfReady() {
   }
 }
 
+// function exportPdf() {
+//   var text = (resultPre.textContent || "").trim() || "No result.";
+//   var jsPDFLib = window.jspdf;
+//   var doc = new jsPDFLib.jsPDF({ unit: "pt", format: "a4" });
+//   var margin = 40;
+//   var pageW = doc.internal.pageSize.getWidth();
+//   var pageH = doc.internal.pageSize.getHeight();
+//   var maxW = pageW - margin * 2;
+//   var lineH = 14;
+
+//   doc.setFont("courier", "normal");
+//   doc.setFontSize(11);
+
+//   var lines = doc.splitTextToSize(text, maxW);
+//   var y = margin;
+
+//   for (var i = 0; i < lines.length; i++) {
+//     if (y > pageH - margin) { doc.addPage(); y = margin; }
+//     doc.text(lines[i], margin, y);
+//     y += lineH;
+//   }
+
+//   doc.save("assessment-result.pdf");
+// }
 function exportPdf() {
-  var text = (resultPre.textContent || "").trim() || "No result.";
-  var jsPDFLib = window.jspdf;
-  var doc = new jsPDFLib.jsPDF({ unit: "pt", format: "a4" });
-  var margin = 40;
-  var pageW = doc.internal.pageSize.getWidth();
-  var pageH = doc.internal.pageSize.getHeight();
-  var maxW = pageW - margin * 2;
-  var lineH = 14;
+  const { jsPDF } = window.jspdf;
 
-  doc.setFont("courier", "normal");
-  doc.setFontSize(11);
+  window.scrollTo(0, 0);
+  const input = document.getElementById('content-to-export') || document.body;
 
-  var lines = doc.splitTextToSize(text, maxW);
-  var y = margin;
+  const elementIdsToHide = ['submit', 'reset', 'download-pdf', 'actions-section','site-footer'];
+  const elementsToHide = elementIdsToHide
+    .map(id => document.getElementById(id))
+    .filter(el => el !== null);
 
-  for (var i = 0; i < lines.length; i++) {
-    if (y > pageH - margin) { doc.addPage(); y = margin; }
-    doc.text(lines[i], margin, y);
-    y += lineH;
-  }
+  elementsToHide.forEach(el => { el.style.display = 'none'; });
+  input.classList.add('pdf-prep-mode');
 
-  doc.save("assessment-result.pdf");
+  html2canvas(input, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    windowWidth: input.scrollWidth || document.documentElement.offsetWidth
+  }).then((canvas) => {
+    input.classList.remove('pdf-prep-mode');
+    elementsToHide.forEach(el => { el.style.display = ''; });
+
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();   // 210 mm
+    const pdfHeight = pdf.internal.pageSize.getHeight(); // 297 mm
+
+    const imgHeight = canvas.height * pdfWidth / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Helper to add footer on current page
+    const addFooter = (doc, pageNum, totalPages) => {
+      const w = doc.internal.pageSize.getWidth();
+      const h = doc.internal.pageSize.getHeight();
+      const margin = 10; // bottom margin
+
+      // muted small style
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+
+      // thin separator line
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.2);
+      doc.line(20, h - margin - 6, w - 20, h - margin - 6);
+
+      const leftText = '© Albury City · Exempt Development Checker';
+      const rightText = `Page ${pageNum} of ${totalPages}`;
+
+      // left-aligned footer text
+      doc.text(leftText, 10, h - margin);
+
+      // right-aligned page number
+      doc.text(rightText, w - 10, h - margin, { align: 'right' });
+    };
+
+    // First page
+    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    // Additional pages
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight; // negative offset
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+
+    // Stamp footer on every page
+    const total = pdf.getNumberOfPages();
+    for (let i = 1; i <= total; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i, total);
+    }
+
+    pdf.save('assessment-result.pdf');
+  });
 }
 
 // ======== RESET ========
@@ -869,3 +963,35 @@ function enforceNonNegativeOnBlur() {
   });
 }
 document.addEventListener('DOMContentLoaded', enforceNonNegativeOnBlur);
+
+
+function prettifyLinks(html, {mode = "domain" , label = "SEPP", force = false } = {}) {
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  tpl.content.querySelectorAll("a[href]").forEach(a => {
+    const url = new URL(a.getAttribute("href"), location.href);
+
+    // Only rewrite if the link text is the raw URL or is very long
+    const text = a.textContent.trim();
+    const shouldRewrite = force || text === a.href || text.length > 50;
+    if (shouldRewrite) {
+      if (mode === "domain") {
+        a.textContent = url.hostname.replace(/^www\./, "");
+      } else if (mode === "domain+page") {
+        const parts = url.pathname.split("/").filter(Boolean);
+        const last = parts[parts.length - 1] || "";
+        a.textContent =
+          url.hostname.replace(/^www\./, "") +
+          (last ? `/${decodeURIComponent(last).slice(0, 30)}${last.length > 30 ? "…" : ""}` : "");
+      } else if (mode === "label") {
+        a.textContent = label; // <-- use your custom label
+      }
+      a.classList.add("short-link"); // optional: keep your ellipsis styling
+    }
+
+    // Open in new tab safely
+    a.setAttribute("target", "_blank");
+    a.setAttribute("rel", "noopener noreferrer");
+  });
+  return tpl.innerHTML;
+}
