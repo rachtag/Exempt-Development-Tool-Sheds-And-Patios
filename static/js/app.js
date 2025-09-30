@@ -604,15 +604,15 @@ function handleSubmit(e) {
   }
       return res.text(); })
     .then(function (raw) {
-        var summary = buildSummary(payload);
+        // var summary = buildSummary(payload);
 
         // Build a nice-looking combined output:
         // We use innerHTML so links are clickable, but preserve a simple text section for answers.
-        var answersBlock =
-        "Your answers\n------------\n" + summary;
+        // var answersBlock =
+        // "\n" + summary;
 
         var assessmentTitle =
-        "\n\n\n";
+        "\n";
 
         // Beautify the server response (bullets + clickable links)
         var assessmentHtml = formatAssessmentHtml(raw);
@@ -626,14 +626,18 @@ function handleSubmit(e) {
         //                 .replace(/>/g, "&gt;")
         // + assessmentHtml; // already HTML with links
 
+        var reasonsToExport = '<div id="rejection-reasons">'
+            + prettifyLinks(assessmentHtml, { mode: "label", label: "SEPP", force: true }) 
+            + '</div>';        
+        
         resultPre.innerHTML =
-          answersBlock.replace(/&/g, "&amp;")
-                      .replace(/</g, "&lt;")
-                      .replace(/>/g, "&gt;") // plain text
-          + assessmentTitle.replace(/&/g, "&amp;")
+          // answersBlock.replace(/&/g, "&amp;")
+          //             .replace(/</g, "&lt;")
+          //             .replace(/>/g, "&gt;") // plain text
+          assessmentTitle.replace(/&/g, "&amp;")
                           .replace(/</g, "&lt;")
                           .replace(/>/g, "&gt;")
-          + prettifyLinks(assessmentHtml, { mode: "label", label: "SEPP", force: true }); // short link text
+          + reasonsToExport; // short link text
 
         showDownloadIfReady();
     })
@@ -663,15 +667,15 @@ function numFrom(root, selector) {
 }
 
 // ======== SUMMARY + PDF ========
-function buildSummary(obj) {
-  var lines = [];
-  for (var k in obj) {
-    var v = obj[k];
-    if (v === "" || v === null || v === undefined) continue; 
-    lines.push("• " + k + ": " + v);
-  }
-  return lines.join("\n");
-}
+// function buildSummary(obj) {
+//   var lines = [];
+//   for (var k in obj) {
+//     var v = obj[k];
+//     if (v === "" || v === null || v === undefined) continue; 
+//     lines.push("• " + k + ": " + v);
+//   }
+//   return lines.join("\n");
+// }
 
 
 function showDownloadIfReady() {
@@ -706,59 +710,84 @@ function showDownloadIfReady() {
 
 //   doc.save("assessment-result.pdf");
 // }
-
-
-
-
-
-
-// ======== RESET ========
-
 function exportPdf() {
   const { jsPDF } = window.jspdf;
-  const input = document.body; // Or the main container ID
 
-  // 1. Define the IDs of the buttons to hide
-  const buttonIds = ['submit', 'reset', 'download-pdf'];
-  
-  // 2. Hide all specified buttons
-  const buttonsToHide = buttonIds
+  window.scrollTo(0, 0);
+  const input = document.getElementById('content-to-export') || document.body;
+
+  const elementIdsToHide = ['submit', 'reset', 'download-pdf', 'actions-section','site-footer'];
+  const elementsToHide = elementIdsToHide
     .map(id => document.getElementById(id))
-    .filter(btn => btn !== null); // Ensure the button element actually exists
+    .filter(el => el !== null);
 
-  buttonsToHide.forEach(btn => {
-    btn.style.display = 'none';
-  });
+  elementsToHide.forEach(el => { el.style.display = 'none'; });
+  input.classList.add('pdf-prep-mode');
 
-  // Use html2canvas to render the HTML element to a canvas
-  html2canvas(input, { scale: 2 }).then((canvas) => {
-    
-    // 3. IMMEDIATELY show all buttons again after capture
-    buttonsToHide.forEach(btn => {
-      btn.style.display = ''; // Restore the default display style
-    });
+  html2canvas(input, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    windowWidth: input.scrollWidth || document.documentElement.offsetWidth
+  }).then((canvas) => {
+    input.classList.remove('pdf-prep-mode');
+    elementsToHide.forEach(el => { el.style.display = ''; });
 
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
 
-    // PDF generation logic (same as before)
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 210; 
-    const pageHeight = 295; 
-    const imgHeight = canvas.height * imgWidth / canvas.width;
+    const pdfWidth = pdf.internal.pageSize.getWidth();   // 210 mm
+    const pdfHeight = pdf.internal.pageSize.getHeight(); // 297 mm
+
+    const imgHeight = canvas.height * pdfWidth / canvas.width;
     let heightLeft = imgHeight;
     let position = 0;
 
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
+    // Helper to add footer on current page
+    const addFooter = (doc, pageNum, totalPages) => {
+      const w = doc.internal.pageSize.getWidth();
+      const h = doc.internal.pageSize.getHeight();
+      const margin = 10; // bottom margin
 
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
+      // muted small style
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+
+      // thin separator line
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.2);
+      doc.line(20, h - margin - 6, w - 20, h - margin - 6);
+
+      const leftText = '© Albury City · Exempt Development Checker';
+      const rightText = `Page ${pageNum} of ${totalPages}`;
+
+      // left-aligned footer text
+      doc.text(leftText, 10, h - margin);
+
+      // right-aligned page number
+      doc.text(rightText, w - 10, h - margin, { align: 'right' });
+    };
+
+    // First page
+    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    // Additional pages
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight; // negative offset
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
     }
 
-    // Save the PDF file
+    // Stamp footer on every page
+    const total = pdf.getNumberOfPages();
+    for (let i = 1; i <= total; i++) {
+      pdf.setPage(i);
+      addFooter(pdf, i, total);
+    }
+
     pdf.save('assessment-result.pdf');
   });
 }
