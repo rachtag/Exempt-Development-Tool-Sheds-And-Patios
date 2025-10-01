@@ -480,7 +480,7 @@ def patio_check(attributes):
             # Clause 2.11 (b) - Replacement patio standards
             if attributes["structure_type"] == "replacement":
                 if attributes["height_existing"] > 1000:
-                    results.append("The proposed structure is higher than 1m above ground level. Please refer to the SEPP legislation for height restrictions:")
+                    results.append("The proposed structure cannot replace an existing structure that is higher than 1m above ground level. Please refer to the SEPP legislation for height restrictions:")
                     relevant_sections.append("sec.2.11 (b)")
 
                 # Clause 2.12 (2)(a) - Replacement patio standards
