@@ -576,9 +576,9 @@ def patio_check(attributes):
                             relevant_sections.append("sec.2.12 (1)(k)")
 
                 # Clause 2.12 (1)(l) - Stormwater disposal
-                    if attributes["stormwater"] == "no":
-                        results.append("The roofwater does not dispose into an stormwater drainage system. Please refer to the SEPP legislation for stormwater disposal restrictions:")
-                        relevant_sections.append("sec.2.12 (1)(l)")
+                if attributes["stormwater"] == "no":
+                    results.append("The roofwater does not dispose into an stormwater drainage system. Please refer to the SEPP legislation for stormwater disposal restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(l)")
 
             # Clause 2.12 (1)(m) - Drainage interference
             if attributes["drainage"] == "yes":
