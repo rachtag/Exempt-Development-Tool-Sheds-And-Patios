@@ -21,49 +21,45 @@
   </header>
 
   <main class="container">
-    <!-- Address section -->
-<section class="section card">
-  <h2 class="section-title">Property</h2>
-  <p class="muted">
-    Please ensure your property is within Albury City before continuing.
-  </p>
 
-  <div class="form-grid">
-    <div class="field">
-      <label for="address" class="label">Enter the property address</label>
-      <input
-        type="text"
-        id="address"
-        class="input"
-        placeholder="553 Kiewa St Albury NSW 2640"
-        autocomplete="off"
-      >
-      <div id="results" class="autocomplete-results"></div>
-
-      <!-- Disclosure footnote -->
-      <p class="muted small disclosure">
-        Your property address will only be used to check zoning and planning rules
-        from official NSW planning data sources. It is not stored, shared, or used for any
-        other purpose, in accordance with the Australian Privacy Principles (APPs).
-      </p>
-    </div>
-  </div>
-</section>
-
-    <!-- Development type -->
     <section class="section card">
-      <h2 class="section-title">Development Type</h2>
-      <div class="form-grid">
-        <div class="field">
-          <label for="development" class="label">Select the structure to be built</label>
-          <select id="development" class="select">
-            <option value="">-- Select --</option>
-            <option value="shed">Shed</option>
-            <option value="patio">Patio</option>
-          </select>
+      <h2 class="section-title">Property and Development Type</h2>
+
+      <div>
+        <h3>Property Address</h3>
+        <p class="muted">
+          Please ensure your property is within Albury City before continuing.
+        </p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="address" class="label">Enter the property address</label>
+            <input
+              type="text"
+              id="address"
+              class="input"
+              placeholder="553 Kiewa St Albury NSW 2640"
+              autocomplete="off"
+            >
+            <div id="results" class="autocomplete-results"></div>
+
+          </div>
         </div>
       </div>
-    </section>
+
+        <h3>Development Type</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label for="development" class="label">Select the structure to be built</label>
+            <select id="development" class="select">
+              <option value="">-- Select --</option>
+              <option value="shed">Shed</option>
+              <option value="patio">Patio</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>    
 
     <!-- Common fields -->
     <section class="section card">
@@ -117,6 +113,15 @@
             <option>yes</option>
           </select>
         </div>
+
+        <div class="field">
+          <label class="label" for="bushfire">Bushfire prone land?</label>
+          <select id="bushfire" class="select">
+            <option value="">-- Select --</option>
+            <option>no</option>
+            <option>yes</option>
+          </select>
+        </div>        
 
         <!-- Only used for sheds -->
         <div class="field full" id="sensitive-area-label" class="hidden">
@@ -195,14 +200,14 @@
           </select>
         </div>
 
-        <div class="field">
+        <!--<div class="field">
           <label class="label" for="bushfire">Bushfire prone land?</label>
           <select id="bushfire_shed" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
             <option>yes</option>
           </select>
-        </div>
+        </div>-->
 
         <div class="field">
           <label class="label" for="distance_dwelling">Distance from dwelling (m)</label>
@@ -475,14 +480,14 @@
           </select>
         </div>
 
-        <div class="field">
+        <!--<div class="field">
           <label class="label" for="bushfire">Bushfire prone land?</label>
           <select id="bushfire_patio" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
             <option>yes</option>
           </select>
-        </div>
+        </div>-->
 
         <div class="field">
           <label class="label" for="distance_dwelling">Distance from dwelling (m)</label>

@@ -88,7 +88,7 @@ function recheckAll(section) {
   if (!section) return;
   var metal = section.querySelector("#metal");
   if (metal) metal.dispatchEvent(new Event("change"));
-  var bush = section.querySelector("#bushfire_shed, #bushfire_patio");
+  var bush = section.querySelector("#bushfire");
   if (bush) bush.dispatchEvent(new Event("change"));
   var dist = section.querySelector("#distance_dwelling");
   if (dist) {
@@ -137,7 +137,7 @@ function setupMetalReflective(section) {
 function setupBushfireDistance(section) {
   if (!section) return;
    
-  var bush = section.querySelector("#bushfire_shed, #bushfire_patio");
+  var bush = section.querySelector("#bushfire");
   var dist = section.querySelector("#distance_dwelling");
   var distField = fieldOf(dist);
   if (!bush || !distField) return;
@@ -509,7 +509,9 @@ function handleSubmit(e) {
     development: dev,
     zoning: document.getElementById("zoning").value,
     heritage: document.getElementById("heritage").value,
-    foreshore: document.getElementById("foreshore").value
+    foreshore: document.getElementById("foreshore").value,
+    bushfire: document.getElementById("bushfire").value
+
   };
   
   // Shed-only fields
@@ -524,7 +526,7 @@ function handleSubmit(e) {
     payload.stormwater = valFrom(r, "#stormwater"); // now conditional via roof
     payload.metal = valFrom(r, "#metal");
     payload.reflective = valFrom(r, "#reflective");
-    payload.bushfire = valFrom(r, "#bushfire_shed");
+    // payload.bushfire = valFrom(r, "#bushfire_shed");
     payload.distance_dwelling = numFrom(r, "#distance_dwelling");
     payload.non_combustible = valFrom(r, "#non_combustible");
     payload.adjacent_building = valFrom(r, "#adjacent_building");
@@ -551,7 +553,7 @@ function handleSubmit(e) {
     payload.floor_height = numFrom(p, "#floor_height");
     payload.roof = valFrom(p, "#roof");
     payload.drainage = valFrom(p, "#drainage");
-    payload.bushfire = valFrom(p, "#bushfire_patio");
+    // payload.bushfire = valFrom(p, "#bushfire_patio");
     payload.distance_dwelling = numFrom(p, "#distance_dwelling");
     payload.non_combustible = valFrom(p, "#non_combustible");
 

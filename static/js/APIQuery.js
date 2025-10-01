@@ -388,11 +388,14 @@ document.addEventListener("DOMContentLoaded", () => {
           const foreshoreEl = document.getElementById("foreshore");
           if (foreshoreEl) foreshoreEl.value = foreshore;
 
-          const bushfireShedEl = document.getElementById("bushfire_shed");
-          if (bushfireShedEl) bushfireShedEl.value = bushfireVal;
+          const bushfire = document.getElementById("bushfire");
+          if (bushfire) bushfire.value = bushfireVal;          
 
-          const bushfirePatioEl = document.getElementById("bushfire_patio");
-          if (bushfirePatioEl) bushfirePatioEl.value = bushfireVal;
+          // const bushfireShedEl = document.getElementById("bushfire_shed");
+          // if (bushfireShedEl) bushfireShedEl.value = bushfireVal;
+
+          // const bushfirePatioEl = document.getElementById("bushfire_patio");
+          // if (bushfirePatioEl) bushfirePatioEl.value = bushfireVal;
 
           const esaEl = document.getElementById("sensitive_area");
           if (esaEl) esaEl.value = esa;
