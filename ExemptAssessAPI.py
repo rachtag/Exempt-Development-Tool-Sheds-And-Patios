@@ -564,16 +564,16 @@ def patio_check(attributes):
                         results.append("The roof must not extend above the dwelling’s gutter line. Please refer to the SEPP legislation for roof height restrictions:")
                         relevant_sections.append("sec.2.12 (1)(j)")
 
-                    # Clause 2.12 (1)(j1) - Roof height
-                    if attributes["roof_height"] > 3:
-                        results.append("The roof’s highest point is over 3m above ground level. Please refer to the SEPP legislation for roof height restrictions:")
-                        relevant_sections.append("sec.2.12 (1)(j1)")
-
                     # Clause 2.12 (1)(k) - Fascia connection
                     if attributes["fascia_connection"] == "yes":
                         if attributes["engineer_spec"] == "no":
                             results.append("The fascia connection is not compliant with professional specifications. Please refer to the SEPP legislation for fascia connection restrictions:")
                             relevant_sections.append("sec.2.12 (1)(k)")
+
+                # Clause 2.12 (1)(j1) - Roof height (based on https://www.planningportal.nsw.gov.au/development-and-assessment/planning-approval-pathways/exempt-development/balconies-decks-and-patios)
+                if attributes["roof_height"] > 3:
+                    results.append("The roof’s highest point is over 3m above ground level. Please refer to the SEPP legislation for roof height restrictions:")
+                    relevant_sections.append("sec.2.12 (1)(j1)")
 
                 # Clause 2.12 (1)(l) - Stormwater disposal
                 if attributes["stormwater"] == "no":
