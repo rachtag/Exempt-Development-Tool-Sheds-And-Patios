@@ -137,9 +137,9 @@ body{
   background: var(--gray-100);
   border: 1px dashed var(--gray-300);
   border-radius: 12px;
-  padding: 14px;
-  white-space: pre-wrap;
-  min-height: 80px;
+  padding: 12px;
+  white-space: normal;
+  min-height: 0;
 }
 
 /* ====== Buttons ====== */
@@ -219,6 +219,7 @@ p, li, blockquote {
 
 /* Headings: ensure ≥ 0.12em (overrides earlier 0.3px on .title) */
 .title, .subtitle, h1, h2, h3, h4, h5, h6 { letter-spacing: 0.01em; }
+#result h1, #result h2, #result h3 { margin-top: 0; }
 
 /* Don’t apply wide spacing to form controls & buttons for usability */
 input, textarea, select, button,
@@ -343,3 +344,120 @@ input, textarea, select, button,
   .subtitle { font-size: clamp(1rem, 2.6vw, 1.3rem);}
   .section, .card {font-size: clamp(0.1rem, 0.3vw + 0.8rem, 0.2rem);}
 }
+
+/* ===== Results-only PDF/Print setup (replacement) ===== */
+
+/* ---- Brand colours (match your frontpage header) ---- */
+:root{
+  /* if you already define these elsewhere, keep those and remove this block */
+  --brand-bg: #0f2d3a;     /* header start */
+  --brand-bg-2: #0a2330;   /* header end */
+  --brand-glare: rgba(255,255,255,.08);
+}
+
+/* ---- Screen defaults ---- */
+.on-screen-only{ display:block; }   /* visible on screen */
+.pdf-only{ display:none; }          /* hidden on screen */
+
+/* Result card spacing on screen */
+#result{ padding-top:12px; padding-bottom:12px; }
+
+/* Kill top margin on first child in each result view */
+#result .on-screen-only  > :first-child,
+#result .pdf-only        > :first-child{ margin-top:0; }
+
+/* Headings inside result */
+#result .report-title{ margin:0 0 8px 0; line-height:1.2; }
+#result h1,#result h2,#result h3{ margin-top:0; }
+
+/* ---------- PDF banner (same colour as your frontpage header) ---------- */
+.pdf-banner{
+  color:#fff;
+  background:
+    radial-gradient(90% 120% at 10% 0%, var(--brand-glare) 0%, transparent 60%),
+    linear-gradient(180deg, var(--brand-bg) 0%, var(--brand-bg-2) 100%);
+  padding:0 12mm 15mm 10mm;   /* inner padding when not full-bleed */
+  border-radius:10px;       /* rounded on screen */
+}
+.pdf-banner h1{ margin:0 0 0 0; font-weight:800; font-size:1.35rem; line-height:1.2; }
+.pdf-banner .subtitle{ margin:0 0 4px 0; font-weight:600; font-size:.95rem; }
+.pdf-banner .lead{ margin:0; max-width:70ch; }
+
+/* ---------- PRINT (browser Save as PDF) ---------- */
+/* Force the next element to start on a new printed page */
+
+@media print {
+  /* Start the 2nd PDF page on a new sheet */
+  #pdf-page-2 { break-before: page; page-break-before: always; }
+}
+@media print {
+  @page { size:A4; margin:0 15mm 28mm 15mm ; }   /* top/right/bottom/left */
+
+  html,body{ background:#fff !important; }
+
+  /* print only the result subtree */
+  body *{ visibility:hidden !important; }
+  #result, #result *{ visibility:visible !important; }
+
+  /* show PDF view, hide screen view */
+  #result .on-screen-only{ display:none !important; }
+  #result .pdf-only{ display:block !important; }
+
+  /* remove card chrome in print */
+  #result, .card, .section, .result{
+    background:#fff !important; border:none !important; box-shadow:none !important;
+  }
+
+  /* full-bleed banner at the very top of the page */
+  .pdf-banner{
+    margin:0 -15mm 10mm -15mm;   /* negate @page margins */
+    border-radius:0;
+    padding:12mm 15mm 10mm;          /* keep inner space */
+  }
+
+  /* smaller type for PDF */
+  html{ font-size:12px !important; }
+  #result{ font-size:.9rem !important; }
+  #result h2{ font-size:1.1rem !important; }
+  #result .kv li{ font-size:.85rem !important; line-height:1.35 !important; }
+
+  /* better page breaks for long summaries */
+  #result h2{ break-after:avoid; page-break-after:avoid; }
+  #result .kv, #result .kv li{ break-inside:avoid; page-break-inside:avoid; }
+  #result{ overflow:visible !important; }
+}
+
+/* ---------- html2canvas/JSPDF export path ---------- */
+/* Your exportPdf() adds .export-only to <html> before capture */
+.export-only, .export-only html, .export-only body{ background:#fff !important; }
+.export-only *{ visibility:hidden !important; }
+.export-only #result, .export-only #result *{ visibility:visible !important; }
+
+/* show PDF view, hide screen view during export */
+.export-only #result .on-screen-only{ display:none !important; }
+.export-only #result .pdf-only{ display:block !important; }
+
+/* mimic @page margins using padding for the screenshot */
+.export-only #result{
+  background:#fff !important; border:none !important; box-shadow:none !important;
+  padding:0 15mm 28mm 15mm !important;  /* extra bottom for footer/page numbers */
+  overflow:visible !important;
+}
+
+/* full-bleed banner in export too */
+.export-only .pdf-banner{
+  margin:0 -15mm 10mm -15mm;
+  border-radius:0;
+  padding:12mm 15mm 10mm;
+}
+
+/* smaller type in export to match print */
+.export-only html{ font-size:12px !important; }
+.export-only #result{ font-size:.9rem !important;   
+  padding: 15mm 18mm 24mm 18mm !important;
+  background:#fff !important;
+  border:none !important;
+  box-shadow:none !important;
+  overflow:visible !important;}
+.export-only #result h2{ font-size:1.1rem !important; }
+.export-only #result .kv li{ font-size:.85rem !important; line-height:1.35 !important; }
