@@ -148,6 +148,7 @@ body{
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 12px 18px;
+  font-size: clamp(0.7rem, 0.9vw + 0.8rem, 0.9rem);
   font-weight: 700;
   cursor: pointer;
   transition: transform .02s ease, box-shadow .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
@@ -206,18 +207,18 @@ p { margin: 0 0 2em; }          /* bottom margin creates the between-paragraph s
 
 /* 3) Letter spacing ≥ 0.12× font size */
 /* 4) Word spacing = 0.16× font size */
-/*body { letter-spacing: 0.12em; word-spacing: 0.16em; }*/
-body {word-spacing: 0.16em; }
+/*body { letter-spacing: 0.12em; word-spacing: 0.05em; }*/
+body {word-spacing: 0.05em; }
 
 /* Make sure common text blocks follow the spacing too */
 p, li, blockquote {
   line-height: 1.5;
-  letter-spacing: 0.12em;
-  word-spacing: 0.16em;
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
 }
 
 /* Headings: ensure ≥ 0.12em (overrides earlier 0.3px on .title) */
-.title, .subtitle, h1, h2, h3, h4, h5, h6 { letter-spacing: 0.12em; }
+.title, .subtitle, h1, h2, h3, h4, h5, h6 { letter-spacing: 0.01em; }
 
 /* Don’t apply wide spacing to form controls & buttons for usability */
 input, textarea, select, button,
@@ -267,4 +268,78 @@ input, textarea, select, button,
 /* Ensure the result section content itself has a little buffer */
 .pdf-prep-mode .result-content { 
   padding-bottom: 10px !important; 
+}
+
+/* ====== Fluid body & form typography ====== */
+
+/* Make all text inside sections/cards scale with viewport */
+.section, .card {
+  font-size: clamp(0.6rem, 0.3vw + 0.8rem, 0.9rem);
+}
+
+/* Section headings like "Property and Development Type" */
+.section-title {
+  font-size: clamp(0.9rem, 0.6vw + 0.8rem, 1.3rem);
+  font-weight: 700;      
+}
+
+/* Sub-section headings like “Property Address”, “Development Type” */
+.card h3 {
+  font-size: clamp(0.75rem, 0.3vw + 0.7rem, 1.3rem); 
+  font-weight: 800;
+}
+
+/* Field labels */
+.label {
+  font-size: clamp(0.8rem, 0.8vw + 0.7rem, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+  /* Paragraph/muted copy inside cards */
+  .card p,
+  .card .muted {
+    font-size: clamp(0.6rem, 0.6vw + 0.8rem, 0.9rem);
+  }
+
+/* Address input text size */
+#address.input { 
+  font-size: clamp(0.85rem, 0.4vw + 0.95rem, 0.9rem);
+}
+
+/* Placeholder style */
+#address::placeholder {
+  font-size: clamp(0.85rem, 0.4vw + 0.95rem, 0.9rem); 
+  color: var(--gray-500);
+  opacity: 0.75;
+}
+
+/* Text in the closed select */
+.select {
+  font-size: clamp(0.8rem, 0.4vw + 0.95rem, 0.9rem); 
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
+}
+
+/* Items inside the dropdown list (desktop browsers allow this; iOS/Android often ignore) */
+.select option {
+  font-size: 0.95rem;  
+}
+
+/* ====== Banner & Title Mobile Fixes for Landscape on Mobile ====== */
+
+/* Shrink header padding + height on mobile landscape */
+@media (max-width: 812px) and (orientation: landscape) {
+  .header .lead {
+    font-size: clamp(0.95rem, 1.6vw, 1rem); /* slightly smaller */
+    line-height: 1.35;                     /* compact but readable */
+    margin-top: 6px;                        /* subtle spacing */
+    max-width: 66ch;                        /* keep your original width */
+  }
+}
+/* Make titles scale fluidly across devices */
+@media (max-width: 812px) and (orientation: landscape) {
+  .title {font-size: clamp(1.6rem, 4vw, 2.8rem);}
+  .subtitle { font-size: clamp(1rem, 2.6vw, 1.3rem);}
+  .section, .card {font-size: clamp(0.1rem, 0.3vw + 0.8rem, 0.2rem);}
 }
