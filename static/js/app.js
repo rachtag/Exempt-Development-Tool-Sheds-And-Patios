@@ -88,8 +88,9 @@ function recheckAll(section) {
   if (!section) return;
   var metal = section.querySelector("#metal");
   if (metal) metal.dispatchEvent(new Event("change"));
-  var bush = section.querySelector("#bushfire");
-  if (bush) bush.dispatchEvent(new Event("change"));
+  // var bush = section.querySelector("#bushfire");
+  // if (bush) bush.dispatchEvent(new Event("change"));
+  document.getElementById("bushfire")?.dispatchEvent(new Event("change"));
   var dist = section.querySelector("#distance_dwelling");
   if (dist) {
     dist.dispatchEvent(new Event("input"));
@@ -137,7 +138,7 @@ function setupMetalReflective(section) {
 function setupBushfireDistance(section) {
   if (!section) return;
    
-  var bush = section.querySelector("#bushfire");
+  var bush = document.getElementById("bushfire");
   var dist = section.querySelector("#distance_dwelling");
   var distField = fieldOf(dist);
   if (!bush || !distField) return;
@@ -510,7 +511,8 @@ function handleSubmit(e) {
     zoning: document.getElementById("zoning").value,
     heritage: document.getElementById("heritage").value,
     foreshore: document.getElementById("foreshore").value,
-    bushfire: document.getElementById("bushfire").value
+    bushfire: valFrom(document, "#bushfire"),
+
 
   };
   

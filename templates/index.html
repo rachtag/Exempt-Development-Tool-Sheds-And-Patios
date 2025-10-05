@@ -23,7 +23,7 @@
   <main class="container">
 
     <section class="section card">
-      <h2 class="section-title">Property and Development Type</h2>
+      <h2 class="section-title">Property and Site Details</h2>
 
       <div>
         <h3>Property Address</h3>
@@ -42,49 +42,17 @@
               autocomplete="off"
             >
             <div id="results" class="autocomplete-results"></div>
-
           </div>
         </div>
       </div>
 
-        <h3>Development Type</h3>
-        <div class="form-grid">
-          <div class="field">
-            <label for="development" class="label">Select the structure to be built</label>
-            <select id="development" class="select">
-              <option value="">-- Select --</option>
-              <option value="shed">Shed</option>
-              <option value="patio">Patio</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </section>    
-
-    <!-- Common fields -->
-    <section class="section card">
       <h2 class="section-title">Site Details</h2>
-      <p class="muted">
-        Please indicate if any of the following apply to the property. If zoning, heritage status, or foreshore information is unknown, check the 
-        <a class="link" href="https://www.planningportal.nsw.gov.au/" target="_blank" rel="noopener">NSW Planning Portal</a> for details.
-      </p>
-
       <div class="form-grid">
-        <!-- <div class="field">
-          <label for="zoning" class="label">Zoning</label>
-          <select id="zoning" class="select">
-            <option value="">-- Select --</option>
-            <option>R1</option><option>R2</option><option>R3</option><option>R4</option><option>R5</option>
-            <option>RU1</option><option>RU2</option><option>RU3</option><option>RU4</option><option>RU6</option>
-          </select>
-        </div> -->
-       
-      
         <div class="field">
           <label for="zoning" class="label">Land zoning</label>
-          <select id="zoning" class="select"  required >
+          <select id="zoning" class="select" required >
             <option value="">-- Select --</option>
-            <option>R1</option><option>R2</option><option>R3</option><option>R4</option><option>R5</option> 
+            <option>R1</option><option>R2</option><option>R3</option><option>R4</option><option>R5</option>
             <option>RU1</option><option>RU2</option><option>RU3</option><option>RU4</option><option>RU5</option>
             <option>E1</option><option>E2</option><option>E3</option><option>E4</option><option>E5</option>
             <option>MU1</option><option>C1</option><option>C2</option><option>C3</option><option>C4</option>
@@ -93,8 +61,6 @@
             <option>W1</option><option>W2</option><option>W3</option><option>W4</option>
           </select>
         </div>
-      
-
 
         <div class="field">
           <label class="label" for="heritage">Heritage item</label>
@@ -121,7 +87,7 @@
             <option>no</option>
             <option>yes</option>
           </select>
-        </div>        
+        </div>
 
         <!-- Only used for sheds -->
         <div class="field full" id="sensitive-area-label" class="hidden">
@@ -130,6 +96,20 @@
             <option value="">-- Select --</option>
             <option>no</option>
             <option>yes</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h2 class="section-title">Development Type</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="development" class="label">Select the structure to be built</label>
+          <select id="development" class="select">
+            <option value="">-- Select --</option>
+            <option value="shed">Shed</option>
+            <option value="patio">Patio</option>
           </select>
         </div>
       </div>
