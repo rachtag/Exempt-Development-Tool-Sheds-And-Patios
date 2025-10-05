@@ -444,20 +444,30 @@ input, textarea, select, button,
   overflow:visible !important;
 }
 
-/* full-bleed banner in export too */
-.export-only .pdf-banner{
-  margin:0 -15mm 10mm -15mm;
-  border-radius:0;
-  padding:12mm 15mm 10mm;
-}
-
 /* smaller type in export to match print */
-.export-only html{ font-size:12px !important; }
-.export-only #result{ font-size:.9rem !important;   
+.export-only html{ font-size:14px !important; }
+.export-only #result{ font-size:1rem !important;   
   padding: 15mm 18mm 24mm 18mm !important;
   background:#fff !important;
   border:none !important;
   box-shadow:none !important;
   overflow:visible !important;}
-.export-only #result h2{ font-size:1.1rem !important; }
-.export-only #result .kv li{ font-size:.85rem !important; line-height:1.35 !important; }
+.export-only #result h2{ font-size:1.3rem !important; }
+.export-only #result .kv li{ font-size:1 rem !important; line-height:1.35 !important; }
+
+/* ---- html2canvas/JSPDF export path (Download PDF) ---- */
+.export-only .pdf-page {
+  padding: 0 15mm 24mm 15mm !important;   /* same as print */
+  box-sizing: border-box;
+}
+
+.export-only .pdf-banner {
+  margin: 0 -15mm 10mm -15mm !important;  /* same full-bleed trick */
+  border-radius: 0 !important;
+  padding: 12mm 15mm 10mm !important;
+}
+
+.export-only .pdf-body { padding-top: 0 !important; }
+
+.pdf-page > :first-child,
+.pdf-body > :first-child { margin-top: 0; }  /* safety on screen too */

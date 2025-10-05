@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", init);
 
 // ----- DOM -----
 var devSelect, shedFields, patioFields, sensitiveLabel;
-var submitBtn, resetBtn, resultPre, downloadPdfBtn, printPdfBtn;
+var submitBtn, resetBtn, resultPre, downloadPdfBtn
 
 // ======== INIT ========
 function init() {
@@ -26,21 +26,13 @@ function init() {
   submitBtn = document.getElementById("submit");
   resetBtn = document.getElementById("reset");
   resultPre = document.getElementById("result");
-  downloadPdfBtn = document.getElementById("download-pdf");
-  printPdfBtn = document.getElementById("print-pdf");
+  downloadPdfBtn = document.getElementById("download-pdf")
   
   // Wire events
   devSelect.addEventListener("change", applyDevVisibility);
   submitBtn.addEventListener("click", handleSubmit);
   resetBtn.addEventListener("click", resetForm);
   downloadPdfBtn.addEventListener("click", exportPdf);
-  
-  // Print / Save as PDF
-  printPdfBtn?.addEventListener("click", () => {
-    document.documentElement.classList.add("pdf-prep-mode");
-    window.print();
-    setTimeout(() => document.documentElement.classList.remove("pdf-prep-mode"), 0);
-  });
 
   // start hidden
   hide(shedFields);
@@ -618,9 +610,9 @@ function handleSubmit(e) {
   
   
         // Beautify the server response (bullets + clickable links)
-        var assessmentHtml = formatAssessmentHtml(raw);
+        const assessmentHtml = formatAssessmentHtml(raw);
 
-        var reasonsHtml = '<div id="rejection-reasons">'
+        const reasonsHtml = '<div id="rejection-reasons">'
             + prettifyLinks(assessmentHtml, { mode: "label", label: "SEPP", force: true }) 
             + '</div>';        
         
@@ -635,7 +627,7 @@ function handleSubmit(e) {
           <div id="report">
             <!-- On-screen only -->
             <div class="on-screen-only">
-              <h2 class="report-title">Assessment result</h2>
+              <h2 class="report-title">Assessment Result</h2>
               ${reasonsHtml}
             </div>
 
@@ -648,14 +640,19 @@ function handleSubmit(e) {
                   <p class="subtitle">Sheds &amp; Patios — Albury City</p>
                   <p class="lead">Check if a shed or patio qualifies as exempt development and can be built without council approval.</p>
                 </div>
-                <h2 class="report-title">Assessment result</h2>
-                ${reasonsHtml}
+                
+                <div class="pdf-body">
+                  <h2 class="report-title">Assessment Result</h2>
+                  ${reasonsHtml}
+                </div>
               </section>
 
               <!-- PDF PAGE 2 (summary) -->
               <section class="pdf-page" id="pdf-page-2">
-                <h2 class="report-title">Assessment summary</h2>
-                ${answersHtml}
+                <div class="pdf-body">
+                  <h2 class="report-title">Assessment Summary</h2>
+                  ${answersHtml}
+                </div>
               </section>
             </div>
           </div>
@@ -769,84 +766,129 @@ function showDownloadIfReady() {
   };
 
   toggle(downloadPdfBtn, hasContent);
-  toggle(printPdfBtn,    hasContent);
+}
+
+// Wait until DOM has painted, webfonts loaded, and images (in container) are ready
+async function waitForRender(container) {
+  // let layout/paint finish
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  // wait for webfonts (if any)
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (_) {}
+  }
+
+  // wait for images inside the target container
+  const imgs = Array.from(container.querySelectorAll('img')).filter(img => !img.complete);
+  if (imgs.length) {
+    await Promise.all(imgs.map(img => new Promise(res => {
+      img.onload = res; img.onerror = res;
+    })));
+  }
 }
 
 // function exportPdf() {
-function exportPdf() {
+async function exportPdf() {
   const { jsPDF } = window.jspdf;
 
-  // Only show the #result subtree and swap to the PDF view
-  document.documentElement.classList.add('export-only');
   const result = document.getElementById('result');
-  window.scrollTo(0, 0);
-
-  const pages = Array.from(result.querySelectorAll('.pdf-only .pdf-page'));
-  if (pages.length === 0) {
-    // Fallback: capture the whole result if the page wrappers aren’t there
-    pages.push(result);
+  if (!result) {
+    alert('No result to export yet.');
+    return;
   }
 
+  // --- 1) Build an off-screen sandbox with a cloned #result ---
+  const sandbox = document.createElement('div');
+  // Acts as the scope for your .export-only CSS rules
+  sandbox.className = 'export-only';
+  // Keep it completely off-screen & invisible (but still renderable)
+  sandbox.style.cssText = [
+    'position:fixed',
+    'left:-200vw',     // far off the viewport
+    'top:0',
+    'width:100vw',
+    'background:#fff',
+    'pointer-events:none',
+    'opacity:0',
+    'z-index:-1',
+  ].join(';');
+
+  // Deep clone of the result subtree
+  const clone = result.cloneNode(true);
+  sandbox.appendChild(clone);
+  document.body.appendChild(sandbox);
+
+  // Helper to let the browser layout/paint the sandbox before capture
+  const waitNextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await waitNextFrame();
+
+  // Inside the sandbox, prefer explicit pages; else capture the whole clone
+  const root = sandbox.querySelector('#result') || sandbox;
+  const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
+  const targets = pageNodes.length ? pageNodes : [root];
+
+  // --- 2) Setup jsPDF and margin-aware slicer ---
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pdfW = pdf.internal.pageSize.getWidth();
   const pdfH = pdf.internal.pageSize.getHeight();
 
-  // Helper: add a canvas to the PDF, slicing if it is taller than one page
-  function addCanvasAsPages(canvas, isFirstPage) {
-    const imgW = pdfW;
-    const imgH = canvas.height * imgW / canvas.width;
+  // Margins (mm)
+  const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
 
-    if (imgH <= pdfH) {
+  function addCanvasAsPages(canvas, isFirstPage) {
+    const usableW = pdfW - (MARGIN_L + MARGIN_R);
+    const scale   = usableW / canvas.width;
+    const usableH = pdfH - (MARGIN_T + MARGIN_B);
+    const scaledH = canvas.height * scale;
+
+    if (scaledH <= usableH) {
       if (!isFirstPage) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, imgW, imgH);
+      pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG',
+                   MARGIN_L, MARGIN_T, usableW, scaledH);
       return;
     }
 
-    // Slice tall canvas into full-height page chunks
-    const ratio = imgW / canvas.width;           // DOMpx -> PDF mm scale on width
-    const sliceHpx = Math.floor(pdfH / ratio);   // slice height in canvas pixels
+    // Slice tall content in canvas pixels so each slice fits usableH
+    const sliceHpx = Math.floor(usableH / scale);
     let y = 0, pageIndex = 0;
 
     while (y < canvas.height) {
       const h = Math.min(sliceHpx, canvas.height - y);
+
       const slice = document.createElement('canvas');
       slice.width = canvas.width;
       slice.height = h;
       slice.getContext('2d').drawImage(
         canvas,
-        0, y, canvas.width, h,   // src rect
-        0, 0, canvas.width, h    // dst rect
+        0, y, canvas.width, h,
+        0, 0, canvas.width, h
       );
 
       if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
-      pdf.addImage(slice.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, imgW, h * ratio);
+      pdf.addImage(slice.toDataURL('image/jpeg', 1.0), 'JPEG',
+                   MARGIN_L, MARGIN_T, usableW, h * scale);
 
       y += h;
       pageIndex++;
     }
   }
 
-  // Capture each DOM "pdf-page" and append to PDF
-  (async () => {
+  try {
+    // --- 3) Render each target in the sandbox without touching the live page ---
     let first = true;
-
-    for (const el of pages) {
-      // Ensure the element is visible when measuring/capturing
-      el.style.visibility = 'visible';
-
-      // Use the element’s own width to avoid global scrollbars affecting scale
+    for (const el of targets) {
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
+        // Use the element’s own width to avoid global layout influence
         windowWidth: el.scrollWidth || document.documentElement.clientWidth
       });
-
       addCanvasAsPages(canvas, first);
       first = false;
     }
 
-    // Optional footer stamping
+    // Optional footer
     const total = pdf.getNumberOfPages();
     for (let i = 1; i <= total; i++) {
       pdf.setPage(i);
@@ -857,19 +899,21 @@ function exportPdf() {
       pdf.setTextColor(120);
       pdf.setDrawColor(200);
       pdf.setLineWidth(0.2);
-      pdf.line(20, h - 16, w - 20, h - 16);
-      pdf.text('© Albury City · Exempt Development Checker', 10, h - 10);
-      pdf.text(`Page ${i} of ${total}`, w - 10, h - 10, { align: 'right' });
+      pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
+      pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
+      pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
     }
 
-    document.documentElement.classList.remove('export-only');
     pdf.save('assessment-result.pdf');
-  })().catch(err => {
+  } catch (err) {
     console.error(err);
-    document.documentElement.classList.remove('export-only');
     alert('Sorry—there was a problem generating the PDF.');
-  });
+  } finally {
+    // --- 4) Always remove the sandbox so nothing leaks to the DOM ---
+    sandbox.remove();
+  }
 }
+
 // ======== RESET ========
 function resetForm() {
   var inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
