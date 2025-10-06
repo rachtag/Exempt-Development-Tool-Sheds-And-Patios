@@ -26,7 +26,7 @@ function init() {
   submitBtn = document.getElementById("submit");
   resetBtn = document.getElementById("reset");
   resultPre = document.getElementById("result");
-  downloadPdfBtn = document.getElementById("download-pdf")
+  downloadPdfBtn = document.getElementById("download-pdf");
   
   // Wire events
   devSelect.addEventListener("change", applyDevVisibility);
