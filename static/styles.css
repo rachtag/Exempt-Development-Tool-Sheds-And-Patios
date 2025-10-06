@@ -302,3 +302,23 @@ input, textarea, select, button,
   background-color: #1a3f5f;
   border-color: #0c2d48;         
 }
+
+
+
+/* help button image */
+.help-icon-img {
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: middle;
+  cursor: pointer;
+  border-radius: 60%;       /* ensures perfect roundness */
+  object-fit: cover;        /* crops any outer edge */
+  background-color: #ffffff; /* hides transparent halo edge */
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.help-icon:hover {
+  opacity: 1;
+}
+

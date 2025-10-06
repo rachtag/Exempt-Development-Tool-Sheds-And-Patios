@@ -476,3 +476,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
+
+// ====== GENERIC MAP HELP FUNCTION ======
+function setupHelpIcon(iconId, mapUrl, mapName, zoomLevel = 19) {
+  document.addEventListener("DOMContentLoaded", function () {
+    const icon = document.getElementById(iconId);
+
+    if (icon) {
+      icon.addEventListener("click", function () {
+        const coords = window.latestCoords;
+        if (coords && coords.x && coords.y) {
+          const lon = coords.x;
+          const lat = coords.y;
+          const fullUrl = `${mapUrl}&center=${lon},${lat}&level=${zoomLevel}&marker=${lon},${lat}`;
+          window.open(fullUrl, "_blank");
+        } else {
+          alert(`Please confirm an address first to view the ${mapName} map.`);
+        }
+      });
+    }
+  });
+}
+
+
+
+
+// ====== GENERIC MAP HELP ICON SETUP ======
+setupHelpIcon("zoning-help", window.CONFIG.ZONING_MAP, "zoning", 16);
+setupHelpIcon("sensitive-area-help", window.CONFIG.SENSITIVE_MAP, "sensitive area", 19);
+setupHelpIcon("lot-size-help", window.CONFIG.LOTSIZE_MAP, "lot size", 19);
+setupHelpIcon("heritage-help", window.CONFIG.HERITAGE_MAP, "heritage", 19);
+setupHelpIcon("bushfire-help", window.CONFIG.BUSHFIRE_MAP, "Bushfire Prone Land", 16);

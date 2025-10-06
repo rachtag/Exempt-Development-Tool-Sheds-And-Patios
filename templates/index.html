@@ -87,14 +87,24 @@
        
       
         <div class="field">
-          <label for="zoning" class="label">Land zoning</label>
+          <label for="zoning" class="label">Land zoning
+             
+            <img
+              id="zoning-help"
+              src="{{ url_for('static', filename='img/help-icon.png') }}"
+              alt="Help"
+              title="View zoning map"
+              class="help-icon-img"
+            />
+
+          </label>
           <select id="zoning" class="select"  required >
             <option value="">-- Select --</option>
             <option>R1</option><option>R2</option><option>R3</option><option>R5</option> 
             <option>RU1</option><option>RU2</option><option>RU4</option><option>RU5</option>
-            <option>RE1</option><option>RE2</option><option>C2</option><option>C3</option>
+            <option>RE1</option><option>RE2</option><option>C2</option><option>C3</option><option>C4</option>
             <option>SP1</option><option>SP2</option><option>IN1</option><option>IN2</option>
-            <option>B1</option><option>B2</option><option>B4</option><option>B5</option>
+            <option>B1</option><option>B2</option><option>B3</option><option>B4</option><option>B5</option>
             <option>B7</option><option>W2</option> 
           </select>
         </div>
@@ -102,7 +112,16 @@
 
 
         <div class="field">
-          <label class="label" for="heritage">Heritage item</label>
+          <label class="label" for="heritage">Heritage item
+
+            <img
+                id="heritage-help"
+                src="{{ url_for('static', filename='img/help-icon.png') }}"
+                alt="Help"
+                title="View Heritage Map"
+                class="help-icon-img"
+              />
+          </label>
           <select id="heritage" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -120,7 +139,17 @@
         </div>
 
         <div class="field">
-          <label class="label" for="bushfire">Bushfire prone land?</label>
+          <label class="label" for="bushfire">Bushfire prone land?
+
+            <img
+              id="bushfire-help"
+              src="{{ url_for('static', filename='img/help-icon.png') }}"
+              alt="Help"
+              title="View Bushfire Prone Land Map"
+              class="help-icon-img"
+             />
+             
+          </label>
           <select id="bushfire" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -130,7 +159,17 @@
 
         <!-- Only used for sheds -->
         <div class="field full" id="sensitive-area-label" class="hidden">
-          <label class="label" for="sensitive_area">Environmentally sensitive area</label>
+          <label class="label" for="sensitive_area">Environmentally sensitive area
+
+            <img
+              id="sensitive-area-help"
+              src="{{ url_for('static', filename='img/help-icon.png') }}"
+              alt="Help"
+              title="View Excluded Zones for Exempt Development map"
+              class="help-icon-img"
+            />
+
+          </label>
           <select id="sensitive_area" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -357,7 +396,16 @@
         </div>
 
         <div class="field">
-          <label class="label" for="land_size">Lot size (m²)</label>
+          <label class="label" for="land_size">Lot size (m²)
+
+            <img
+              id="lot-size-help"
+              src="{{ url_for('static', filename='img/help-icon.png') }}"
+              alt="Help"
+              title="View NSW Land Parcel Map"
+              class="help-icon-img"
+            />
+          </label>
           <input type="number" id="land_size" min="0" class="input">
         </div>
 
