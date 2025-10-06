@@ -137,9 +137,9 @@ body{
   background: var(--gray-100);
   border: 1px dashed var(--gray-300);
   border-radius: 12px;
-  padding: 14px;
-  white-space: pre-wrap;
-  min-height: 80px;
+  padding: 12px;
+  white-space: normal;
+  min-height: 0;
 }
 
 /* ====== Buttons ====== */
@@ -148,6 +148,7 @@ body{
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 12px 18px;
+  font-size: clamp(0.7rem, 0.9vw + 0.8rem, 0.9rem);
   font-weight: 700;
   cursor: pointer;
   transition: transform .02s ease, box-shadow .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
@@ -206,18 +207,19 @@ p { margin: 0 0 2em; }          /* bottom margin creates the between-paragraph s
 
 /* 3) Letter spacing ≥ 0.12× font size */
 /* 4) Word spacing = 0.16× font size */
-/*body { letter-spacing: 0.12em; word-spacing: 0.16em; }*/
-body {word-spacing: 0.16em; }
+/*body { letter-spacing: 0.12em; word-spacing: 0.05em; }*/
+body {word-spacing: 0.05em; }
 
 /* Make sure common text blocks follow the spacing too */
 p, li, blockquote {
   line-height: 1.5;
-  letter-spacing: 0.12em;
-  word-spacing: 0.16em;
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
 }
 
 /* Headings: ensure ≥ 0.12em (overrides earlier 0.3px on .title) */
-.title, .subtitle, h1, h2, h3, h4, h5, h6 { letter-spacing: 0.12em; }
+.title, .subtitle, h1, h2, h3, h4, h5, h6 { letter-spacing: 0.01em; }
+#result h1, #result h2, #result h3 { margin-top: 0; }
 
 /* Don’t apply wide spacing to form controls & buttons for usability */
 input, textarea, select, button,
@@ -268,3 +270,257 @@ input, textarea, select, button,
 .pdf-prep-mode .result-content { 
   padding-bottom: 10px !important; 
 }
+
+/* ====== Fluid body & form typography ====== */
+
+/* Make all text inside sections/cards scale with viewport */
+.section, .card {
+  font-size: clamp(0.6rem, 0.3vw + 0.8rem, 0.9rem);
+}
+
+/* Section headings like "Property and Development Type" */
+.section-title {
+  font-size: clamp(0.9rem, 0.6vw + 0.8rem, 1.3rem);
+  font-weight: 700;      
+}
+
+/* Sub-section headings like “Property Address”, “Development Type” */
+.card h3 {
+  font-size: clamp(0.75rem, 0.3vw + 0.7rem, 1.3rem); 
+  font-weight: 800;
+}
+
+/* Field labels */
+.label {
+  font-size: clamp(0.8rem, 0.8vw + 0.7rem, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+  /* Paragraph/muted copy inside cards */
+  .card p,
+  .card .muted {
+    font-size: clamp(0.6rem, 0.6vw + 0.8rem, 0.9rem);
+  }
+
+/* Address input text size */
+#address.input { 
+  font-size: clamp(0.85rem, 0.4vw + 0.95rem, 0.9rem);
+}
+
+/* Placeholder style */
+#address::placeholder {
+  font-size: clamp(0.85rem, 0.4vw + 0.95rem, 0.9rem); 
+  color: var(--gray-500);
+  opacity: 0.75;
+}
+
+/* Text in the closed select */
+.select {
+  font-size: clamp(0.8rem, 0.4vw + 0.95rem, 0.9rem); 
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
+}
+
+/* Items inside the dropdown list (desktop browsers allow this; iOS/Android often ignore) */
+.select option {
+  font-size: 0.95rem;  
+}
+
+/* ====== Banner & Title Mobile Fixes for Landscape on Mobile ====== */
+
+/* Shrink header padding + height on mobile landscape */
+@media (max-width: 812px) and (orientation: landscape) {
+  .header .lead {
+    font-size: clamp(0.95rem, 1.6vw, 1rem); /* slightly smaller */
+    line-height: 1.35;                     /* compact but readable */
+    margin-top: 6px;                        /* subtle spacing */
+    max-width: 66ch;                        /* keep your original width */
+  }
+}
+/* Make titles scale fluidly across devices */
+@media (max-width: 812px) and (orientation: landscape) {
+  .title {font-size: clamp(1.6rem, 4vw, 2.8rem);}
+  .subtitle { font-size: clamp(1rem, 2.6vw, 1.3rem);}
+  .section, .card {font-size: clamp(0.1rem, 0.3vw + 0.8rem, 0.2rem);}
+}
+
+/* ===== Results-only PDF/Print setup (replacement) ===== */
+
+/* ---- Brand colours (match your frontpage header) ---- */
+:root{
+  /* if you already define these elsewhere, keep those and remove this block */
+  --brand-bg: #0f2d3a;     /* header start */
+  --brand-bg-2: #0a2330;   /* header end */
+  --brand-glare: rgba(255,255,255,.08);
+}
+
+/* ---- Screen defaults ---- */
+.on-screen-only{ display:block; }   /* visible on screen */
+.pdf-only{ display:none; }          /* hidden on screen */
+
+/* Result card spacing on screen */
+#result{ padding-top:12px; padding-bottom:12px; }
+
+/* Kill top margin on first child in each result view */
+#result .on-screen-only  > :first-child,
+#result .pdf-only        > :first-child{ margin-top:0; }
+
+/* Headings inside result */
+#result .report-title{ margin:0 0 8px 0; line-height:1.2; }
+#result h1,#result h2,#result h3{ margin-top:0; }
+
+/* ---------- PDF banner (same colour as your frontpage header) ---------- */
+.pdf-banner{
+  color:#fff;
+  background:
+    radial-gradient(90% 120% at 10% 0%, var(--brand-glare) 0%, transparent 60%),
+    linear-gradient(180deg, var(--brand-bg) 0%, var(--brand-bg-2) 100%);
+  padding:0 12mm 15mm 10mm;   /* inner padding when not full-bleed */
+  border-radius:10px;       /* rounded on screen */
+}
+.pdf-banner h1{ margin:0 0 0 0; font-weight:800; font-size:1.35rem; line-height:1.2; }
+.pdf-banner .subtitle{ margin:0 0 4px 0; font-weight:600; font-size:.95rem; }
+.pdf-banner .lead{ margin:0; max-width:70ch; }
+
+/* ---------- PRINT (browser Save as PDF) ---------- */
+/* Force the next element to start on a new printed page */
+
+@media print {
+  /* Start the 2nd PDF page on a new sheet */
+  #pdf-page-2 { break-before: page; page-break-before: always; }
+}
+@media print {
+  @page { size:A4; margin:0 15mm 28mm 15mm ; }   /* top/right/bottom/left */
+
+  html,body{ background:#fff !important; }
+
+  /* print only the result subtree */
+  body *{ visibility:hidden !important; }
+  #result, #result *{ visibility:visible !important; }
+
+  /* show PDF view, hide screen view */
+  #result .on-screen-only{ display:none !important; }
+  #result .pdf-only{ display:block !important; }
+
+  /* remove card chrome in print */
+  #result, .card, .section, .result{
+    background:#fff !important; border:none !important; box-shadow:none !important;
+  }
+
+  /* full-bleed banner at the very top of the page */
+  .pdf-banner{
+    margin:0 -15mm 10mm -15mm;   /* negate @page margins */
+    border-radius:0;
+    padding:12mm 15mm 10mm;          /* keep inner space */
+  }
+
+  /* smaller type for PDF */
+  html{ font-size:12px !important; }
+  #result{ font-size:.9rem !important; }
+  #result h2{ font-size:1.1rem !important; }
+  #result .kv li{ font-size:.85rem !important; line-height:1.35 !important; }
+
+  /* better page breaks for long summaries */
+  #result h2{ break-after:avoid; page-break-after:avoid; }
+  #result .kv, #result .kv li{ break-inside:avoid; page-break-inside:avoid; }
+  #result{ overflow:visible !important; }
+}
+
+/* ---------- html2canvas/JSPDF export path ---------- */
+/* Your exportPdf() adds .export-only to <html> before capture */
+.export-only, .export-only html, .export-only body{ background:#fff !important; }
+.export-only *{ visibility:hidden !important; }
+.export-only #result, .export-only #result *{ visibility:visible !important; }
+
+/* show PDF view, hide screen view during export */
+.export-only #result .on-screen-only{ display:none !important; }
+.export-only #result .pdf-only{ display:block !important; }
+
+/* mimic @page margins using padding for the screenshot */
+.export-only #result{
+  background:#fff !important; border:none !important; box-shadow:none !important;
+  padding:0 15mm 28mm 15mm !important;  /* extra bottom for footer/page numbers */
+  overflow:visible !important;
+}
+
+/* smaller type in export to match print */
+.export-only html{ font-size:14px !important; }
+.export-only #result{ font-size:1rem !important;   
+  padding: 15mm 18mm 24mm 18mm !important;
+  background:#fff !important;
+  border:none !important;
+  box-shadow:none !important;
+  overflow:visible !important;}
+.export-only #result h2{ font-size:1.3rem !important; }
+.export-only #result .kv li{ font-size:1 rem !important; line-height:1.35 !important; }
+
+/* ---- html2canvas/JSPDF export path (Download PDF) ---- */
+.export-only .pdf-page {
+  padding: 0 15mm 24mm 15mm !important;   /* same as print */
+  box-sizing: border-box;
+}
+
+.export-only .pdf-banner {
+  margin: 0 -15mm 10mm -15mm !important;  /* same full-bleed trick */
+  border-radius: 0 !important;
+  padding: 12mm 15mm 10mm !important;
+}
+
+.export-only .pdf-body { padding-top: 0 !important; }
+
+.pdf-page > :first-child,
+.pdf-body > :first-child { margin-top: 0; }  /* safety on screen too */
+
+.address-input-wrapper {
+  display: flex;
+  align-items: stretch; /* Ensures both elements have same height */
+  gap: 8px;
+}
+
+/* Confirm button styling to match the input height and border radius */
+#confirm-address.btn-primary {
+  background-color: #0c2d48;
+  color: white;
+  border: 1px solid #cfd6dc;        
+  padding: 0 18px;                   
+  border-radius: 25px;               
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif; 
+  font-weight: 525;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
+  
+ 
+  height: 100%;                     
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;                  
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#confirm-address.btn-primary:hover {
+  background-color: #1a3f5f;
+  border-color: #0c2d48;         
+}
+
+
+
+/* help button image */
+.help-icon-img {
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: middle;
+  cursor: pointer;
+  border-radius: 60%;       /* ensures perfect roundness */
+  object-fit: cover;        /* crops any outer edge */
+  background-color: #ffffff; /* hides transparent halo edge */
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.help-icon:hover {
+  opacity: 1;
+}
+
