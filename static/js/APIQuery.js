@@ -339,6 +339,71 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById('address');
   const resultsDiv = document.getElementById('results');
   if (!input || !resultsDiv) return; 
+  
+
+
+  // =============== Confirm Button Extra Listener ===============
+  // NOTE: This runs ONLY when user manually clicks "Confirm".
+ // It will NOT auto-trigger if address autocomplete fails.
+  const confirmBtn = document.getElementById('confirm-address');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', async () => {
+      const address = input.value.trim();
+      if (!address) {
+        alert("Please enter an address before confirming.");
+        return;
+      }
+
+      try {
+        // Directly jump to geocoding (skip validateAddressList & fetchAndFilterAddresses)
+        const coords = await geocodeAddress(address);
+        if (!coords) {
+          alert("Geocoding failed. Please check the address.");
+          return;
+        }
+
+        const { x, y } = coords;
+        window.latestCoords = { x, y };
+
+        // --- Perform GIS queries ---
+        const boundary = await queryBoundary(x, y);
+        const lotSize = boundary?.lotSize || "";
+        const zone = await queryZoneCode(x, y) || "";
+        const heritage = (await queryHeritage(x, y) || "no").toLowerCase();
+        const foreshore = (await queryForeshore(x, y) || "no").toLowerCase();
+        const bushfireVal = (await queryBushfire(x, y) || "no").toLowerCase();
+        const esa = (await queryBiodiversity(x, y) || "no").toLowerCase();
+
+        // --- Populate fields (same as original workflow) ---
+        const zoningEl = document.getElementById("zoning");
+        if (zoningEl) zoningEl.value = zone;
+        const heritageEl = document.getElementById("heritage");
+        if (heritageEl) heritageEl.value = heritage;
+        const foreshoreEl = document.getElementById("foreshore");
+        if (foreshoreEl) foreshoreEl.value = foreshore;
+        const bushfire = document.getElementById("bushfire");
+        if (bushfire) bushfire.value = bushfireVal;
+        const esaEl = document.getElementById("sensitive_area");
+        if (esaEl) esaEl.value = esa;
+        const landSizeEl = document.getElementById("land_size");
+        if (landSizeEl) landSizeEl.value = lotSize;
+
+        console.log("Confirm button completed successfully:", {
+          address, x, y, zone, heritage, foreshore, bushfireVal, esa, lotSize
+        });
+      } catch (err) {
+        console.error("Confirm address failed:", err);
+        alert("Error confirming address. See console for details.");
+      }
+    });
+  }
+
+
+
+
+
+
+
 
   input.addEventListener('input', async () => {
     const query = input.value.trim();
@@ -411,3 +476,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
+
+// ====== GENERIC MAP HELP FUNCTION ======
+function setupHelpIcon(iconId, mapUrl, mapName, zoomLevel = 19) {
+  document.addEventListener("DOMContentLoaded", function () {
+    const icon = document.getElementById(iconId);
+
+    if (icon) {
+      icon.addEventListener("click", function () {
+        const coords = window.latestCoords;
+        if (coords && coords.x && coords.y) {
+          const lon = coords.x;
+          const lat = coords.y;
+          const fullUrl = `${mapUrl}&center=${lon},${lat}&level=${zoomLevel}&marker=${lon},${lat}`;
+          window.open(fullUrl, "_blank");
+        } else {
+          alert(`Please confirm an address first to view the ${mapName} map.`);
+        }
+      });
+    }
+  });
+}
+
+
+
+
+// ====== GENERIC MAP HELP ICON SETUP ======
+setupHelpIcon("zoning-help", window.CONFIG.ZONING_MAP, "zoning", 16);
+setupHelpIcon("sensitive-area-help", window.CONFIG.SENSITIVE_MAP, "sensitive area", 19);
+setupHelpIcon("lot-size-help", window.CONFIG.LOTSIZE_MAP, "lot size", 19);
+setupHelpIcon("heritage-help", window.CONFIG.HERITAGE_MAP, "heritage", 19);
+setupHelpIcon("bushfire-help", window.CONFIG.BUSHFIRE_MAP, "Bushfire Prone Land", 16);

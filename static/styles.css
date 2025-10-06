@@ -471,3 +471,56 @@ input, textarea, select, button,
 
 .pdf-page > :first-child,
 .pdf-body > :first-child { margin-top: 0; }  /* safety on screen too */
+
+.address-input-wrapper {
+  display: flex;
+  align-items: stretch; /* Ensures both elements have same height */
+  gap: 8px;
+}
+
+/* Confirm button styling to match the input height and border radius */
+#confirm-address.btn-primary {
+  background-color: #0c2d48;
+  color: white;
+  border: 1px solid #cfd6dc;        
+  padding: 0 18px;                   
+  border-radius: 25px;               
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif; 
+  font-weight: 525;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
+  
+ 
+  height: 100%;                     
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;                  
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#confirm-address.btn-primary:hover {
+  background-color: #1a3f5f;
+  border-color: #0c2d48;         
+}
+
+
+
+/* help button image */
+.help-icon-img {
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: middle;
+  cursor: pointer;
+  border-radius: 60%;       /* ensures perfect roundness */
+  object-fit: cover;        /* crops any outer edge */
+  background-color: #ffffff; /* hides transparent halo edge */
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.help-icon:hover {
+  opacity: 1;
+}
+
