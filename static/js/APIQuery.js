@@ -211,7 +211,10 @@ export async function queryLayer(url, x, y, field, withGeometry = false) {
  */
 export async function queryZoneCode(x, y) {
   return await queryLayer(window.CONFIG?.ZONING_URL, x, y, "SYM_CODE");
+  
 }
+
+
 
 /**
  * Query heritage zone presence.
@@ -506,6 +509,37 @@ async function selectAddress(address) {
   document.getElementById("sensitive_area").value = esa;
   document.getElementById("land_size").value = lotSize;
 }
+
+// zoning input listener - auto-uppercase and validate
+const zoningInput = document.getElementById("zoning");
+if (zoningInput) {
+  const validZones = [
+    "R1","R2","R3","R4","R5",
+    "RU1","RU2","RU3","RU4","RU5","RU6",
+    "RE1","RE2",
+    "C2","C3","C4",
+    "SP1","SP2",
+    "IN1","IN2",
+    "B1","B2","B3","B4","B5","B7",
+    "W2"
+  ];
+
+  // auto-uppercase
+  zoningInput.addEventListener("input", (e) => {
+    e.target.value = e.target.value.toUpperCase();
+  });
+
+  // Check validity
+  zoningInput.addEventListener("blur", (e) => {
+    const value = e.target.value.trim().toUpperCase();
+    if (value && !validZones.includes(value)) {
+      alert(`Invalid zoning code: ${value}. Please enter one of: ${validZones.join(", ")}`);
+      e.target.value = "";
+    }
+  });
+}
+
+
 });
 
 
