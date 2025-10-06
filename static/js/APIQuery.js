@@ -19,8 +19,6 @@
 //console.log("APIQuery.js loaded ");
 
 /**
- * Filters NSW Planning API address results using postcode and suburb lists.
-/**
  * Filters NSW Planning API address results using postcode (last token only).
  * @param {Array} data - Raw address results from NSW Planning API
  * @returns {Array} Filtered address results
@@ -405,76 +403,109 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  input.addEventListener('input', async () => {
-    const query = input.value.trim();
+  let selectedIndex = -1; // define globally once
+
+input.addEventListener('input', async () => {
+  const query = input.value.trim();
+  resultsDiv.innerHTML = '';
+  if (query.length < 3) return;
+
+  try {
+    const suggestions = await fetchAndFilterAddresses(query);
+    // Clear existing list before showing new
     resultsDiv.innerHTML = '';
 
-    if (query.length < 3) return;
+    suggestions.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.textContent = item.address;
+      div.tabIndex = 0;
 
-    try {
-      
-      const suggestions = await fetchAndFilterAddresses(query);
+      // Mouse click
+      div.onclick = () => selectAddress(item.address);
 
-      suggestions.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.textContent = item.address;
-
-        div.onclick = async () => {
-          input.value = item.address;
-          resultsDiv.innerHTML = '';
-
-          // geocoding
-          const coords = await geocodeAddress(item.address);
-          if (!coords) return;
-          const { x, y } = coords;
-          //store latest coords globally
-          window.latestCoords = { x, y };
-
-          // GIS queries
-          const boundary = await queryBoundary(x, y);
-          const lotSize = boundary?.lotSize || "";
-
-          const zone = await queryZoneCode(x, y) || "";
-
-          const heritage = (await queryHeritage(x, y) || "no").toLowerCase();
-          const foreshore = (await queryForeshore(x, y) || "no").toLowerCase();
-          
-          const bushfireVal = (await queryBushfire(x, y) || "no").toLowerCase();
-          const esa = (await queryBiodiversity(x, y) || "no").toLowerCase();
-
-          // Populate hidden fields
-          const zoningEl = document.getElementById("zoning");
-          if (zoningEl) zoningEl.value = zone;
-
-          const heritageEl = document.getElementById("heritage");
-          if (heritageEl) heritageEl.value = heritage;
-
-          const foreshoreEl = document.getElementById("foreshore");
-          if (foreshoreEl) foreshoreEl.value = foreshore;
-
-          const bushfire = document.getElementById("bushfire");
-          if (bushfire) bushfire.value = bushfireVal;          
-
-          // const bushfireShedEl = document.getElementById("bushfire_shed");
-          // if (bushfireShedEl) bushfireShedEl.value = bushfireVal;
-
-          // const bushfirePatioEl = document.getElementById("bushfire_patio");
-          // if (bushfirePatioEl) bushfirePatioEl.value = bushfireVal;
-
-          const esaEl = document.getElementById("sensitive_area");
-          if (esaEl) esaEl.value = esa;
-
-          const landSizeEl = document.getElementById("land_size");
-          if (landSizeEl) landSizeEl.value = lotSize;
-        };
-
-        resultsDiv.appendChild(div);
+      // Keyboard Enter while focus on suggestion
+      div.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') selectAddress(item.address);
       });
-    } catch (err) {
-      console.error("Autocomplete fetch failed:", err);
-    }
+
+      resultsDiv.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Autocomplete fetch failed:", err);
+  }
+});
+
+// Keyboard navigation (Up/Down/Enter)
+input.addEventListener('keydown', (event) => {
+  const items = resultsDiv.querySelectorAll('.item');
+  if (event.key === 'Escape') {       // Hide when Esc pressed
+    resultsDiv.innerHTML = '';
+    return;
+  }
+
+  if (!items.length) return;
+
+  if (event.key === 'ArrowDown') {
+    selectedIndex = (selectedIndex + 1) % items.length;
+    updateSelection(items, selectedIndex);
+  } else if (event.key === 'ArrowUp') {
+    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+    updateSelection(items, selectedIndex);
+  } else if (event.key === 'Enter' && selectedIndex >= 0) {
+    event.preventDefault();
+    items[selectedIndex].click();
+  }
+});
+
+//  Hide list when user clicks back into input
+input.addEventListener('focus', () => {
+  resultsDiv.innerHTML = '';
+});
+// Hide listwhen user clicks in the address bar
+input.addEventListener('click', () => {
+  resultsDiv.innerHTML = '';
+});
+
+
+// Hide list when clicking anywhere outside input or results
+document.addEventListener('click', (e) => {
+  if (!resultsDiv.contains(e.target) && e.target !== input) {
+    resultsDiv.innerHTML = '';
+  }
+});
+
+function updateSelection(items, index) {
+  items.forEach((el, i) => {
+    el.classList.toggle('selected', i === index);
+    if (i === index) el.scrollIntoView({ block: 'nearest' });
   });
+}
+
+async function selectAddress(address) {
+  input.value = address;
+  resultsDiv.innerHTML = '';
+  const coords = await geocodeAddress(address);
+  if (!coords) return;
+
+  const { x, y } = coords;
+  window.latestCoords = { x, y };
+
+  const boundary = await queryBoundary(x, y);
+  const lotSize = boundary?.lotSize || "";
+  const zone = await queryZoneCode(x, y) || "";
+  const heritage = (await queryHeritage(x, y) || "no").toLowerCase();
+  const foreshore = (await queryForeshore(x, y) || "no").toLowerCase();
+  const bushfireVal = (await queryBushfire(x, y) || "no").toLowerCase();
+  const esa = (await queryBiodiversity(x, y) || "no").toLowerCase();
+
+  document.getElementById("zoning").value = zone;
+  document.getElementById("heritage").value = heritage;
+  document.getElementById("foreshore").value = foreshore;
+  document.getElementById("bushfire").value = bushfireVal;
+  document.getElementById("sensitive_area").value = esa;
+  document.getElementById("land_size").value = lotSize;
+}
 });
 
 

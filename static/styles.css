@@ -322,3 +322,28 @@ input, textarea, select, button,
   opacity: 1;
 }
 
+/* .autocomplete-results .item.selected {
+  background-color: #f0f0f0;
+  color: #000;
+} */
+
+
+/* Hover effect (mouse move) */
+.autocomplete-results .item:hover {
+  background-color: #0A64FF; 
+  color: #e3f2fd;
+}
+
+/*Keyboard selection (Arrow + Enter) */
+.autocomplete-results .item.selected {
+  background-color: #0A64FF; 
+  color: #e3f2fd; 
+} 
+
+/* Smooth transition for focus/hover movement */
+.autocomplete-results .item:hover,
+.autocomplete-results .item.selected {
+  transition: background-color 0.7s ease-in-out;
+}
+
+
