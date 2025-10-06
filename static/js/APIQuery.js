@@ -339,6 +339,71 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById('address');
   const resultsDiv = document.getElementById('results');
   if (!input || !resultsDiv) return; 
+  
+
+
+  // =============== Confirm Button Extra Listener ===============
+  // NOTE: This runs ONLY when user manually clicks "Confirm".
+ // It will NOT auto-trigger if address autocomplete fails.
+  const confirmBtn = document.getElementById('confirm-address');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', async () => {
+      const address = input.value.trim();
+      if (!address) {
+        alert("Please enter an address before confirming.");
+        return;
+      }
+
+      try {
+        // Directly jump to geocoding (skip validateAddressList & fetchAndFilterAddresses)
+        const coords = await geocodeAddress(address);
+        if (!coords) {
+          alert("Geocoding failed. Please check the address.");
+          return;
+        }
+
+        const { x, y } = coords;
+        window.latestCoords = { x, y };
+
+        // --- Perform GIS queries ---
+        const boundary = await queryBoundary(x, y);
+        const lotSize = boundary?.lotSize || "";
+        const zone = await queryZoneCode(x, y) || "";
+        const heritage = (await queryHeritage(x, y) || "no").toLowerCase();
+        const foreshore = (await queryForeshore(x, y) || "no").toLowerCase();
+        const bushfireVal = (await queryBushfire(x, y) || "no").toLowerCase();
+        const esa = (await queryBiodiversity(x, y) || "no").toLowerCase();
+
+        // --- Populate fields (same as original workflow) ---
+        const zoningEl = document.getElementById("zoning");
+        if (zoningEl) zoningEl.value = zone;
+        const heritageEl = document.getElementById("heritage");
+        if (heritageEl) heritageEl.value = heritage;
+        const foreshoreEl = document.getElementById("foreshore");
+        if (foreshoreEl) foreshoreEl.value = foreshore;
+        const bushfire = document.getElementById("bushfire");
+        if (bushfire) bushfire.value = bushfireVal;
+        const esaEl = document.getElementById("sensitive_area");
+        if (esaEl) esaEl.value = esa;
+        const landSizeEl = document.getElementById("land_size");
+        if (landSizeEl) landSizeEl.value = lotSize;
+
+        console.log("Confirm button completed successfully:", {
+          address, x, y, zone, heritage, foreshore, bushfireVal, esa, lotSize
+        });
+      } catch (err) {
+        console.error("Confirm address failed:", err);
+        alert("Error confirming address. See console for details.");
+      }
+    });
+  }
+
+
+
+
+
+
+
 
   input.addEventListener('input', async () => {
     const query = input.value.trim();
