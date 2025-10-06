@@ -23,7 +23,7 @@
   <main class="container">
 
     <section class="section card">
-      <h2 class="section-title">Property and Development Type</h2>
+      <h2 class="section-title">Property and Site Details</h2>
 
       <div>
         <h3>Property Address</h3>
@@ -48,33 +48,11 @@
             </div>  <!--  new added div for address button -->
 
             <div id="results" class="autocomplete-results"></div>
-
           </div>
         </div>
       </div>
 
-        <h3>Development Type</h3>
-        <div class="form-grid">
-          <div class="field">
-            <label for="development" class="label">Select the structure to be built</label>
-            <select id="development" class="select">
-              <option value="">-- Select --</option>
-              <option value="shed">Shed</option>
-              <option value="patio">Patio</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </section>    
-
-    <!-- Common fields -->
-    <section class="section card">
       <h2 class="section-title">Site Details</h2>
-      <p class="muted">
-        Please indicate if any of the following apply to the property. If zoning, heritage status, or foreshore information is unknown, check the 
-        <a class="link" href="https://www.planningportal.nsw.gov.au/" target="_blank" rel="noopener">NSW Planning Portal</a> for details.
-      </p>
-
       <div class="form-grid">
              
       
@@ -100,8 +78,6 @@
             <option>B7</option><option>W2</option> 
           </select>
         </div>
-      
-
 
         <div class="field">
           <label class="label" for="heritage">Heritage item
@@ -147,7 +123,7 @@
             <option>no</option>
             <option>yes</option>
           </select>
-        </div>        
+        </div>
 
         <!-- Only used for sheds -->
         <div class="field full" id="sensitive-area-label" class="hidden">
@@ -166,6 +142,20 @@
             <option value="">-- Select --</option>
             <option>no</option>
             <option>yes</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h2 class="section-title">Development Type</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="development" class="label">Select the structure to be built</label>
+          <select id="development" class="select">
+            <option value="">-- Select --</option>
+            <option value="shed">Shed</option>
+            <option value="patio">Patio</option>
           </select>
         </div>
       </div>

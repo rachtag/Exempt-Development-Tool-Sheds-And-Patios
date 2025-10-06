@@ -27,7 +27,8 @@ function init() {
   resetBtn = document.getElementById("reset");
   resultPre = document.getElementById("result");
   downloadPdfBtn = document.getElementById("download-pdf");
-
+  
+  // Wire events
   devSelect.addEventListener("change", applyDevVisibility);
   submitBtn.addEventListener("click", handleSubmit);
   resetBtn.addEventListener("click", resetForm);
@@ -88,8 +89,9 @@ function recheckAll(section) {
   if (!section) return;
   var metal = section.querySelector("#metal");
   if (metal) metal.dispatchEvent(new Event("change"));
-  var bush = section.querySelector("#bushfire");
-  if (bush) bush.dispatchEvent(new Event("change"));
+  // var bush = section.querySelector("#bushfire");
+  // if (bush) bush.dispatchEvent(new Event("change"));
+  document.getElementById("bushfire")?.dispatchEvent(new Event("change"));
   var dist = section.querySelector("#distance_dwelling");
   if (dist) {
     dist.dispatchEvent(new Event("input"));
@@ -137,7 +139,7 @@ function setupMetalReflective(section) {
 function setupBushfireDistance(section) {
   if (!section) return;
    
-  var bush = section.querySelector("#bushfire");
+  var bush = document.getElementById("bushfire");
   var dist = section.querySelector("#distance_dwelling");
   var distField = fieldOf(dist);
   if (!bush || !distField) return;
@@ -510,7 +512,8 @@ function handleSubmit(e) {
     zoning: document.getElementById("zoning").value,
     heritage: document.getElementById("heritage").value,
     foreshore: document.getElementById("foreshore").value,
-    bushfire: document.getElementById("bushfire").value
+    bushfire: valFrom(document, "#bushfire"),
+
 
   };
   
@@ -606,41 +609,57 @@ function handleSubmit(e) {
   }
       return res.text(); })
     .then(function (raw) {
-        // var summary = buildSummary(payload);
-
-        // Build a nice-looking combined output:
-        // We use innerHTML so links are clickable, but preserve a simple text section for answers.
-        // var answersBlock =
-        // "\n" + summary;
-
-        var assessmentTitle =
-        "\n";
-
+  
+  
         // Beautify the server response (bullets + clickable links)
-        var assessmentHtml = formatAssessmentHtml(raw);
+        const assessmentHtml = formatAssessmentHtml(raw);
 
-        // resultPre.innerHTML =
-        // answersBlock.replace(/&/g, "&amp;")
-        //             .replace(/</g, "&lt;")
-        //             .replace(/>/g, "&gt;") // escape answers (plain text)
-        // + assessmentTitle.replace(/&/g, "&amp;")
-        //                 .replace(/</g, "&lt;")
-        //                 .replace(/>/g, "&gt;")
-        // + assessmentHtml; // already HTML with links
-
-        var reasonsToExport = '<div id="rejection-reasons">'
+        const reasonsHtml = '<div id="rejection-reasons">'
             + prettifyLinks(assessmentHtml, { mode: "label", label: "SEPP", force: true }) 
             + '</div>';        
         
-        resultPre.innerHTML =
-          // answersBlock.replace(/&/g, "&amp;")
-          //             .replace(/</g, "&lt;")
-          //             .replace(/>/g, "&gt;") // plain text
-          assessmentTitle.replace(/&/g, "&amp;")
-                          .replace(/</g, "&lt;")
-                          .replace(/>/g, "&gt;")
-          + reasonsToExport; // short link text
+        // Collect the answers that the user actually filled in
+        const answers = collectAnswers();
+        const answersHtml = answersListHtml(answers);
 
+        // Build two views:
+        // - on-screen: just the assessment result
+        // - pdf-only: header + assessment result (hidden on screen, shown only for print/export)
+        const reportHtml = `
+          <div id="report">
+            <!-- On-screen only -->
+            <div class="on-screen-only">
+              <h2 class="report-title">Assessment Result</h2>
+              ${reasonsHtml}
+            </div>
+
+            <!-- PDF only (explicit pages) -->
+            <div class="pdf-only">
+              <!-- PDF PAGE 1 -->
+              <section class="pdf-page" id="pdf-page-1">
+                <div class="pdf-banner">
+                  <h1>Exempt Development Assessment</h1>
+                  <p class="subtitle">Sheds &amp; Patios — Albury City</p>
+                  <p class="lead">Check if a shed or patio qualifies as exempt development and can be built without council approval.</p>
+                </div>
+                
+                <div class="pdf-body">
+                  <h2 class="report-title">Assessment Result</h2>
+                  ${reasonsHtml}
+                </div>
+              </section>
+
+              <!-- PDF PAGE 2 (summary) -->
+              <section class="pdf-page" id="pdf-page-2">
+                <div class="pdf-body">
+                  <h2 class="report-title">Assessment Summary</h2>
+                  ${answersHtml}
+                </div>
+              </section>
+            </div>
+          </div>
+        `;
+        resultPre.innerHTML = reportHtml.trim();
         showDownloadIfReady();
     })
     .catch(function (err) {
@@ -668,6 +687,65 @@ function numFrom(root, selector) {
   return isFinite(n) ? n : null;
 }
 
+// --- Helpers to build a clean "Answers" list for the PDF ---
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;')
+    .replaceAll('>','&gt;').replaceAll('"','&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+// Return array of { label, value } for all visible, answered fields
+function collectAnswers() {
+  const items = [];
+  // address first (it sits outside .field grid in your markup)
+  const addrEl = document.getElementById('address');
+  const addrVal = (addrEl?.value || '').trim();
+  if (addrVal) items.push({ label: 'Property address', value: addrVal });
+
+  // find all inputs/selects inside a .field that are visible and have a value
+  document.querySelectorAll(".field input, .field select, .field textarea").forEach(el => {
+    if (el.disabled) return;
+    if (el.closest('.hidden')) return;
+
+    // compute value
+    let val = '';
+    const tag = el.tagName;
+    const type = (el.getAttribute('type') || '').toLowerCase();
+
+    if (tag === 'SELECT') {
+      if (el.value === '') return; // ignore placeholder
+      const opt = el.options[el.selectedIndex];
+      val = (opt && opt.text) ? opt.text.trim() : el.value.trim();
+    } else if (type === 'number') {
+      if (el.value === '' || isNaN(Number(el.value))) return;
+      val = el.value.trim();
+    } else {
+      val = (el.value || '').trim();
+      if (!val) return;
+    }
+
+    // label
+    const lbl = labelFor(el);
+    if (!lbl) return;
+
+    items.push({ label: lbl, value: val });
+  });
+
+  return items;
+}
+
+// Renders the answers into a clean <ul>
+function answersListHtml(items) {
+  if (!items.length) return '<p>(No answers)</p>';
+  return `
+    <ul class="kv">
+      ${items.map(({label, value}) =>
+        `<li><span class="k">${escapeHtml(label)}:</span> <span class="v">${escapeHtml(value)}</span></li>`
+      ).join('')}
+    </ul>`;
+}
+
 // ======== SUMMARY + PDF ========
 // function buildSummary(obj) {
 //   var lines = [];
@@ -681,117 +759,161 @@ function numFrom(root, selector) {
 
 
 function showDownloadIfReady() {
-  if ((resultPre.textContent || "").trim()) {
-    downloadPdfBtn.classList.remove("hidden");
-  } else {
-    downloadPdfBtn.classList.add("hidden");
+  // Consider both textContent and innerHTML, then trim
+  const hasContent = ((resultPre.textContent || resultPre.innerHTML) || "").trim().length > 0;
+
+  const toggle = (el, show) => {
+    if (!el) return;
+    el.classList[show ? 'remove' : 'add']('hidden');
+  };
+
+  toggle(downloadPdfBtn, hasContent);
+}
+
+// Wait until DOM has painted, webfonts loaded, and images (in container) are ready
+async function waitForRender(container) {
+  // let layout/paint finish
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  // wait for webfonts (if any)
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (_) {}
+  }
+
+  // wait for images inside the target container
+  const imgs = Array.from(container.querySelectorAll('img')).filter(img => !img.complete);
+  if (imgs.length) {
+    await Promise.all(imgs.map(img => new Promise(res => {
+      img.onload = res; img.onerror = res;
+    })));
   }
 }
 
 // function exportPdf() {
-//   var text = (resultPre.textContent || "").trim() || "No result.";
-//   var jsPDFLib = window.jspdf;
-//   var doc = new jsPDFLib.jsPDF({ unit: "pt", format: "a4" });
-//   var margin = 40;
-//   var pageW = doc.internal.pageSize.getWidth();
-//   var pageH = doc.internal.pageSize.getHeight();
-//   var maxW = pageW - margin * 2;
-//   var lineH = 14;
-
-//   doc.setFont("courier", "normal");
-//   doc.setFontSize(11);
-
-//   var lines = doc.splitTextToSize(text, maxW);
-//   var y = margin;
-
-//   for (var i = 0; i < lines.length; i++) {
-//     if (y > pageH - margin) { doc.addPage(); y = margin; }
-//     doc.text(lines[i], margin, y);
-//     y += lineH;
-//   }
-
-//   doc.save("assessment-result.pdf");
-// }
-function exportPdf() {
+async function exportPdf() {
   const { jsPDF } = window.jspdf;
 
-  window.scrollTo(0, 0);
-  const input = document.getElementById('content-to-export') || document.body;
+  const result = document.getElementById('result');
+  if (!result) {
+    alert('No result to export yet.');
+    return;
+  }
 
-  const elementIdsToHide = ['submit', 'reset', 'download-pdf', 'actions-section','site-footer'];
-  const elementsToHide = elementIdsToHide
-    .map(id => document.getElementById(id))
-    .filter(el => el !== null);
+  // --- 1) Build an off-screen sandbox with a cloned #result ---
+  const sandbox = document.createElement('div');
+  // Acts as the scope for your .export-only CSS rules
+  sandbox.className = 'export-only';
+  // Keep it completely off-screen & invisible (but still renderable)
+  sandbox.style.cssText = [
+    'position:fixed',
+    'left:-200vw',     // far off the viewport
+    'top:0',
+    'width:100vw',
+    'background:#fff',
+    'pointer-events:none',
+    'opacity:0',
+    'z-index:-1',
+  ].join(';');
 
-  elementsToHide.forEach(el => { el.style.display = 'none'; });
-  input.classList.add('pdf-prep-mode');
+  // Deep clone of the result subtree
+  const clone = result.cloneNode(true);
+  sandbox.appendChild(clone);
+  document.body.appendChild(sandbox);
 
-  html2canvas(input, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: true,
-    windowWidth: input.scrollWidth || document.documentElement.offsetWidth
-  }).then((canvas) => {
-    input.classList.remove('pdf-prep-mode');
-    elementsToHide.forEach(el => { el.style.display = ''; });
+  // Helper to let the browser layout/paint the sandbox before capture
+  const waitNextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await waitNextFrame();
 
-    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+  // Inside the sandbox, prefer explicit pages; else capture the whole clone
+  const root = sandbox.querySelector('#result') || sandbox;
+  const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
+  const targets = pageNodes.length ? pageNodes : [root];
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();   // 210 mm
-    const pdfHeight = pdf.internal.pageSize.getHeight(); // 297 mm
+  // --- 2) Setup jsPDF and margin-aware slicer ---
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
 
-    const imgHeight = canvas.height * pdfWidth / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
+  // Margins (mm)
+  const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
 
-    // Helper to add footer on current page
-    const addFooter = (doc, pageNum, totalPages) => {
-      const w = doc.internal.pageSize.getWidth();
-      const h = doc.internal.pageSize.getHeight();
-      const margin = 10; // bottom margin
+  function addCanvasAsPages(canvas, isFirstPage) {
+    const usableW = pdfW - (MARGIN_L + MARGIN_R);
+    const scale   = usableW / canvas.width;
+    const usableH = pdfH - (MARGIN_T + MARGIN_B);
+    const scaledH = canvas.height * scale;
 
-      // muted small style
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(120);
-
-      // thin separator line
-      doc.setDrawColor(200);
-      doc.setLineWidth(0.2);
-      doc.line(20, h - margin - 6, w - 20, h - margin - 6);
-
-      const leftText = '© Albury City · Exempt Development Checker';
-      const rightText = `Page ${pageNum} of ${totalPages}`;
-
-      // left-aligned footer text
-      doc.text(leftText, 10, h - margin);
-
-      // right-aligned page number
-      doc.text(rightText, w - 10, h - margin, { align: 'right' });
-    };
-
-    // First page
-    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-    heightLeft -= pdfHeight;
-
-    // Additional pages
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight; // negative offset
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
+    if (scaledH <= usableH) {
+      if (!isFirstPage) pdf.addPage();
+      pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG',
+                   MARGIN_L, MARGIN_T, usableW, scaledH);
+      return;
     }
 
-    // Stamp footer on every page
+    // Slice tall content in canvas pixels so each slice fits usableH
+    const sliceHpx = Math.floor(usableH / scale);
+    let y = 0, pageIndex = 0;
+
+    while (y < canvas.height) {
+      const h = Math.min(sliceHpx, canvas.height - y);
+
+      const slice = document.createElement('canvas');
+      slice.width = canvas.width;
+      slice.height = h;
+      slice.getContext('2d').drawImage(
+        canvas,
+        0, y, canvas.width, h,
+        0, 0, canvas.width, h
+      );
+
+      if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
+      pdf.addImage(slice.toDataURL('image/jpeg', 1.0), 'JPEG',
+                   MARGIN_L, MARGIN_T, usableW, h * scale);
+
+      y += h;
+      pageIndex++;
+    }
+  }
+
+  try {
+    // --- 3) Render each target in the sandbox without touching the live page ---
+    let first = true;
+    for (const el of targets) {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        // Use the element’s own width to avoid global layout influence
+        windowWidth: el.scrollWidth || document.documentElement.clientWidth
+      });
+      addCanvasAsPages(canvas, first);
+      first = false;
+    }
+
+    // Optional footer
     const total = pdf.getNumberOfPages();
     for (let i = 1; i <= total; i++) {
       pdf.setPage(i);
-      addFooter(pdf, i, total);
+      const w = pdf.internal.pageSize.getWidth();
+      const h = pdf.internal.pageSize.getHeight();
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9);
+      pdf.setTextColor(120);
+      pdf.setDrawColor(200);
+      pdf.setLineWidth(0.2);
+      pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
+      pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
+      pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
     }
 
     pdf.save('assessment-result.pdf');
-  });
+  } catch (err) {
+    console.error(err);
+    alert('Sorry—there was a problem generating the PDF.');
+  } finally {
+    // --- 4) Always remove the sandbox so nothing leaks to the DOM ---
+    sandbox.remove();
+  }
 }
 
 // ======== RESET ========
