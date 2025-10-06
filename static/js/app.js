@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", init);
 
 // ----- DOM -----
 var devSelect, shedFields, patioFields, sensitiveLabel;
-var submitBtn, resetBtn, resultPre, downloadPdfBtn;
+var submitBtn, resetBtn, resultPre, downloadPdfBtn
 
 // ======== INIT ========
 function init() {

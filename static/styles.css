@@ -137,9 +137,9 @@ body{
   background: var(--gray-100);
   border: 1px dashed var(--gray-300);
   border-radius: 12px;
-  padding: 14px;
-  white-space: pre-wrap;
-  min-height: 80px;
+  padding: 12px;
+  white-space: normal;
+  min-height: 0;
 }
 
 /* ====== Buttons ====== */
@@ -207,19 +207,19 @@ p { margin: 0 0 2em; }          /* bottom margin creates the between-paragraph s
 
 /* 3) Letter spacing ≥ 0.12× font size */
 /* 4) Word spacing = 0.16× font size */
-/*body { letter-spacing: 0.12em; word-spacing: 0.16em; }*/
-body {word-spacing: 0.16em; }
+/*body { letter-spacing: 0.12em; word-spacing: 0.05em; }*/
+body {word-spacing: 0.05em; }
 
 /* Make sure common text blocks follow the spacing too */
 p, li, blockquote {
   line-height: 1.5;
-  letter-spacing: 0.12em;
-  word-spacing: 0.16em;
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
 }
 
 /* Headings: ensure ≥ 0.12em (overrides earlier 0.3px on .title) */
 .title, .subtitle, h1, h2, h3, h4, h5, h6 { letter-spacing: 0.01em; }
- 
+#result h1, #result h2, #result h3 { margin-top: 0; }
 
 /* Don’t apply wide spacing to form controls & buttons for usability */
 input, textarea, select, button,
