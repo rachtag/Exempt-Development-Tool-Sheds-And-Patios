@@ -14,7 +14,7 @@ import {
 document.addEventListener("DOMContentLoaded", init);
 
 // ----- DOM -----
-var devSelect, shedFields, patioFields, sensitiveLabel;
+var devSelect, shedFields, patioFields, sensitiveLabel, lotSizeField;
 var submitBtn, resetBtn, resultPre, downloadPdfBtn
 
 // ======== INIT ========
@@ -23,6 +23,8 @@ function init() {
   shedFields = document.getElementById("shed-fields");
   patioFields = document.getElementById("patio-fields");
   sensitiveLabel = document.getElementById("sensitive-area-label");
+  const landSizeInput = document.getElementById("land_size");
+  lotSizeField = landSizeInput ? landSizeInput.closest(".field") : null;
   submitBtn = document.getElementById("submit");
   resetBtn = document.getElementById("reset");
   resultPre = document.getElementById("result");
@@ -38,6 +40,7 @@ function init() {
   hide(shedFields);
   hide(patioFields);
   hide(sensitiveLabel);
+  hide(lotSizeField);
 
   // wire conditional rules once (they re-check themselves on change/input)
   setupMetalReflective(shedFields);
@@ -427,12 +430,14 @@ function applyDevVisibility() {
   hide(shedFields);
   hide(patioFields);
   hide(sensitiveLabel);
+  hide(lotSizeField);
 
   if (devSelect.value === "shed") {
     show(shedFields);
     show(sensitiveLabel);
     recheckAll(shedFields);
   } else if (devSelect.value === "patio") {
+    show(lotSizeField);
     show(patioFields);
     recheckAll(patioFields);
   }
@@ -927,6 +932,7 @@ function resetForm() {
   hide(shedFields);
   hide(patioFields);
   hide(sensitiveLabel);
+  hide(lotSizeField);
 
   // hide conditional fields for both sections
   hideFieldAndClear(shedFields, "#reflective");
