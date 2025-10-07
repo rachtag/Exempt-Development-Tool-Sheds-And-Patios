@@ -165,6 +165,22 @@
             <option>yes</option>
           </select>
         </div>
+
+        <!-- Only used for Patio -->
+        <div class="field">
+          <label class="label" for="land_size">Lot size (m²)
+
+            <img
+              id="lot-size-help"
+              src="{{ url_for('static', filename='img/help-icon.png') }}"
+              alt="Help"
+              title="View NSW Land Parcel Map"
+              class="help-icon-img"
+            />
+          </label>
+          <input type="number" id="land_size" min="0" class="input">
+        </div>        
+
       </div>
     </section>
 
@@ -398,7 +414,7 @@
           <input type="number" id="area" min="0" class="input">
         </div>
 
-        <div class="field">
+        <!--<div class="field">
           <label class="label" for="land_size">Lot size (m²)
 
             <img
@@ -410,7 +426,7 @@
             />
           </label>
           <input type="number" id="land_size" min="0" class="input">
-        </div>
+        </div>-->
 
         <div class="field">
           <label class="label" for="total_structures_area">Existing &amp; planned structures combined area (excludes dwelling) (m²)</label>
