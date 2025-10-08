@@ -514,15 +514,17 @@ async function selectAddress(address) {
 const zoningInput = document.getElementById("zoning");
 if (zoningInput) {
   const validZones = [
-    "R1","R2","R3","R4","R5",
-    "RU1","RU2","RU3","RU4","RU5","RU6",
-    "RE1","RE2",
-    "C2","C3","C4",
-    "SP1","SP2",
-    "IN1","IN2",
-    "B1","B2","B3","B4","B5","B7",
-    "W2"
-  ];
+  "R1", "R2", "R3", "R4", "R5",
+  "RU1", "RU2", "RU3", "RU4", "RU5", "RU6",
+  "E1", "E2", "E3", "E4", "E5",
+  "MU1",
+  "RE1", "RE2",
+  "C1", "C2", "C3", "C4",
+  "SP1", "SP2", "SP3", "SP4", "SP5",
+  "IN1", "IN2",
+  "B1", "B2", "B3", "B4", "B5", "B7",
+  "W1", "W2", "W3", "W4"
+];
 
   // auto-uppercase
   zoningInput.addEventListener("input", (e) => {
@@ -533,7 +535,8 @@ if (zoningInput) {
   zoningInput.addEventListener("blur", (e) => {
     const value = e.target.value.trim().toUpperCase();
     if (value && !validZones.includes(value)) {
-      alert(`Invalid zoning code: ${value}. Please enter one of: ${validZones.join(", ")}`);
+      
+      alert(`Please enter a valid zoning code consistent with the NSW planning scheme, such as R1, R3, RU5.`);
       e.target.value = "";
     }
   });
