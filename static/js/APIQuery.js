@@ -443,8 +443,24 @@ input.addEventListener('input', async () => {
 input.addEventListener('keydown', (event) => {
   const items = resultsDiv.querySelectorAll('.item');
   if (event.key === 'Escape') {       // Hide when Esc pressed
-    resultsDiv.innerHTML = '';
+    // resultsDiv.innerHTML = '';
+    // return;
+    // 1️⃣ If dropdown list is visible → hide it
+    if (resultsDiv.innerHTML.trim() !== '') {
+      resultsDiv.innerHTML = '';
+      return;
+    }
+
+    // 2️⃣ If dropdown is hidden but input has text → clear the address bar
+    if (input.value.trim() !== '') {
+      input.value = '';
+      return;
+    }
+
+    // 3️⃣ If both dropdown and address bar are empty → refresh home page
+    window.location.reload();
     return;
+  
   }
 
   if (!items.length) return;

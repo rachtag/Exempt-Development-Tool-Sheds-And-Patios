@@ -504,8 +504,9 @@ input, textarea, select, button,
   background-color: #1a3f5f;
   border-color: #0c2d48;         
 }
-
-
+#confirm-address {
+  display: none !important;
+}
 
 /* help button image */
 .help-icon-img {
