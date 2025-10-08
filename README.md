@@ -37,7 +37,7 @@ From VS Code:
 - 🔄 **GIS Integration**  
   Supports geolocation and mapping functionality for property-specific assessments and to ensure accuracy of data.
   
-  - 🗂️ **Assessment Logging**  
+- 🗂️ **Assessment Logging**  
   Saves a log of all assessments for council records and auditing purposes.
   
 - 🔒 **Privacy & Security Focused**  
