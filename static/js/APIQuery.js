@@ -338,9 +338,139 @@ export async function queryBoundary(x, y) {
 // ========================== Autocomplete UI ==========================
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById('address');
+
+
+  let lastRefreshTime = 0;
+    // Listen for backspace/delete keyup that results in empty input → refresh page
+  input.addEventListener("keyup", (e) => {
+    const valueNow = input.value.trim();
+
+    // Only trigger on Backspace or Delete keys
+    // if ((e.key === "Backspace" || e.key === "Delete") && valueNow === "") {
+    //   // Brief delay before reload to ensure focus works
+    //   setTimeout(() => {
+    //     window.location.reload();
+    //   }, 10);
+    // }
+    const isTriggerKey = ["Backspace", "Delete", "Escape"].includes(e.key);
+
+    if (!isTriggerKey) return;
+
+    const now = Date.now();
+    const timeSinceLast = now - lastRefreshTime;
+
+    if (valueNow === "" && timeSinceLast > 2000) {
+      lastRefreshTime = now;
+
+      // Delay helps retain focus after reload
+      setTimeout(() => {
+        window.location.reload();
+      }, 10);
+    }
+
+
+
+
+
+
+  });
+
+
+  // Enforce first character is A–Z, a–z or 0–9 (ignore anything else silently)
+  input.addEventListener("keydown", (e) => {
+    const value = input.value;
+
+    // Only check the first character
+    if (value.length === 0) {
+      const isValid = /^[a-zA-Z0-9]$/.test(e.key);
+
+      // Allow control keys (Backspace, Tab, Arrows, Delete)
+      const isControlKey = [
+        "Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"
+      ].includes(e.key);
+
+      if (!isValid && !isControlKey) {
+        e.preventDefault(); // silently ignore the key
+      }
+    }
+  });
+  
+  //
+  input.addEventListener("paste", (e) => {
+    e.preventDefault(); // prevent default paste until we're ready
+
+    const pastedText = (e.clipboardData || window.clipboardData).getData("text");
+
+    if (!pastedText) return;
+
+    // Store content temporarily in sessionStorage
+    sessionStorage.setItem("pendingAddressPaste", pastedText);
+
+    // Refresh the page
+    setTimeout(() => {
+      window.location.reload();
+    }, 10);
+  });
+
+  //  CUT event LISTENER
+  input.addEventListener("cut", (e) => {
+    const currentValue = input.value.trim();
+
+    setTimeout(() => {
+      const afterCut = input.value.trim();
+
+      if (currentValue.length > 0 && afterCut === "") {
+        sessionStorage.setItem("triggeredByCut", "true");
+        window.location.reload();
+      }
+    }, 0);
+  });
+
+
+
+
+
+
+
   const resultsDiv = document.getElementById('results');
   if (!input || !resultsDiv) return; 
   
+  input.focus();
+  
+  const restored = sessionStorage.getItem("pendingAddressPaste");
+  if (restored) {
+    input.value = restored;
+    sessionStorage.removeItem("pendingAddressPaste");
+
+    // Keep cursor at end of pasted input
+    input.setSelectionRange(input.value.length, input.value.length);
+    //  Trigger validation & suggestions
+  fetchAndFilterAddresses(restored).then((suggestions) => {
+    resultsDiv.innerHTML = '';
+
+    suggestions.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.textContent = item.address;
+      div.tabIndex = 0;
+
+      div.onclick = () => selectAddress(item.address);
+      div.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') selectAddress(item.address);
+      });
+
+      resultsDiv.appendChild(div);
+    });
+  }).catch((err) => {
+    console.error("Autocomplete after paste failed:", err);
+  });
+  }
+
+  // Focus if refreshed due to full-cut
+  if (sessionStorage.getItem("triggeredByCut")) {
+    sessionStorage.removeItem("triggeredByCut");
+    input.focus();
+  }
 
 
   // =============== Confirm Button Extra Listener ===============
