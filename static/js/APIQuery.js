@@ -393,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
           address, x, y, zone, heritage, foreshore, bushfireVal, esa, lotSize
         });
       } catch (err) {
-        console.error("Confirm address failed:", err);
+         console.error("Confirm address failed:", err);
         alert("Error confirming address. See console for details.");
       }
     });
