@@ -14,7 +14,7 @@ import {
 document.addEventListener("DOMContentLoaded", init);
 
 // ----- DOM -----
-var devSelect, shedFields, patioFields, sensitiveLabel, lotSizeField;
+var devSelect, shedFields, patioFields, lotSizeField;
 var submitBtn, resetBtn, resultPre, downloadPdfBtn
 
 // ======== INIT ========
@@ -22,7 +22,6 @@ function init() {
   devSelect = document.getElementById("development");
   shedFields = document.getElementById("shed-fields");
   patioFields = document.getElementById("patio-fields");
-  sensitiveLabel = document.getElementById("sensitive-area-label");
   const landSizeInput = document.getElementById("land_size");
   lotSizeField = landSizeInput ? landSizeInput.closest(".field") : null;
   submitBtn = document.getElementById("submit");
@@ -39,8 +38,6 @@ function init() {
   // start hidden
   hide(shedFields);
   hide(patioFields);
-  hide(sensitiveLabel);
-  hide(lotSizeField);
 
   // wire conditional rules once (they re-check themselves on change/input)
   setupMetalReflective(shedFields);
@@ -429,15 +426,11 @@ function setupFasciaEngineerSpec(section) {
 function applyDevVisibility() {
   hide(shedFields);
   hide(patioFields);
-  hide(sensitiveLabel);
-  hide(lotSizeField);
 
   if (devSelect.value === "shed") {
     show(shedFields);
-    show(sensitiveLabel);
     recheckAll(shedFields);
   } else if (devSelect.value === "patio") {
-    show(lotSizeField);
     show(patioFields);
     recheckAll(patioFields);
   }
@@ -518,13 +511,14 @@ function handleSubmit(e) {
     heritage: document.getElementById("heritage").value,
     foreshore: document.getElementById("foreshore").value,
     bushfire: valFrom(document, "#bushfire"),
+    land_size: numFrom(document, "#land_size"),
+    sensitive_area: document.getElementById("sensitive_area").value
 
 
   };
   
   // Shed-only fields
   if (dev === "shed") {
-    payload.sensitive_area = document.getElementById("sensitive_area").value;
     var r = shedFields;
     payload.area = numFrom(r, "#area");
     payload.height = numFrom(r, "#height");
@@ -551,7 +545,6 @@ function handleSubmit(e) {
     var p = patioFields;
     payload.structure_type = valFrom(p, "#structure_type");
     payload.area = numFrom(p, "#area");
-    payload.land_size = numFrom(p, "#land_size");
     payload.total_structures_area = numFrom(p, "#total_structures_area");
     payload.wall_height = valFrom(p, "#wall_height");
     payload.behind_building_line = valFrom(p, "#behind_building_line");
@@ -561,7 +554,6 @@ function handleSubmit(e) {
     payload.floor_height = numFrom(p, "#floor_height");
     payload.roof = valFrom(p, "#roof");
     payload.drainage = valFrom(p, "#drainage");
-    // payload.bushfire = valFrom(p, "#bushfire_patio");
     payload.distance_dwelling = numFrom(p, "#distance_dwelling");
     payload.non_combustible = valFrom(p, "#non_combustible");
 
@@ -931,8 +923,6 @@ function resetForm() {
 
   hide(shedFields);
   hide(patioFields);
-  hide(sensitiveLabel);
-  hide(lotSizeField);
 
   // hide conditional fields for both sections
   hideFieldAndClear(shedFields, "#reflective");
