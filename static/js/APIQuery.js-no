@@ -17,8 +17,7 @@
 // =============== Address Validation & Autocomplete =====================
 // =======================================================================
 //console.log("APIQuery.js loaded ");
-let refreshPermission = false;
-let isQueryRunning = false;
+let activeQueryController = null;
 /**
  * Filters NSW Planning API address results using postcode (last token only).
  * @param {Array} data - Raw address results from NSW Planning API
@@ -91,7 +90,7 @@ export async function fetchAndFilterAddresses(query) {
     const res = await fetch(url);
 
     if (!res.ok) {
-      console.warn(`⚠️ Address API responded ${res.status}: ${res.statusText}`);
+      console.warn(`Address API responded ${res.status}: ${res.statusText}`);
       return [];
     }
 
@@ -99,7 +98,7 @@ export async function fetchAndFilterAddresses(query) {
     try {
       data = await res.json();
     } catch (err) {
-      console.error("⚠️ Failed to parse Address API JSON:", err);
+      console.error("Failed to parse Address API JSON:", err);
       return [];
     }
 
@@ -117,10 +116,11 @@ export async function fetchAndFilterAddresses(query) {
     return unique.slice(0, 5);
   } catch (err) {
     console.error("Fetch and filter failed:", err);
-    // 
+
     return [];
   }
 }
+
 
 
 
@@ -177,10 +177,22 @@ export async function geocodeAddress(address) {
  * @param {boolean} withGeometry - If true, return feature geometry
  * @returns {any|null} Attribute value, true, geometry object, or null
  */
+let activeQueryController = null;
+
 export async function queryLayer(url, x, y, field, withGeometry = false) {
   try {
     if (!url) throw new Error("Layer URL is missing.");
     if (!x || !y) return null;
+
+    //   Abort any ongoing query
+    if (activeQueryController) {
+      activeQueryController.abort();
+      console.log("Aborted previous GIS query.");
+    }
+
+    //   Create new AbortController for this query
+    activeQueryController = new AbortController();
+    const { signal } = activeQueryController;
 
     const params = new URLSearchParams({
       f: "json",
@@ -192,18 +204,24 @@ export async function queryLayer(url, x, y, field, withGeometry = false) {
       returnGeometry: withGeometry ? "true" : "false"
     });
 
-    const res = await fetch(`${url}?${params.toString()}`);
+    //  Clear controller after fetch completes (success or failure)
+    const res = await fetch(`${url}?${params.toString()}`, { signal });
     if (!res.ok) throw new Error(`Layer query failed: ${res.status}`);
 
     const data = await res.json();
     if (data.features?.length) {
-      refreshPermission = true;
       if (withGeometry) return data.features[0].geometry;
       if (field) return data.features[0].attributes[field];
       return true;
     }
     return null;
   } catch (err) {
+    //  Handle abort separately
+    if (err.name === "AbortError") {
+      console.log("GIS query aborted safely.");
+      return null;
+    }
+
     console.error("queryLayer error:", err);
     alert("Error: Failed to query GIS layer.");
     return null;
@@ -353,7 +371,13 @@ document.addEventListener("DOMContentLoaded", () => {
   input.addEventListener("keyup", (e) => {
     const valueNow = input.value.trim();
 
-    
+    // Only trigger on Backspace or Delete keys
+    // if ((e.key === "Backspace" || e.key === "Delete") && valueNow === "") {
+    //   // Brief delay before reload to ensure focus works
+    //   setTimeout(() => {
+    //     window.location.reload();
+    //   }, 10);
+    // }
     const isTriggerKey = ["Backspace", "Delete", "Escape"].includes(e.key);
 
     if (!isTriggerKey) return;
@@ -361,10 +385,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = Date.now();
     const timeSinceLast = now - lastRefreshTime;
 
-    if (valueNow === "" &&refreshPermission) {
-      refreshPermission = false;
-      clearAllFields();
+    if (valueNow === "" && timeSinceLast > 2000) {
+      lastRefreshTime = now;
 
+      // Delay helps retain focus after reload
+      setTimeout(() => {
+        window.location.reload();
+      }, 10);
     }
 
 
@@ -377,82 +404,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Enforce first character is A–Z, a–z or 0–9 (ignore anything else silently)
   input.addEventListener("keydown", (e) => {
-  const cursorAtStart = input.selectionStart === 0;
-  const noTextBefore = input.value.slice(0, input.selectionStart).trim() === "";
+    const value = input.value;
 
-  if (cursorAtStart && noTextBefore) {
-    const isValid = /^[a-zA-Z0-9]$/.test(e.key);
-    const isControlKey = [
-      "Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"
-    ].includes(e.key);
+    // Only check the first character
+    if (value.length === 0) {
+      const isValid = /^[a-zA-Z0-9]$/.test(e.key);
 
-    if (!isValid && !isControlKey) {
-      e.preventDefault();
+      // Allow control keys (Backspace, Tab, Arrows, Delete)
+      const isControlKey = [
+        "Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"
+      ].includes(e.key);
+
+      if (!isValid && !isControlKey) {
+        e.preventDefault(); // silently ignore the key
+      }
     }
-  }
-});
+  });
   
   //
-  // input.addEventListener("paste", (e) => {
-  // const pastedText = (e.clipboardData || window.clipboardData).getData("text").trim();
-  // if (!pastedText) return;
-
-  // const oldValue = input.value.trim();
-
-   
-  // setTimeout(() => {
-  //   const newValue = input.value.trim();
-
-  //   const replacedAll = oldValue.length > 0 && newValue === pastedText;
-  //   if (replacedAll && refreshPermission) {
-  //     refreshPermission = false;
-  //     sessionStorage.setItem("pendingAddressPaste", pastedText);
-
-  //     console.log("Detected full replace paste, reloading...");
-  //     clearAllFields();
-
-  //     }
-  //   }, 50);
-  // });
-
-
   input.addEventListener("paste", (e) => {
-  const pastedText = (e.clipboardData || window.clipboardData).getData("text").trim();
+  e.preventDefault();
+
+  const pastedText = (e.clipboardData || window.clipboardData).getData("text");
   if (!pastedText) return;
 
-  const oldValue = input.value.trim();
-
-  // Delay to allow browser to update input field first
-  setTimeout(() => {
-    const newValue = input.value.trim();
-    const replacedAll = oldValue.length > 0 && newValue === pastedText;
-
-    if (replacedAll && refreshPermission) {
-      refreshPermission = false;
-      console.log("Detected full replace paste, clearing and restoring pasted text...");
-
-      // Temporarily store pasted text for restoration
-      const savedText = pastedText;
-
-      // Clear all fields first (this triggers resetForm)
-      clearAllFields();
-
-      // After clearAllFields finishes, restore the pasted address
-      setTimeout(() => {
-        const addr = document.getElementById("address");
-        if (addr) {
-          addr.value = savedText;
-          addr.focus();
-          // Optionally trigger autocomplete again
-          fetchAndFilterAddresses(savedText);
-        }
-      }, 100);
+  // Abort any ongoing GIS query before reload
+  if (activeQueryController) {
+    try {
+      activeQueryController.abort();
+      console.log("Previous GIS query aborted before refresh.");
+    } catch (err) {
+      console.warn("AbortController already cleared:", err);
     }
+  }
+
+  // Store pasted text in sessionStorage to restore after reload
+  sessionStorage.setItem("pendingAddressPaste", pastedText);
+
+  // Brief delay to ensure focus works after reload
+  setTimeout(() => {
+    window.location.reload();
   }, 50);
 });
-
-
-
 
 
   //  CUT event LISTENER
@@ -464,11 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (currentValue.length > 0 && afterCut === "") {
         sessionStorage.setItem("triggeredByCut", "true");
-        if (refreshPermission) {
-          refreshPermission = false;
-          clearAllFields();
-
-        }
+        window.location.reload();
       }
     }, 0);
   });
@@ -483,10 +472,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!input || !resultsDiv) return; 
   
   input.focus();
-
-
   
-    // ================== Restore pasted address after refresh ==================
   const restored = sessionStorage.getItem("pendingAddressPaste");
   if (restored) {
     input.value = restored;
@@ -494,27 +480,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Keep cursor at end of pasted input
     input.setSelectionRange(input.value.length, input.value.length);
+    //  Trigger validation & suggestions
+  fetchAndFilterAddresses(restored).then((suggestions) => {
+    resultsDiv.innerHTML = '';
 
-    // Trigger validation & suggestions
-    fetchAndFilterAddresses(restored).then((suggestions) => {
-      resultsDiv.innerHTML = '';
+    suggestions.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.textContent = item.address;
+      div.tabIndex = 0;
 
-      suggestions.forEach((item) => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.textContent = item.address;
-        div.tabIndex = 0;
-
-        div.onclick = () => selectAddress(item.address);
-        div.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') selectAddress(item.address);
-        });
-
-        resultsDiv.appendChild(div);
+      div.onclick = () => selectAddress(item.address);
+      div.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') selectAddress(item.address);
       });
-    }).catch((err) => {
-      console.error("Autocomplete after paste failed:", err);
+
+      resultsDiv.appendChild(div);
     });
+  }).catch((err) => {
+    console.error("Autocomplete after paste failed:", err);
+  });
+  }
+
+  // Focus if refreshed due to full-cut
+  if (sessionStorage.getItem("triggeredByCut")) {
+    sessionStorage.removeItem("triggeredByCut");
+    input.focus();
   }
 
 
@@ -530,15 +521,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      //  allow only one query at a time
-      if (isQueryRunning) {
-        alert("Please wait until the current address lookup completes.");
-        return;
-      }
-      isQueryRunning = true;
-      refreshPermission = false;
-
       try {
+        // Directly jump to geocoding (skip validateAddressList & fetchAndFilterAddresses)
         const coords = await geocodeAddress(address);
         if (!coords) {
           alert("Geocoding failed. Please check the address.");
@@ -548,40 +532,35 @@ document.addEventListener("DOMContentLoaded", () => {
         const { x, y } = coords;
         window.latestCoords = { x, y };
 
-        // all GIS queries in parallel
-        const [boundary, zone, heritage, foreshore, bushfireVal, esa] = await Promise.all([
-          queryBoundary(x, y),
-          queryZoneCode(x, y),
-          queryHeritage(x, y),
-          queryForeshore(x, y),
-          queryBushfire(x, y),
-          queryBiodiversity(x, y)
-        ]);
-
-        // Extract relevant values
+        // --- Perform GIS queries ---
+        const boundary = await queryBoundary(x, y);
         const lotSize = boundary?.lotSize || "";
-        const heritageVal = (heritage || "no").toLowerCase();
-        const foreshoreVal = (foreshore || "no").toLowerCase();
-        const bushfireLower = (bushfireVal || "no").toLowerCase();
-        const esaVal = (esa || "no").toLowerCase();
+        const zone = await queryZoneCode(x, y) || "";
+        const heritage = (await queryHeritage(x, y) || "no").toLowerCase();
+        const foreshore = (await queryForeshore(x, y) || "no").toLowerCase();
+        const bushfireVal = (await queryBushfire(x, y) || "no").toLowerCase();
+        const esa = (await queryBiodiversity(x, y) || "no").toLowerCase();
 
-        // 
-        refreshPermission = true;
+        // --- Populate fields (same as original workflow) ---
+        const zoningEl = document.getElementById("zoning");
+        if (zoningEl) zoningEl.value = zone;
+        const heritageEl = document.getElementById("heritage");
+        if (heritageEl) heritageEl.value = heritage;
+        const foreshoreEl = document.getElementById("foreshore");
+        if (foreshoreEl) foreshoreEl.value = foreshore;
+        const bushfire = document.getElementById("bushfire");
+        if (bushfire) bushfire.value = bushfireVal;
+        const esaEl = document.getElementById("sensitive_area");
+        if (esaEl) esaEl.value = esa;
+        const landSizeEl = document.getElementById("land_size");
+        if (landSizeEl) landSizeEl.value = lotSize;
 
-        // --- Populate fields ---
-        document.getElementById("zoning").value = zone || "";
-        document.getElementById("heritage").value = heritageVal;
-        document.getElementById("foreshore").value = foreshoreVal;
-        document.getElementById("bushfire").value = bushfireLower;
-        document.getElementById("sensitive_area").value = esaVal;
-        document.getElementById("land_size").value = lotSize;
-
-        console.log(" Confirm completed successfully:", { address, x, y, zone, heritageVal, foreshoreVal, bushfireLower, esaVal, lotSize });
+        console.log("Confirm button completed successfully:", {
+          address, x, y, zone, heritage, foreshore, bushfireVal, esa, lotSize
+        });
       } catch (err) {
-        console.error("Confirm address failed:", err);
+         console.error("Confirm address failed:", err);
         alert("Error confirming address. See console for details.");
-      } finally {
-        isQueryRunning = false;
       }
     });
   }
@@ -595,66 +574,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let selectedIndex = -1; // define globally once
 
-// input.addEventListener('input', async () => {
-//   const query = input.value.trim();
-//   resultsDiv.innerHTML = '';
-//   if (query.length < 3) return;
-
-//   try {
-//     const suggestions = await fetchAndFilterAddresses(query);
-//     // Clear existing list before showing new
-//     resultsDiv.innerHTML = '';
-
-//     suggestions.forEach((item) => {
-//       const div = document.createElement('div');
-//       div.className = 'item';
-//       div.textContent = item.address;
-//       div.tabIndex = 0;
-
-//       // Mouse click
-//       div.onclick = () => selectAddress(item.address);
-
-//       // Keyboard Enter while focus on suggestion
-//       div.addEventListener('keydown', (e) => {
-//         if (e.key === 'Enter') selectAddress(item.address);
-//       });
-
-//       resultsDiv.appendChild(div);
-//     });
-//   } catch (err) {
-//     console.error("Autocomplete fetch failed:", err);
-//   }
-// });
-
-
-let lastRenderedList = [];
-
-// --- Input listener for address autocomplete ---
 input.addEventListener('input', async () => {
   const query = input.value.trim();
-  if (query.length < 3) {
-    resultsDiv.innerHTML = '';
-    lastRenderedList = [];
-    return;
-  }
+  resultsDiv.innerHTML = '';
+  if (query.length < 3) return;
 
   try {
     const suggestions = await fetchAndFilterAddresses(query);
+    // Clear existing list before showing new
+    resultsDiv.innerHTML = '';
 
-    // Compare current list with last rendered one
-    const newList = suggestions.map(s => s.address);
-    const isSame =
-      newList.length === lastRenderedList.length &&
-      newList.every((v, i) => v === lastRenderedList[i]);
-
-    if (isSame) return; // skip unnecessary redraws
-
-    // Update the cache
-    lastRenderedList = newList;
-
-    // Use a document fragment to minimize reflow/repaint
-    const frag = document.createDocumentFragment();
-    for (const item of suggestions) {
+    suggestions.forEach((item) => {
       const div = document.createElement('div');
       div.className = 'item';
       div.textContent = item.address;
@@ -663,23 +593,15 @@ input.addEventListener('input', async () => {
       // Mouse click
       div.onclick = () => selectAddress(item.address);
 
-      // Keyboard Enter on focused suggestion
-      div.addEventListener('keydown', e => {
+      // Keyboard Enter while focus on suggestion
+      div.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') selectAddress(item.address);
       });
 
-      frag.appendChild(div);
-    }
-
-    // Replace old list only once
-    // resultsDiv.innerHTML = '';
-    // resultsDiv.appendChild(frag);
-    window.requestAnimationFrame(() => {
-      resultsDiv.innerHTML = '';
-      resultsDiv.appendChild(frag);
+      resultsDiv.appendChild(div);
     });
   } catch (err) {
-    console.error('Autocomplete fetch failed:', err);
+    console.error("Autocomplete fetch failed:", err);
   }
 });
 
@@ -689,24 +611,20 @@ input.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {       // Hide when Esc pressed
     // resultsDiv.innerHTML = '';
     // return;
-    //  If dropdown list is visible → hide it
+    // 1️⃣ If dropdown list is visible → hide it
     if (resultsDiv.innerHTML.trim() !== '') {
       resultsDiv.innerHTML = '';
       return;
     }
 
-    //  If dropdown is hidden but input has text → clear the address bar
+    // 2️⃣ If dropdown is hidden but input has text → clear the address bar
     if (input.value.trim() !== '') {
       input.value = '';
       return;
     }
 
-    // If both dropdown and address bar are empty → refresh home page
-    if (refreshPermission) {
-        refreshPermission = false;
-        clearAllFields();
-
-      }
+    // 3️⃣ If both dropdown and address bar are empty → refresh home page
+    window.location.reload();
     return;
   
   }
@@ -750,51 +668,28 @@ function updateSelection(items, index) {
 }
 
 async function selectAddress(address) {
-  if (isQueryRunning) {
-    alert("Please wait until the current lookup completes.");
-    return;
-  }
-  isQueryRunning = true;
-  refreshPermission = false;
+  input.value = address;
+  resultsDiv.innerHTML = '';
+  const coords = await geocodeAddress(address);
+  if (!coords) return;
 
-  try {
-    input.value = address;
-    resultsDiv.innerHTML = '';
-    const coords = await geocodeAddress(address);
-    if (!coords) return;
+  const { x, y } = coords;
+  window.latestCoords = { x, y };
 
-    const { x, y } = coords;
-    window.latestCoords = { x, y };
+  const boundary = await queryBoundary(x, y);
+  const lotSize = boundary?.lotSize || "";
+  const zone = await queryZoneCode(x, y) || "";
+  const heritage = (await queryHeritage(x, y) || "no").toLowerCase();
+  const foreshore = (await queryForeshore(x, y) || "no").toLowerCase();
+  const bushfireVal = (await queryBushfire(x, y) || "no").toLowerCase();
+  const esa = (await queryBiodiversity(x, y) || "no").toLowerCase();
 
-    // 
-    const [boundary, zone, heritage, foreshore, bushfireVal, esa] = await Promise.all([
-      queryBoundary(x, y),
-      queryZoneCode(x, y),
-      queryHeritage(x, y),
-      queryForeshore(x, y),
-      queryBushfire(x, y),
-      queryBiodiversity(x, y)
-    ]);
-
-    const lotSize = boundary?.lotSize || "";
-    const heritageVal = (heritage || "no").toLowerCase();
-    const foreshoreVal = (foreshore || "no").toLowerCase();
-    const bushfireLower = (bushfireVal || "no").toLowerCase();
-    const esaVal = (esa || "no").toLowerCase();
-
-    refreshPermission = true; // 
-
-    document.getElementById("zoning").value = zone || "";
-    document.getElementById("heritage").value = heritageVal;
-    document.getElementById("foreshore").value = foreshoreVal;
-    document.getElementById("bushfire").value = bushfireLower;
-    document.getElementById("sensitive_area").value = esaVal;
-    document.getElementById("land_size").value = lotSize;
-  } catch (err) {
-    console.error("selectAddress failed:", err);
-  } finally {
-    isQueryRunning = false; //
-  }
+  document.getElementById("zoning").value = zone;
+  document.getElementById("heritage").value = heritage;
+  document.getElementById("foreshore").value = foreshore;
+  document.getElementById("bushfire").value = bushfireVal;
+  document.getElementById("sensitive_area").value = esa;
+  document.getElementById("land_size").value = lotSize;
 }
 
 // zoning input listener - auto-uppercase and validate
@@ -855,47 +750,7 @@ function setupHelpIcon(iconId, mapUrl, mapName, zoomLevel = 19) {
   });
 }
 
-/**
- * Clears all input fields, cached data, and global variables,
- * and safely triggers the "New Assessment" button click to restore UI state.
- * This ensures a consistent reset behavior between manual and automatic resets.
- */
-function clearAllFields() {
-  console.log("Executing clearAllFields: triggering New Assessment reset");
 
-  // Trigger the same logic as clicking the "New Assessment" button (id="reset")
-  const newAssessmentBtn = document.getElementById("reset");
-  if (newAssessmentBtn) {
-    newAssessmentBtn.click(); // Calls resetForm() indirectly from app.js
-  } else {
-    console.warn("Reset button not found; UI reset skipped.");
-  }
-
-  // Clear all temporary and global states
-  sessionStorage.removeItem("pendingAddressPaste");
-  sessionStorage.removeItem("triggeredByCut");
-  window.latestCoords = null;
-  refreshPermission = false;
-  isQueryRunning = false;
-
-  // Clear output and result containers
-  const resultsDiv = document.getElementById("results");
-  if (resultsDiv) resultsDiv.innerHTML = "";
-  const resultPre = document.getElementById("result");
-  if (resultPre) resultPre.innerHTML = "";
-
-  // Smoothly scroll back to top for better user experience
-  window.scrollTo({ top: 0, behavior: "smooth" });
-
-  // Delay refocus to ensure UI reset has finished rendering
-  setTimeout(() => {
-    const addr = document.getElementById("address");
-    if (addr) addr.focus();
-  }, 50);
-}
-
-// Expose to global scope for reuse and debugging from console or other scripts
-window.clearAllFields = clearAllFields;
 
 
 // ====== GENERIC MAP HELP ICON SETUP ======
