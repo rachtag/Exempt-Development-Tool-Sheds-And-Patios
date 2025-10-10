@@ -589,42 +589,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-
-
-
-
-  let selectedIndex = -1; // define globally once
-
-// input.addEventListener('input', async () => {
-//   const query = input.value.trim();
-//   resultsDiv.innerHTML = '';
-//   if (query.length < 3) return;
-
-//   try {
-//     const suggestions = await fetchAndFilterAddresses(query);
-//     // Clear existing list before showing new
-//     resultsDiv.innerHTML = '';
-
-//     suggestions.forEach((item) => {
-//       const div = document.createElement('div');
-//       div.className = 'item';
-//       div.textContent = item.address;
-//       div.tabIndex = 0;
-
-//       // Mouse click
-//       div.onclick = () => selectAddress(item.address);
-
-//       // Keyboard Enter while focus on suggestion
-//       div.addEventListener('keydown', (e) => {
-//         if (e.key === 'Enter') selectAddress(item.address);
-//       });
-
-//       resultsDiv.appendChild(div);
-//     });
-//   } catch (err) {
-//     console.error("Autocomplete fetch failed:", err);
-//   }
-// });
+let selectedIndex = -1; // define globally once
 
 
 let lastRenderedList = [];
