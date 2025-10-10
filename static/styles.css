@@ -527,28 +527,30 @@ input, textarea, select, button,
   opacity: 1;
 }
 
-/* .autocomplete-results .item.selected {
-  background-color: #f0f0f0;
-  color: #000;
-} */
-
-
-/* Hover effect (mouse move) */
-.autocomplete-results .item:hover {
-  background-color: #0A64FF; 
-  color: #e3f2fd;
+/* ===== Autocomplete results  ==== */
+.autocomplete-results {
+  border: 1px solid #cfd6dc;    
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);  
 }
 
 /*Keyboard selection (Arrow + Enter) */
+.autocomplete-results .item:hover,
 .autocomplete-results .item.selected {
-  background-color: #0A64FF; 
-  color: #e3f2fd; 
+  background-color: #1A73E8;   
+  color: #FFFFFF;            
+  transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out;
 } 
+.autocomplete-results .item {
+  border-radius: 4px;
+  padding: 6px 10px;
+}
 
 /* Smooth transition for focus/hover movement */
 .autocomplete-results .item:hover,
 .autocomplete-results .item.selected {
-  transition: background-color 0.7s ease-in-out;
+  transition: background-color 0.3s ease-in-out;
 }
 
 
