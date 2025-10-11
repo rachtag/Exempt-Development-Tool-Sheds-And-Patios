@@ -91,7 +91,7 @@ export async function fetchAndFilterAddresses(query) {
     const res = await fetch(url);
 
     if (!res.ok) {
-      console.warn(`⚠️ Address API responded ${res.status}: ${res.statusText}`);
+      console.warn(`Address API responded ${res.status}: ${res.statusText}`);
       return [];
     }
 
@@ -99,7 +99,7 @@ export async function fetchAndFilterAddresses(query) {
     try {
       data = await res.json();
     } catch (err) {
-      console.error("⚠️ Failed to parse Address API JSON:", err);
+      console.error(" Failed to parse Address API JSON:", err);
       return [];
     }
 
@@ -375,8 +375,29 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  // Enforce first character is A–Z, a–z or 0–9 (ignore anything else silently)
-  input.addEventListener("keydown", (e) => {
+ 
+   // ================== Address field keydown logic ==================
+input.addEventListener("keydown", (e) => {
+  const value = input.value;
+
+  // --- Detect if the entire text is selected ---
+  const hasSelection = input.selectionStart < input.selectionEnd;
+  const fullSelection = hasSelection &&
+                        input.selectionStart === 0 &&
+                        input.selectionEnd === value.length;
+
+  // --- Detect printable (normal) character keys only ---
+  const isPrintableKey = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+
+  // Only trigger clearAllFields() if the entire content is selected and user types a new printable character
+  if (fullSelection && isPrintableKey && refreshPermission) {
+    console.log("Full address selected and overwritten → clearing all fields...");
+    refreshPermission = false;
+    clearAllFields();
+    return; // stop further checks in this event
+  }
+
+  // --- Enforce first character rule (must be A–Z, a–z or 0–9) ---
   const cursorAtStart = input.selectionStart === 0;
   const noTextBefore = input.value.slice(0, input.selectionStart).trim() === "";
 
@@ -387,35 +408,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ].includes(e.key);
 
     if (!isValid && !isControlKey) {
-      e.preventDefault();
+      e.preventDefault(); // silently ignore invalid first character
     }
   }
 });
-  
-  //
-  // input.addEventListener("paste", (e) => {
-  // const pastedText = (e.clipboardData || window.clipboardData).getData("text").trim();
-  // if (!pastedText) return;
 
-  // const oldValue = input.value.trim();
-
-   
-  // setTimeout(() => {
-  //   const newValue = input.value.trim();
-
-  //   const replacedAll = oldValue.length > 0 && newValue === pastedText;
-  //   if (replacedAll && refreshPermission) {
-  //     refreshPermission = false;
-  //     sessionStorage.setItem("pendingAddressPaste", pastedText);
-
-  //     console.log("Detected full replace paste, reloading...");
-  //     clearAllFields();
-
-  //     }
-  //   }, 50);
-  // });
-
-
+ // ================== PASTE event LISTENER ==================
   input.addEventListener("paste", (e) => {
   const pastedText = (e.clipboardData || window.clipboardData).getData("text").trim();
   if (!pastedText) return;
@@ -594,8 +592,14 @@ let selectedIndex = -1; // define globally once
 
 let lastRenderedList = [];
 
-// --- Input listener for address autocomplete ---
-input.addEventListener('input', async () => {
+
+// --- Input listener for address autocomplete (with debounce + version lock) ---
+let debounceTimer;
+let lastQueryId = 0;
+
+input.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
   const query = input.value.trim();
   if (query.length < 3) {
     resultsDiv.innerHTML = '';
@@ -603,8 +607,18 @@ input.addEventListener('input', async () => {
     return;
   }
 
+  // Increment query ID for version locking
+  const currentQueryId = ++lastQueryId;
+
   try {
     const suggestions = await fetchAndFilterAddresses(query);
+
+   
+    if (currentQueryId !== lastQueryId) {
+        console.log("Ignored outdated autocomplete result:", query);
+        return;
+    }
+
 
     // Compare current list with last rendered one
     const newList = suggestions.map(s => s.address);
@@ -636,16 +650,19 @@ input.addEventListener('input', async () => {
       frag.appendChild(div);
     }
 
-    // Replace old list only once
-    // resultsDiv.innerHTML = '';
+    
     // resultsDiv.appendChild(frag);
     window.requestAnimationFrame(() => {
       resultsDiv.innerHTML = '';
       resultsDiv.appendChild(frag);
+      selectedIndex = -1; 
     });
+
   } catch (err) {
     console.error('Autocomplete fetch failed:', err);
   }
+}, 200);
+
 });
 
 // Keyboard navigation (Up/Down/Enter)
@@ -848,6 +865,10 @@ function clearAllFields() {
   if (resultsDiv) resultsDiv.innerHTML = "";
   const resultPre = document.getElementById("result");
   if (resultPre) resultPre.innerHTML = "";
+
+
+
+
 
   // Smoothly scroll back to top for better user experience
   window.scrollTo({ top: 0, behavior: "smooth" });
