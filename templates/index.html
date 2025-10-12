@@ -74,10 +74,14 @@
               alt="Help"
               title="View Land Zoning map"
               class="help-icon-img"
+              aria-describedby="land-zoning-help-text"
             />
 
           </label>
 
+          <span id="land-zoning-help-text" class="visually-hidden">
+            Opens an External map showing the Zoning Classification for this Land.
+          </span>
 
           <input
             type="text"
@@ -99,8 +103,12 @@
                 alt="Help"
                 title="View Heritage Map"
                 class="help-icon-img"
+                aria-describedby="heritage-help-text"
               />
           </label>
+          <span id="heritage-help-text" class="visually-hidden">
+            Opens an External map showing the Heritage Classification for this Land.
+          </span>
           <select id="heritage" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -126,9 +134,13 @@
               alt="Help"
               title="View Bushfire Prone Land Map"
               class="help-icon-img"
+              aria-describedby="bushfire-help-text"
              />
 
           </label>
+          <span id="bushfire-help-text" class="visually-hidden">
+            Opens an External map showing the Bushfire Prone Land Classification for this Land.
+          </span>
           <select id="bushfire" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -143,11 +155,14 @@
               id="sensitive-area-help"
               src="{{ url_for('static', filename='img/help-icon.png') }}"
               alt="Help"
-              title="View Excluded Zones for Exempt Development map"
+              title="View Excluded Environmentally SensitiveZones for Exempt Development map"
               class="help-icon-img"
+              aria-describedby="environmentally-sensitive-help-text"
             />
-
           </label>
+          <span id="environmentally-sensitive-help-text" class="visually-hidden">
+            Opens an External map showing the Environmentally Sensitive Area Classification for this Land.
+          </span>
           <select id="sensitive_area" class="select">
             <option value="">-- Select --</option>
             <option>no</option>
@@ -164,8 +179,12 @@
               alt="Help"
               title="View NSW Land Parcel Map"
               class="help-icon-img"
+              aria-describedby="lot-size-help-text"
             />
           </label>
+          <span id="land-zoning-help-text" class="visually-hidden">
+            Opens an External map showing the Lot Size for this Land.
+          </span>
           <input type="number" id="land_size" min="0" class="input">
         </div>        
 
