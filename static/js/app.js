@@ -648,6 +648,12 @@ function handleSubmit(e) {
 
               <!-- PDF PAGE 2 (summary) -->
               <section class="pdf-page" id="pdf-page-2">
+                <div class="pdf-banner">
+                  <h1>Exempt Development Assessment</h1>
+                  <p class="subtitle">Sheds &amp; Patios — Albury City</p>
+                  <p class="lead">Check if a shed or patio qualifies as exempt development and can be built without council approval.</p>
+                </div>              
+              
                 <div class="pdf-body">
                   <h2 class="report-title">Assessment Summary</h2>
                   ${answersHtml}
@@ -787,6 +793,312 @@ async function waitForRender(container) {
 }
 
 // function exportPdf() {
+// async function exportPdf() {
+//   const { jsPDF } = window.jspdf;
+
+//   const result = document.getElementById('result');
+//   if (!result) {
+//     alert('No result to export yet.');
+//     return;
+//   }
+
+//   // --- 1) Build an off-screen sandbox with a cloned #result ---
+//   const sandbox = document.createElement('div');
+//   // Acts as the scope for your .export-only CSS rules
+//   sandbox.className = 'export-only';
+//   // Keep it completely off-screen & invisible (but still renderable)
+//   sandbox.style.cssText = [
+//     'position:fixed',
+//     'left:-200vw',     // far off the viewport
+//     'top:0',
+//     'width:100vw',
+//     'background:#fff',
+//     'pointer-events:none',
+//     'opacity:0',
+//     'z-index:-1',
+//   ].join(';');
+
+//   // Deep clone of the result subtree
+//   const clone = result.cloneNode(true);
+//   sandbox.appendChild(clone);
+//   document.body.appendChild(sandbox);
+
+//   // Helper to let the browser layout/paint the sandbox before capture
+//   const waitNextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+//   await waitNextFrame();
+
+//   // Inside the sandbox, prefer explicit pages; else capture the whole clone
+//   const root = sandbox.querySelector('#result') || sandbox;
+//   const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
+//   const targets = pageNodes.length ? pageNodes : [root];
+
+//   // --- 2) Setup jsPDF and margin-aware slicer ---
+//   const pdf = new jsPDF('p', 'mm', 'a4');
+//   const pdfW = pdf.internal.pageSize.getWidth();
+//   const pdfH = pdf.internal.pageSize.getHeight();
+
+//   // Margins (mm)
+//   const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
+
+//   function addCanvasAsPages(canvas, isFirstPage) {
+//     const usableW = pdfW - (MARGIN_L + MARGIN_R);
+//     const scale   = usableW / canvas.width;
+//     const usableH = pdfH - (MARGIN_T + MARGIN_B);
+//     const scaledH = canvas.height * scale;
+
+//     if (scaledH <= usableH) {
+//       if (!isFirstPage) pdf.addPage();
+//       pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG',
+//                    MARGIN_L, MARGIN_T, usableW, scaledH);
+//       return;
+//     }
+
+//     // Slice tall content in canvas pixels so each slice fits usableH
+//     const sliceHpx = Math.floor(usableH / scale);
+//     let y = 0, pageIndex = 0;
+
+//     while (y < canvas.height) {
+//       const h = Math.min(sliceHpx, canvas.height - y);
+
+//       const slice = document.createElement('canvas');
+//       slice.width = canvas.width;
+//       slice.height = h;
+//       slice.getContext('2d').drawImage(
+//         canvas,
+//         0, y, canvas.width, h,
+//         0, 0, canvas.width, h
+//       );
+
+//       if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
+//       pdf.addImage(slice.toDataURL('image/jpeg', 1.0), 'JPEG',
+//                    MARGIN_L, MARGIN_T, usableW, h * scale);
+
+//       y += h;
+//       pageIndex++;
+//     }
+//   }
+
+//   try {
+//     // --- 3) Render each target in the sandbox without touching the live page ---
+//     let first = true;
+//     for (const el of targets) {
+//       const canvas = await html2canvas(el, {
+//         scale: 2,
+//         useCORS: true,
+//         allowTaint: true,
+//         // Use the element’s own width to avoid global layout influence
+//         windowWidth: el.scrollWidth || document.documentElement.clientWidth
+//       });
+//       addCanvasAsPages(canvas, first);
+//       first = false;
+//     }
+
+//     // Optional footer
+//     const total = pdf.getNumberOfPages();
+//     for (let i = 1; i <= total; i++) {
+//       pdf.setPage(i);
+//       const w = pdf.internal.pageSize.getWidth();
+//       const h = pdf.internal.pageSize.getHeight();
+//       pdf.setFont('helvetica', 'normal');
+//       pdf.setFontSize(9);
+//       pdf.setTextColor(120);
+//       pdf.setDrawColor(200);
+//       pdf.setLineWidth(0.2);
+//       pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
+//       pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
+//       pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
+//     }
+
+//     pdf.save('assessment-result.pdf');
+//   } catch (err) {
+//     console.error(err);
+//     alert('Sorry—there was a problem generating the PDF.');
+//   } finally {
+//     // --- 4) Always remove the sandbox so nothing leaks to the DOM ---
+//     sandbox.remove();
+//   }
+// }
+// async function exportPdf() {
+//   const { jsPDF } = window.jspdf;
+
+//   const result = document.getElementById('result');
+//   if (!result) {
+//     alert('No result to export yet.');
+//     return;
+//   }
+
+//   // Ensure web fonts are loaded so text snapshots use the right font
+//   if (document.fonts && document.fonts.ready) {
+//     try { await document.fonts.ready; } catch {}
+//   }
+
+//   // --- 1) Build an off-screen sandbox with a cloned #result ---
+//   const sandbox = document.createElement('div');
+//   sandbox.className = 'export-only';
+//   sandbox.style.cssText = [
+//     'position:fixed',
+//     'left:-200vw',
+//     'top:0',
+//     `width:${result.scrollWidth || result.clientWidth || window.innerWidth}px`,
+//     'background:#fff',
+//     'pointer-events:none',
+//     'opacity:0',
+//     'z-index:-1',
+//   ].join(';');
+
+//   const clone = result.cloneNode(true);
+//   sandbox.appendChild(clone);
+//   document.body.appendChild(sandbox);
+
+//   // Let the browser layout/paint before capture
+//   const waitNextFrame = () =>
+//     new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+//   await waitNextFrame();
+
+//   // Prefer explicit pages; else capture the whole clone
+//   const root = sandbox.querySelector('#result') || sandbox;
+//   const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
+//   const targets = pageNodes.length ? pageNodes : [root];
+
+//   // --- 2) Setup jsPDF and slicer ---
+//   const pdf = new jsPDF('p', 'mm', 'a4');
+//   const pdfW = pdf.internal.pageSize.getWidth();
+//   const pdfH = pdf.internal.pageSize.getHeight();
+
+//   // Margins (mm)
+//   const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
+
+//   // Collect link rects relative to an element (CSS px), then scale to canvas px
+//   function collectLinkRects(el, renderScale) {
+//     const base = el.getBoundingClientRect();
+//     // Only real, navigable URLs (ignore #anchors)
+//     const anchors = Array.from(el.querySelectorAll('a[href]'))
+//       .filter(a => {
+//         const href = a.getAttribute('href') || '';
+//         return href && !href.startsWith('#');
+//       });
+//     return anchors.map(a => {
+//       const r = a.getBoundingClientRect();
+//       return {
+//         href: a.href, // absolute URL
+//         x: (r.left - base.left) * renderScale,
+//         y: (r.top  - base.top ) * renderScale,
+//         w: Math.max(1, r.width  * renderScale),
+//         h: Math.max(1, r.height * renderScale),
+//       };
+//     });
+//   }
+
+//   // Add a rendered canvas as one or multiple PDF pages; overlay link hotspots
+//   function addCanvasAsPages(canvas, isFirstPage, linkRects) {
+//     const usableW = pdfW - (MARGIN_L + MARGIN_R);     // mm
+//     const usableH = pdfH - (MARGIN_T + MARGIN_B);     // mm
+//     const pxToMm = usableW / canvas.width;            // mm per canvas px
+//     const scaledH = canvas.height * pxToMm;           // mm
+
+//     // Single-page case
+//     if (scaledH <= usableH) {
+//       if (!isFirstPage) pdf.addPage();
+//       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG',
+//                    MARGIN_L, MARGIN_T, usableW, scaledH);
+
+//       // Overlay all links
+//       for (const L of linkRects) {
+//         const xmm = MARGIN_L + L.x * pxToMm;
+//         const ymm = MARGIN_T + L.y * pxToMm;
+//         const wmm = L.w * pxToMm;
+//         const hmm = Math.max(0.5, L.h * pxToMm); // keep a minimum clickable height
+//         pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
+//       }
+//       return;
+//     }
+
+//     // Multi-page slicing: slice the big canvas in bitmap space,
+//     // then map only the links that intersect each slice.
+//     const sliceHpx = Math.floor(usableH / pxToMm); // px per page slice
+//     let y = 0, pageIndex = 0;
+
+//     while (y < canvas.height) {
+//       const h = Math.min(sliceHpx, canvas.height - y);
+
+//       const slice = document.createElement('canvas');
+//       slice.width = canvas.width;
+//       slice.height = h;
+//       const g = slice.getContext('2d');
+//       g.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+
+//       if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
+//       pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG',
+//                    MARGIN_L, MARGIN_T, usableW, h * pxToMm);
+
+//       // Overlay links that intersect this slice
+//       const sliceBottom = y + h;
+//       for (const L of linkRects) {
+//         const Lbottom = L.y + L.h;
+//         if (Lbottom <= y || L.y >= sliceBottom) continue; // no overlap
+
+//         const inSliceY = Math.max(0, L.y - y);
+//         const cropH = Math.min(L.h, sliceBottom - L.y);
+
+//         const xmm = MARGIN_L + L.x * pxToMm;
+//         const ymm = MARGIN_T + inSliceY * pxToMm;
+//         const wmm = L.w * pxToMm;
+//         const hmm = Math.max(0.5, cropH * pxToMm);
+//         pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
+//       }
+
+//       y += h;
+//       pageIndex++;
+//     }
+//   }
+
+//   try {
+//     // --- 3) Render each target and assemble the PDF ---
+//     let first = true;
+//     for (const el of targets) {
+//       const renderScale = Math.min(2, window.devicePixelRatio || 1.5);
+//       const canvas = await html2canvas(el, {
+//         scale: renderScale,
+//         useCORS: true,          // requires images served with CORS headers
+//         allowTaint: false,      // safer: prevents tainted canvas breaking toDataURL
+//         backgroundColor: '#ffffff',
+//         // Use the element’s width to avoid global layout influence
+//         windowWidth: el.scrollWidth || document.documentElement.clientWidth
+//       });
+
+//       const linkRects = collectLinkRects(el, renderScale);
+//       addCanvasAsPages(canvas, first, linkRects);
+//       first = false;
+//     }
+
+//     // --- 4) Optional footer on each page ---
+//     const total = pdf.getNumberOfPages();
+//     for (let i = 1; i <= total; i++) {
+//       pdf.setPage(i);
+//       const w = pdf.internal.pageSize.getWidth();
+//       const h = pdf.internal.pageSize.getHeight();
+//       pdf.setFont('helvetica', 'normal');
+//       pdf.setFontSize(9);
+//       pdf.setTextColor(120);
+//       pdf.setDrawColor(200);
+//       pdf.setLineWidth(0.2);
+//       // Horizontal rule
+//       pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
+//       // Left footer text
+//       pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
+//       // Right page numbers
+//       pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
+//     }
+
+//     pdf.save('assessment-result.pdf');
+//   } catch (err) {
+//     console.error(err);
+//     alert('Sorry—there was a problem generating the PDF.');
+//   } finally {
+//     // Always remove the sandbox so nothing leaks to the DOM
+//     sandbox.remove();
+//   }
+// }
 async function exportPdf() {
   const { jsPDF } = window.jspdf;
 
@@ -796,37 +1108,54 @@ async function exportPdf() {
     return;
   }
 
+  // Ensure web fonts are loaded so text snapshots use the right font
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch {}
+  }
+
   // --- 1) Build an off-screen sandbox with a cloned #result ---
   const sandbox = document.createElement('div');
-  // Acts as the scope for your .export-only CSS rules
   sandbox.className = 'export-only';
-  // Keep it completely off-screen & invisible (but still renderable)
   sandbox.style.cssText = [
     'position:fixed',
-    'left:-200vw',     // far off the viewport
+    'left:-200vw',
     'top:0',
-    'width:100vw',
+    `width:${result.scrollWidth || result.clientWidth || window.innerWidth}px`,
     'background:#fff',
     'pointer-events:none',
     'opacity:0',
     'z-index:-1',
   ].join(';');
 
-  // Deep clone of the result subtree
   const clone = result.cloneNode(true);
   sandbox.appendChild(clone);
   document.body.appendChild(sandbox);
 
-  // Helper to let the browser layout/paint the sandbox before capture
-  const waitNextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // Let the browser layout/paint before capture
+  const waitNextFrame = () =>
+    new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   await waitNextFrame();
 
-  // Inside the sandbox, prefer explicit pages; else capture the whole clone
+  // Prefer explicit pages; else capture the whole clone
   const root = sandbox.querySelector('#result') || sandbox;
   const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
-  const targets = pageNodes.length ? pageNodes : [root];
 
-  // --- 2) Setup jsPDF and margin-aware slicer ---
+  //Assessment Summary first, then Assessment Result, then others ---
+  let targets = (pageNodes.length ? pageNodes : [root]);
+
+  const score = (el) => {
+    // Priority via data-section if present; else fall back to text sniffing
+    const ds = (el.dataset && el.dataset.section || '').toLowerCase();
+    const txt = (el.innerText || el.textContent || '').toLowerCase();
+
+    if (ds.includes('summary') || txt.includes('assessment summary')) return 0;
+    if (ds.includes('result')  || txt.includes('assessment result'))  return 1;
+    return 2; // anything else after those two
+  };
+
+  targets = targets.slice().sort((a, b) => score(a) - score(b));
+
+  // --- 2) Setup jsPDF and slicer ---
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pdfW = pdf.internal.pageSize.getWidth();
   const pdfH = pdf.internal.pageSize.getHeight();
@@ -834,21 +1163,53 @@ async function exportPdf() {
   // Margins (mm)
   const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
 
-  function addCanvasAsPages(canvas, isFirstPage) {
-    const usableW = pdfW - (MARGIN_L + MARGIN_R);
-    const scale   = usableW / canvas.width;
-    const usableH = pdfH - (MARGIN_T + MARGIN_B);
-    const scaledH = canvas.height * scale;
+  // Collect link rects relative to an element (CSS px), then scale to canvas px
+  function collectLinkRects(el, renderScale) {
+    const base = el.getBoundingClientRect();
+    // Only real, navigable URLs (ignore #anchors)
+    const anchors = Array.from(el.querySelectorAll('a[href]'))
+      .filter(a => {
+        const href = a.getAttribute('href') || '';
+        return href && !href.startsWith('#');
+      });
+    return anchors.map(a => {
+      const r = a.getBoundingClientRect();
+      return {
+        href: a.href, // absolute URL
+        x: (r.left - base.left) * renderScale,
+        y: (r.top  - base.top ) * renderScale,
+        w: Math.max(1, r.width  * renderScale),
+        h: Math.max(1, r.height * renderScale),
+      };
+    });
+  }
 
+  // Add a rendered canvas as one or multiple PDF pages; overlay link hotspots
+  function addCanvasAsPages(canvas, isFirstPage, linkRects) {
+    const usableW = pdfW - (MARGIN_L + MARGIN_R);     // mm
+    const usableH = pdfH - (MARGIN_T + MARGIN_B);     // mm
+    const pxToMm = usableW / canvas.width;            // mm per canvas px
+    const scaledH = canvas.height * pxToMm;           // mm
+
+    // Single-page case
     if (scaledH <= usableH) {
       if (!isFirstPage) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG',
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG',
                    MARGIN_L, MARGIN_T, usableW, scaledH);
+
+      // Overlay all links
+      for (const L of linkRects) {
+        const xmm = MARGIN_L + L.x * pxToMm;
+        const ymm = MARGIN_T + L.y * pxToMm;
+        const wmm = L.w * pxToMm;
+        const hmm = Math.max(0.5, L.h * pxToMm); // keep a minimum clickable height
+        pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
+      }
       return;
     }
 
-    // Slice tall content in canvas pixels so each slice fits usableH
-    const sliceHpx = Math.floor(usableH / scale);
+    // Multi-page slicing
+    const sliceHpx = Math.floor(usableH / pxToMm); // px per page slice
     let y = 0, pageIndex = 0;
 
     while (y < canvas.height) {
@@ -857,15 +1218,28 @@ async function exportPdf() {
       const slice = document.createElement('canvas');
       slice.width = canvas.width;
       slice.height = h;
-      slice.getContext('2d').drawImage(
-        canvas,
-        0, y, canvas.width, h,
-        0, 0, canvas.width, h
-      );
+      const g = slice.getContext('2d');
+      g.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
 
       if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
-      pdf.addImage(slice.toDataURL('image/jpeg', 1.0), 'JPEG',
-                   MARGIN_L, MARGIN_T, usableW, h * scale);
+      pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG',
+                   MARGIN_L, MARGIN_T, usableW, h * pxToMm);
+
+      // Overlay links that intersect this slice
+      const sliceBottom = y + h;
+      for (const L of linkRects) {
+        const Lbottom = L.y + L.h;
+        if (Lbottom <= y || L.y >= sliceBottom) continue; // no overlap
+
+        const inSliceY = Math.max(0, L.y - y);
+        const cropH = Math.min(L.h, sliceBottom - L.y);
+
+        const xmm = MARGIN_L + L.x * pxToMm;
+        const ymm = MARGIN_T + inSliceY * pxToMm;
+        const wmm = L.w * pxToMm;
+        const hmm = Math.max(0.5, cropH * pxToMm);
+        pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
+      }
 
       y += h;
       pageIndex++;
@@ -873,21 +1247,25 @@ async function exportPdf() {
   }
 
   try {
-    // --- 3) Render each target in the sandbox without touching the live page ---
+    // --- 3) Render each target and assemble the PDF ---
     let first = true;
     for (const el of targets) {
+      const renderScale = Math.min(2, window.devicePixelRatio || 1.5);
       const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        // Use the element’s own width to avoid global layout influence
+        scale: renderScale,
+        useCORS: true,          // requires images served with CORS headers
+        allowTaint: false,      // safer: prevents tainted canvas breaking toDataURL
+        backgroundColor: '#ffffff',
+        // Use the element’s width to avoid global layout influence
         windowWidth: el.scrollWidth || document.documentElement.clientWidth
       });
-      addCanvasAsPages(canvas, first);
+
+      const linkRects = collectLinkRects(el, renderScale);
+      addCanvasAsPages(canvas, first, linkRects);
       first = false;
     }
 
-    // Optional footer
+    // --- 4) Optional footer on each page ---
     const total = pdf.getNumberOfPages();
     for (let i = 1; i <= total; i++) {
       pdf.setPage(i);
@@ -898,8 +1276,11 @@ async function exportPdf() {
       pdf.setTextColor(120);
       pdf.setDrawColor(200);
       pdf.setLineWidth(0.2);
+      // Horizontal rule
       pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
+      // Left footer text
       pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
+      // Right page numbers
       pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
     }
 
@@ -908,10 +1289,11 @@ async function exportPdf() {
     console.error(err);
     alert('Sorry—there was a problem generating the PDF.');
   } finally {
-    // --- 4) Always remove the sandbox so nothing leaks to the DOM ---
+    // Always remove the sandbox so nothing leaks to the DOM
     sandbox.remove();
   }
 }
+
 
 // ======== RESET ========
 function resetForm() {
