@@ -26,10 +26,6 @@
       <h2 class="section-title">Property and Site Details</h2>
 
       <div>
-        <!-- <h3>Property Address</h3>
-        <p class="muted">
-          Please ensure your property is within Albury City before continuing.
-        </p> -->
 
         <div class="form-grid">
           <div class="field">
@@ -45,7 +41,7 @@
             >
 
             <button id="confirm-address" type="button" class="btn btn-primary">Confirm</button>  <!--  new added div for address button -->
-            </div>  <!--  new added div for address button -->
+            </div>
 
             <div id="results" class="autocomplete-results"></div>
             <!-- Disclosure footnote -->
@@ -61,13 +57,10 @@
         </div>
       </div>
 
-      <!-- Removed redundant 'Site Details' heading -->
       <div class="form-grid">
              
-      
         <div class="field">
-          <label for="zoning" class="label">Land zoning
-             
+          <label for="zoning" class="label">Land Zoning
             <img
               id="zoning-help"
               src="{{ url_for('static', filename='img/help-icon.png') }}"
@@ -76,13 +69,10 @@
               class="help-icon-img"
               aria-describedby="land-zoning-help-text"
             />
-
           </label>
-
           <span id="land-zoning-help-text" class="visually-hidden">
             Opens an External map showing the Zoning Classification for this Land.
           </span>
-
           <input
             type="text"
             id="zoning"
@@ -90,13 +80,10 @@
             placeholder="e.g. R1, R2, RU3"
             required
           >
- 
-            
         </div>
 
         <div class="field">
           <label class="label" for="heritage">Heritage item
-
             <img
                 id="heritage-help"
                 src="{{ url_for('static', filename='img/help-icon.png') }}"
@@ -127,7 +114,6 @@
 
         <div class="field">
           <label class="label" for="bushfire">Bushfire prone land?
-
             <img
               id="bushfire-help"
               src="{{ url_for('static', filename='img/help-icon.png') }}"
@@ -136,7 +122,6 @@
               class="help-icon-img"
               aria-describedby="bushfire-help-text"
              />
-
           </label>
           <span id="bushfire-help-text" class="visually-hidden">
             Opens an External map showing the Bushfire Prone Land Classification for this Land.
@@ -150,7 +135,6 @@
         
         <div class="field">
           <label class="label" for="sensitive_area">Environmentally sensitive area?
-
             <img
               id="sensitive-area-help"
               src="{{ url_for('static', filename='img/help-icon.png') }}"
@@ -172,7 +156,6 @@
 
         <div class="field">
           <label class="label" for="land_size">Lot size (m²)
-
             <img
               id="lot-size-help"
               src="{{ url_for('static', filename='img/help-icon.png') }}"
@@ -381,20 +364,6 @@
           <input type="number" id="area" min="0" class="input">
         </div>
 
-        <!--<div class="field">
-          <label class="label" for="land_size">Lot size (m²)
-
-            <img
-              id="lot-size-help"
-              src="{{ url_for('static', filename='img/help-icon.png') }}"
-              alt="Help"
-              title="View NSW Land Parcel Map"
-              class="help-icon-img"
-            />
-          </label>
-          <input type="number" id="land_size" min="0" class="input">
-        </div>-->
-
         <div class="field">
           <label class="label" for="total_structures_area">Existing &amp; planned structures combined area (excludes dwelling) (m²)</label>
           <input type="number" id="total_structures_area" min="0" class="input">
@@ -519,15 +488,6 @@
           </select>
         </div>
 
-        <!--<div class="field">
-          <label class="label" for="bushfire">Bushfire prone land?</label>
-          <select id="bushfire_patio" class="select">
-            <option value="">-- Select --</option>
-            <option>no</option>
-            <option>yes</option>
-          </select>
-        </div>-->
-
         <div class="field">
           <label class="label" for="distance_dwelling">Distance from dwelling (m)</label>
           <input type="number" id="distance_dwelling" min="0" class="input">
@@ -565,18 +525,12 @@
     <div class="container">
       <p class="muted small">© Albury City · Exempt Development Checker</p>
     </div>
-  </footer>
-  
-
- 
+  </footer> 
 
   <!-- External JS -->
    
   <script src="{{ url_for('static', filename='js/conf/js.conf') }}"></script>
   <script src="{{ url_for('static', filename='js/APIQuery.js') }}"></script> 
-  
-   <!-- <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script> -->
-  <!--<script defer src="{{ url_for('static', filename='js/app.js') }}"></script> -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script type="module" defer src="{{ url_for('static', filename='js/app.js') }}"></script>
