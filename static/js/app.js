@@ -1245,7 +1245,7 @@ async function exportPdf() {
       // Horizontal rule
       pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
       // Left footer text
-      pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
+      pdf.text('© Albury City · Exempt Development Assessment', MARGIN_L, h - 6);
       // Right page numbers
       pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
     }
