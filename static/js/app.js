@@ -1085,33 +1085,54 @@ function enforceNonNegativeOnBlur() {
 document.addEventListener('DOMContentLoaded', enforceNonNegativeOnBlur);
 
 
-function prettifyLinks(html, {mode = "domain" , label = "SEPP", force = false } = {}) {
+
+function prettifyLinks(html, {mode = "domain", label = "SEPP", force = false} = {}) {
   const tpl = document.createElement("template");
   tpl.innerHTML = html;
-  tpl.content.querySelectorAll("a[href]").forEach(a => {
-    const url = new URL(a.getAttribute("href"), location.href);
 
-    // Only rewrite if the link text is the raw URL or is very long
-    const text = a.textContent.trim();
-    const shouldRewrite = force || text === a.href || text.length > 50;
-    if (shouldRewrite) {
-      if (mode === "domain") {
-        a.textContent = url.hostname.replace(/^www\./, "");
-      } else if (mode === "domain+page") {
-        const parts = url.pathname.split("/").filter(Boolean);
-        const last = parts[parts.length - 1] || "";
-        a.textContent =
-          url.hostname.replace(/^www\./, "") +
-          (last ? `/${decodeURIComponent(last).slice(0, 30)}${last.length > 30 ? "…" : ""}` : "");
-      } else if (mode === "label") {
-        a.textContent = label; // <-- use your custom label
-      }
-      a.classList.add("short-link"); // optional: keep your ellipsis styling
+  tpl.content.querySelectorAll("a[href]").forEach(a => {
+    let urlObj = null;
+    try {
+      urlObj = new URL(a.getAttribute("href"), location.href);
+    } catch {
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+      return;
     }
 
-    // Open in new tab safely
+    const text = a.textContent.trim();
+    const shouldRewrite = force || text === a.href || text.length > 50;
+
+    if (shouldRewrite) {
+      if (mode === "domain") {
+        a.textContent = urlObj.hostname.replace(/^www\./, "");
+      } else if (mode === "domain+page") {
+        const parts = urlObj.pathname.split("/").filter(Boolean);
+        const last = parts[parts.length - 1] || "";
+        a.textContent =
+          urlObj.hostname.replace(/^www\./, "") +
+          (last ? `/${decodeURIComponent(last).slice(0, 30)}${last.length > 30 ? "…" : ""}` : "");
+      } else if (mode === "label") {
+        a.textContent = label;
+
+        
+        const next = a.nextSibling;
+        
+        const m = next && next.nodeType === Node.TEXT_NODE
+          ? next.textContent.match(/^\s*((?:\([^()]+\))+)/)
+          : null;
+
+        if (m) {
+          a.textContent += " " + m[1].trim();        
+          next.textContent = next.textContent.slice(m[0].length); // remove what we consumed
+        }
+      }
+      a.classList.add("short-link");
+    }
+
     a.setAttribute("target", "_blank");
     a.setAttribute("rel", "noopener noreferrer");
   });
+
   return tpl.innerHTML;
 }
