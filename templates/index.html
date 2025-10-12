@@ -72,7 +72,7 @@
               id="zoning-help"
               src="{{ url_for('static', filename='img/help-icon.png') }}"
               alt="Help"
-              title="View zoning map"
+              title="View Land Zoning map"
               class="help-icon-img"
             />
 
@@ -528,8 +528,8 @@
     <!-- Actions -->
     <section class="section card actions" id="actions-section">
       <div class="actions-bar">
-        <button id="submit" type="button" class="btn btn-primary">Submit</button>
-        <button id="reset" type="button" class="btn btn-ghost">New Assessment</button>
+        <button id="submit" type="button" class="btn btn-primary" title="Submit Assessment">Submit</button>
+        <button id="reset" type="button" class="btn btn-ghost" title="Start New Assessment">New Assessment</button>
       </div>
     </section>
 
@@ -537,7 +537,7 @@
     <section class="section card">
       <h2 class="section-title">Result</h2>
       <div id="result" class="result"></div>
-      <button id="download-pdf" type="button" class="btn btn-primary hidden">Download PDF</button>
+      <button id="download-pdf" type="button" class="btn btn-primary hidden" title="Download PDF Assessment Result">Download PDF</button>
     </section>
   </main>
 
