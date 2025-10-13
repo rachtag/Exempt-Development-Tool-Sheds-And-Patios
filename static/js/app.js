@@ -1,15 +1,4 @@
-// app.js
-import {
-  fetchAndFilterAddresses,
-  geocodeAddress,
-  queryZoneCode,
-  queryHeritage,
-  queryBushfire,
-  queryForeshore,
-  queryBiodiversity,
-  queryBoundary
-} from "/static/js/APIQuery.js";
-
+// Main application JS for Exempt Development Tool (Sheds & Patios)
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -77,6 +66,7 @@ function init() {
   recheckAll(shedFields);
   recheckAll(patioFields);
 }
+
 
 // ======== VISIBILITY HELPERS ========
 function show(el) { if (el) el.classList.remove("hidden"); }
@@ -506,16 +496,16 @@ function handleSubmit(e) {
   // Shed-only fields
   if (dev === "shed") {
     var r = shedFields;
-    payload.area = numFrom(r, "#area");
+    payload.area = numFrom(r, "#shed_area");
     payload.height = numFrom(r, "#height");
-    payload.boundary_distance = numFrom(r, "#boundary_distance");
+    payload.boundary_distance = numFrom(r, "#shed_boundary_distance");
     payload.building_line = valFrom(r, "#building_line");
     payload.shipping_container = valFrom(r, "#shipping_container");
-    payload.stormwater = valFrom(r, "#stormwater"); // now conditional via roof
-    payload.metal = valFrom(r, "#metal");
-    payload.reflective = valFrom(r, "#reflective");
-    payload.distance_dwelling = numFrom(r, "#distance_dwelling");
-    payload.non_combustible = valFrom(r, "#non_combustible");
+    payload.stormwater = valFrom(r, "#shed_stormwater"); // now conditional via roof
+    payload.metal = valFrom(r, "#shed_metal");
+    payload.reflective = valFrom(r, "#shed_reflective");
+    payload.distance_dwelling = numFrom(r, "#shed_distance_dwelling");
+    payload.non_combustible = valFrom(r, "#shed_non_combustible");
     payload.adjacent_building = valFrom(r, "#adjacent_building");
     payload.interfere = valFrom(r, "#interfere");
     payload.habitable = valFrom(r, "#habitable");
@@ -1428,6 +1418,49 @@ function enforceNonNegativeOnBlur() {
 }
 document.addEventListener('DOMContentLoaded', enforceNonNegativeOnBlur);
 
+
+// ======== STRICT NUMBER INPUT FILTER (no e, +, - allowed) ========
+
+// Block invalid keys while typing
+document.addEventListener('keydown', function (e) {
+  if (e.target.matches('input[type="number"]')) {
+    // prevent scientific notation and sign characters
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+});
+
+// Clean up any unwanted characters (for example, from copy-paste)
+document.addEventListener('input', function (e) {
+  if (e.target.matches('input[type="number"]')) {
+    let clean = e.target.value.replace(/[^0-9.]/g, '');
+
+    // Only one decimal point allowed
+    const parts = clean.split('.');
+    if (parts.length > 2) {
+      clean = parts[0] + '.' + parts.slice(1).join('');
+      clean = clean.replace(/\./g, '');
+    }
+
+    // Auto-fix if user starts with "." (optional)
+    if (clean.startsWith('.')) clean = '0' + clean;
+
+    if (e.target.value !== clean) {
+      e.target.value = clean;
+    }
+  }
+});
+
+// Sanitize pasted content
+document.addEventListener('paste', function (e) {
+  if (e.target.matches('input[type="number"]')) {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const clean = pasted.replace(/[^0-9.]/g, '');
+    document.execCommand('insertText', false, clean);
+  }
+});
 
 
 function prettifyLinks(html, {mode = "domain", label = "SEPP", force = false} = {}) {

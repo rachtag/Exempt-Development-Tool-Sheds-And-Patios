@@ -194,8 +194,8 @@
       <p class="muted">Please provide information about your planned structure.</p>
       <div class="form-grid">
         <div class="field">
-          <label class="label" for="area">Shed area (m²)</label>
-          <input type="number" id="area" min="0" class="input">
+          <label class="label" for="shed_area">Shed area (m²)</label>
+          <input type="number" id="shed_area" min="0" class="input">
         </div>
 
         <div class="field">
@@ -204,8 +204,8 @@
         </div>
 
         <div class="field">
-          <label class="label" for="boundary_distance">Distance from property boundary (mm)</label>
-          <input type="number" id="boundary_distance" min="0" class="input">
+          <label class="label" for="shed_boundary_distance">Distance from property boundary (mm)</label>
+          <input type="number" id="shed_boundary_distance" min="0" class="input">
         </div>
 
         <div class="field">
@@ -236,8 +236,8 @@
         </div>
 
         <div class="field">
-          <label class="label" for="metal">Metal components used?</label>
-          <select id="metal" class="select">
+          <label class="label" for="shed_metal">Metal components used?</label>
+          <select id="shed_metal" class="select">
             <option value="">-- Select --</option>
             <option>yes</option>
             <option>no</option>
@@ -245,8 +245,8 @@
         </div>
 
         <div class="field">
-          <label class="label" for="reflective">Low-reflective / pre-coloured metal?</label>
-          <select id="reflective" class="select">
+          <label class="label" for="shed_reflective">Low-reflective / pre-coloured metal?</label>
+          <select id="shed_reflective" class="select">
             <option value="">-- Select --</option>
             <option>yes</option>
             <option>no</option>
@@ -254,13 +254,13 @@
         </div>
 
         <div class="field">
-          <label class="label" for="distance_dwelling">Distance from dwelling (m)</label>
-          <input type="number" id="distance_dwelling" min="0" class="input">
+          <label class="label" for="shed_distance_dwelling">Distance from dwelling (m)</label>
+          <input type="number" id="shed_distance_dwelling" min="0" class="input">
         </div>
 
         <div class="field">
-          <label class="label" for="non_combustible">Non-combustible materials?</label>
-          <select id="non_combustible" class="select">
+          <label class="label" for="shed_non_combustible">Non-combustible materials?</label>
+          <select id="shed_non_combustible" class="select">
             <option value="">-- Select --</option>
             <option>yes</option>
             <option>no</option>
@@ -471,8 +471,8 @@
         </div>
 
         <div class="field">
-          <label class="label" for="stormwater">Roofwater connected to existing stormwater drainage system?</label>
-          <select id="stormwater" class="select">
+          <label class="label" for="shed_stormwater">Roofwater connected to existing stormwater drainage system?</label>
+          <select id="shed_stormwater" class="select">
             <option value="">-- Select --</option>
             <option>yes</option>
             <option>no</option>
@@ -533,7 +533,7 @@
   <script src="{{ url_for('static', filename='js/APIQuery.js') }}"></script> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script type="module" defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 
 </body>
 </html>

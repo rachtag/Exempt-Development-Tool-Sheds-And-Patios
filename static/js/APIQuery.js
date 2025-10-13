@@ -25,8 +25,8 @@ let isQueryRunning = false;
  * @returns {Array} Filtered address results
  */
 
-
-export async function validateAddressList(data) {
+// Validates and filters address list based on CONFIG postcodes and suburb
+async function validateAddressList(data) {
   try {
     if (!window.CONFIG) {
       throw new Error("CONFIG is not loaded. Please make sure ./static/js/conf/js.conf is loaded first.");
@@ -78,8 +78,8 @@ export async function validateAddressList(data) {
  * @param {string} query - User input address string
  * @returns {Array} Filtered address suggestions
  */
-
-export async function fetchAndFilterAddresses(query) {
+//  Fetches and filters address suggestions
+async function fetchAndFilterAddresses(query) {
   try {
     if (!window.CONFIG?.ADDRESS_API) {
       console.warn("CONFIG.ADDRESS_API missing; waiting for configuration...");
@@ -136,7 +136,7 @@ export async function fetchAndFilterAddresses(query) {
  * @param {string} address - Input address string
  * @returns {Object|null} {x, y, score, address} or null if not found
  */
-export async function geocodeAddress(address) {
+async function geocodeAddress(address) {
   try {
     if (!address || address.trim().length === 0) {
       throw new Error("No address provided.");
@@ -177,7 +177,7 @@ export async function geocodeAddress(address) {
  * @param {boolean} withGeometry - If true, return feature geometry
  * @returns {any|null} Attribute value, true, geometry object, or null
  */
-export async function queryLayer(url, x, y, field, withGeometry = false) {
+async function queryLayer(url, x, y, field, withGeometry = false) {
   try {
     if (!url) throw new Error("Layer URL is missing.");
     if (!x || !y) return null;
@@ -217,7 +217,7 @@ export async function queryLayer(url, x, y, field, withGeometry = false) {
 /**
  * Query zone code from zoning layer.
  */
-export async function queryZoneCode(x, y) {
+async function queryZoneCode(x, y) {
   return await queryLayer(window.CONFIG?.ZONING_URL, x, y, "SYM_CODE");
   
 }
@@ -227,14 +227,14 @@ export async function queryZoneCode(x, y) {
 /**
  * Query heritage zone presence.
  */
-export async function queryHeritage(x, y) {
+async function queryHeritage(x, y) {
   return (await queryLayer(window.CONFIG?.HERITAGE_URL, x, y)) ? "Yes" : "No";
 }
 
 /**
  * Query bushfire prone status.
  */
-export async function queryBushfire(x, y) {
+async function queryBushfire(x, y) {
   try {
     const category = await queryLayer(window.CONFIG?.BUSHFIRE_URL, x, y, "Category");
 
@@ -252,14 +252,14 @@ export async function queryBushfire(x, y) {
 /**
  * Query foreshore building line status.
  */
-export async function queryForeshore(x, y) {
+async function queryForeshore(x, y) {
   return (await queryLayer(window.CONFIG?.FBL_URL, x, y, "MAP_TYPE")) ? "Yes" : "No";
 }
 
 /**
  * Query biodiversity values map.
  */
-export async function queryBiodiversity(x, y) {
+async function queryBiodiversity(x, y) {
   return (await queryLayer(window.CONFIG?.BIODIVERSITY_URL, x, y, "BV_Category")) ? "Yes" : "No";
 }
 
@@ -273,7 +273,7 @@ export async function queryBiodiversity(x, y) {
  * @param {number} y - Latitude
  * @returns {Object|null} {rings, lotSize, attributes} or null
  */
-export async function queryBoundary(x, y) {
+async function queryBoundary(x, y) {
   try {
     if (!window.CONFIG?.FEATURESERVER_URL) {
       throw new Error("CONFIG.FEATURESERVER_URL is missing.");
@@ -343,7 +343,8 @@ export async function queryBoundary(x, y) {
 }
 
 
-// ========================== Autocomplete UI ==========================
+// ========================== Autocomplete UI ==========================//
+// This section manages the address input field, autocomplete dropdown,
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById('address');
 
@@ -367,16 +368,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-
-
-
-
-
   });
 
 
  
-   // ================== Address field keydown logic ==================
+// ================== Address field keydown logic ==================
+
 input.addEventListener("keydown", (e) => {
   const value = input.value;
 
@@ -453,7 +450,7 @@ input.addEventListener("keydown", (e) => {
 
 
 
-  //  CUT event LISTENER
+  // ================== CUT event LISTENER ==================
   input.addEventListener("cut", (e) => {
     const currentValue = input.value.trim();
 
@@ -471,12 +468,7 @@ input.addEventListener("keydown", (e) => {
     }, 0);
   });
 
-
-
-
-
-
-
+// ================== Restore pasted address after refresh ==================
   const resultsDiv = document.getElementById('results');
   if (!input || !resultsDiv) return; 
   
@@ -484,7 +476,7 @@ input.addEventListener("keydown", (e) => {
 
 
   
-    // ================== Restore pasted address after refresh ==================
+ // ================== Restore pasted address after refresh ==================
   const restored = sessionStorage.getItem("pendingAddressPaste");
   if (restored) {
     input.value = restored;
@@ -692,7 +684,7 @@ input.addEventListener('keydown', (event) => {
     return;
   
   }
-
+  // =============== Handle Up/Down/Enter keys ===============
   if (!items.length) return;
 
   if (event.key === 'ArrowDown') {
@@ -757,7 +749,7 @@ async function selectAddress(address) {
       queryBushfire(x, y),
       queryBiodiversity(x, y)
     ]);
-
+     // Extract relevant values
     const lotSize = boundary?.lotSize || "";
     const heritageVal = (heritage || "no").toLowerCase();
     const foreshoreVal = (foreshore || "no").toLowerCase();
