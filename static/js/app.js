@@ -89,8 +89,6 @@ function recheckAll(section) {
   if (!section) return;
   var metal = section.querySelector("#metal");
   if (metal) metal.dispatchEvent(new Event("change"));
-  // var bush = section.querySelector("#bushfire");
-  // if (bush) bush.dispatchEvent(new Event("change"));
   document.getElementById("bushfire")?.dispatchEvent(new Event("change"));
   var dist = section.querySelector("#distance_dwelling");
   if (dist) {
@@ -218,10 +216,7 @@ function setupStructureTypeReplacement(section) {
   var type = section.querySelector("#structure_type");
   if (!type) return;
 
-  // All six fields we want only in "replacement" mode
-  // var deck1m   = section.querySelector("#deck_above_1m");
-  // var matEq    = section.querySelector("#materials_equivalent");
-  // var sizeCh   = section.querySelector("#deck_size_change");
+  // "Replacement" only fields
   var hExisting= section.querySelector("#height_existing");
   var matQual  = section.querySelector("#material_quality");
   var sameSize = section.querySelector("#same_size");
@@ -229,9 +224,6 @@ function setupStructureTypeReplacement(section) {
   // Bail if the replacement trio doesn’t exist (means this isn’t the patio section)
   if (!hExisting || !matQual || !sameSize) return;
 
-  /// var deck1mField   = fieldOf(deck1m);
-  /// var matEqField    = fieldOf(matEq);
-  /// var sizeChField   = fieldOf(sizeCh);
   var hExistingField= fieldOf(hExisting);
   var matQualField  = fieldOf(matQual);
   var sameSizeField = fieldOf(sameSize);
@@ -244,18 +236,12 @@ function setupStructureTypeReplacement(section) {
     var isReplacement = (type.value || "").toLowerCase() === "replacement";
 
     if (isReplacement) {
-      // show ALL six
-      // showIf(deck1mField);
-      // showIf(matEqField);
-      // showIf(sizeChField);
+      // show ALL three
       showIf(hExistingField);
       showIf(matQualField);
       showIf(sameSizeField);
     } else {
-      // hide & clear ALL six
-      // hideIf(deck1mField);    clear(deck1m);
-      // hideIf(matEqField);     clear(matEq);
-      // hideIf(sizeChField);    clear(sizeCh);
+      // hide & clear ALL three
       hideIf(hExistingField); clear(hExisting);
       hideIf(matQualField);   clear(matQual);
       hideIf(sameSizeField);  clear(sameSize);
@@ -528,7 +514,6 @@ function handleSubmit(e) {
     payload.stormwater = valFrom(r, "#stormwater"); // now conditional via roof
     payload.metal = valFrom(r, "#metal");
     payload.reflective = valFrom(r, "#reflective");
-    // payload.bushfire = valFrom(r, "#bushfire_shed");
     payload.distance_dwelling = numFrom(r, "#distance_dwelling");
     payload.non_combustible = valFrom(r, "#non_combustible");
     payload.adjacent_building = valFrom(r, "#adjacent_building");
@@ -558,9 +543,6 @@ function handleSubmit(e) {
     payload.non_combustible = valFrom(p, "#non_combustible");
 
     // replacement-only patio answers
-    // payload.deck_above_1m        = valFrom(p, "#deck_above_1m");
-    // payload.materials_equivalent = valFrom(p, "#materials_equivalent");
-    // payload.deck_size_change     = valFrom(p, "#deck_size_change");
     payload.height_existing = numFrom(p, "#height_existing");
     payload.material_quality = valFrom(p, "#material_quality");
     payload.same_size = valFrom(p, "#same_size");
@@ -575,12 +557,6 @@ function handleSubmit(e) {
     payload.engineer_spec = valFrom(p, "#engineer_spec");
     payload.stormwater = valFrom(p, "#stormwater"); // now conditional via roof
   }
-
-  // For testing: optionally add a "sleep" parameter to simulate a slow response  
-    //const url = DEBUG_SLEEP_SECS > 0
-      //? `/get-assessment-result/?debug_sleep=${DEBUG_SLEEP_SECS}`
-      //: `/get-assessment-result/`;
-
 
     fetchWithTimeout("/get-assessment-result/", {
     method: "POST",
@@ -750,16 +726,6 @@ function answersListHtml(items) {
 }
 
 // ======== SUMMARY + PDF ========
-// function buildSummary(obj) {
-//   var lines = [];
-//   for (var k in obj) {
-//     var v = obj[k];
-//     if (v === "" || v === null || v === undefined) continue; 
-//     lines.push("• " + k + ": " + v);
-//   }
-//   return lines.join("\n");
-// }
-
 
 function showDownloadIfReady() {
   // Consider both textContent and innerHTML, then trim
@@ -1279,7 +1245,7 @@ async function exportPdf() {
       // Horizontal rule
       pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
       // Left footer text
-      pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
+      pdf.text('© Albury City · Exempt Development Assessment', MARGIN_L, h - 6);
       // Right page numbers
       pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
     }
@@ -1318,23 +1284,19 @@ function resetForm() {
   hideFieldAndClear(patioFields, "#interfere");
 
   // replacement-only patio fields
-  // hideFieldAndClear(patioFields, "#deck_above_1m");
-  // hideFieldAndClear(patioFields, "#materials_equivalent");
-  // hideFieldAndClear(patioFields, "#deck_size_change");
   hideFieldAndClear(patioFields, "#height_existing");
   hideFieldAndClear(patioFields, "#material_quality");
   hideFieldAndClear(patioFields, "#same_size");
 
 
 
-  // NEW: conditionally shown fields
+  // conditionally shown fields
   hideFieldAndClear(patioFields, "#overhang");
   hideFieldAndClear(patioFields, "#attached");
   hideFieldAndClear(patioFields, "#roof_height");
   hideFieldAndClear(patioFields, "#fascia_connection");
   hideFieldAndClear(shedFields,  "#overhang");
   hideFieldAndClear(patioFields, "#stormwater");
-  //hideFieldAndClear(shedFields,  "#stormwater");
   hideFieldAndClear(patioFields, "#above_gutter");
   hideFieldAndClear(shedFields,  "#above_gutter");
   hideFieldAndClear(patioFields, "#engineer_spec");
