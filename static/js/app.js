@@ -1352,7 +1352,7 @@ function formatAssessmentHtml(raw) {
   var first = arr[0] || "";
   var rest  = arr.slice(1);
 
-  //ADDING THE iCON 
+  // ADDING THE ICON 
   function headlineBadge(text) {
     var t = (text || "").toLowerCase();
 
@@ -1367,8 +1367,7 @@ function formatAssessmentHtml(raw) {
     return "";
   }
 
-
-  // Build bullet-y lines; when a line is just a URL, append it to the previous line
+  // Build bullets as real <li> items; when a line is just a URL, append it to the previous line
   var buffer = [];
   for (var i = 0; i < rest.length; i++) {
     var s = (rest[i] || "").trim();
@@ -1376,16 +1375,17 @@ function formatAssessmentHtml(raw) {
 
     var isUrl = /^https?:\/\//i.test(s);
     if (isUrl) {
-      if (s.includes("https://legislation.nsw.gov.au/view/")) {
-       buffer.push("   " + s); // Porocess the link as exception 
-      } else if (buffer.length) {
-        buffer[buffer.length - 1] += " " + s;  
+      var linkHtml = autoLink(s);
+      if (buffer.length) {
+        // append the link to the previous <li>
+        buffer[buffer.length - 1] = buffer[buffer.length - 1].replace(/<\/li>$/, "") + " " + linkHtml + "</li>";
       } else {
-        buffer.push(s);
+        // if a URL appears first, make it its own list item
+        buffer.push("<li>" + linkHtml + "</li>");
       }
-      
     } else {
-    buffer.push("- " + s);
+      // make a real list item (strip any leading "- " just in case)
+      buffer.push("<li>" + autoLink(s.replace(/^-+\s*/, "")) + "</li>");
     }
   }
 
@@ -1395,13 +1395,14 @@ function formatAssessmentHtml(raw) {
   var html = "";
   if (first.trim()) {
     var badge = headlineBadge(first);
-    html += badge + autoLink(first) + "<br>";
+    html += '<p class="result-head">' + badge + autoLink(first) + '</p>';
   }
   if (buffer.length) {
-    html += autoLink(buffer.join("<br>"));
+    html += '<ul class="kv reasons">' + buffer.join("") + '</ul>';
   }
   return html || "(no response)";
 }
+
 
 //Adding check for negative value
 function enforceNonNegativeOnBlur() {
