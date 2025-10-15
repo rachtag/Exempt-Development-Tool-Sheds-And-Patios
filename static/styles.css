@@ -436,9 +436,45 @@ input, textarea, select, button,
   #result h2{ font-size:1.1rem !important; }
   #result .kv li{ font-size:.85rem !important; line-height:1.35 !important; }
 
+/* ----- custom bullets (PRINT) ----- */
+#result .kv{ list-style:none !important; padding-left:0 !important; }
+#result .kv li{ position:relative; padding-left:1.4em !important; margin-bottom:6px !important; }
+/* hide default marker */
+#result .kv li::marker{ content:"" !important; }
+/* diamond bullet */
+#result .kv li::before{
+  content:"◆";
+  color:var(--brand, #0c2d48);
+  font-size:0.7em;
+  position:absolute; left:0; top:0.3em;
+}
+
+
+
+/* ----- custom bullets (PRINT) ----- */
+#result .kv{ list-style:none !important; padding-left:0 !important; }
+#result .kv li{ position:relative; padding-left:1.4em !important; margin-bottom:6px !important; }
+
+/* hide default marker if any */
+#result .kv li::marker{ content:"" !important; }
+
+/* diamond bullet */
+#result .kv li::before{
+  content:"◆";
+  color:var(--brand, #0c2d48);
+  font-size:0.7em;
+  position:absolute; left:0; top:0.3em;
+}
+
+
+
+
   /* better page breaks for long summaries */
   #result h2{ break-after:avoid; page-break-after:avoid; }
   #result .kv, #result .kv li{ break-inside:avoid; page-break-inside:avoid; }
+  /* labels bold, answers italic (PRINT) */
+  #result .kv .k { font-weight:700 !important; }
+  #result .kv .v { font-style: italic !important; }
   #result{ overflow:visible !important; }
 }
 
@@ -468,7 +504,23 @@ input, textarea, select, button,
   box-shadow:none !important;
   overflow:visible !important;}
 .export-only #result h2{ font-size:1.3rem !important; }
-.export-only #result .kv li{ font-size:1 rem !important; line-height:1.35 !important; }
+.export-only #result .kv li{ font-size:1rem !important; line-height:1.35 !important; }
+
+/* ----- custom bullets (EXPORT) ----- */
+.export-only #result .kv{ list-style:none !important; padding-left:0 !important; }
+.export-only #result .kv li{ position:relative; padding-left:1.4em !important; margin-bottom:6px !important; }
+.export-only #result .kv li::marker{ content:"" !important; }
+.export-only #result .kv li::before{
+  content:"◆";
+  color:var(--brand, #0c2d48);
+  font-size:0.7em;
+  position:absolute; left:0; top:0.3em;
+}
+
+
+/* labels bold, answers italic (EXPORT) */
+.export-only #result .kv .k { font-weight:700 !important; }
+.export-only #result .kv .v { font-style: italic !important; }
 
 /* ---- html2canvas/JSPDF export path (Download PDF) ---- */
 .export-only .pdf-page {
@@ -566,4 +618,16 @@ input, textarea, select, button,
   transition: background-color 0.3s ease-in-out;
 }
 
+/* main statement bold */
+#rejection-reasons .result-head { font-weight: 800; }
 
+/* bullet sentences italic */
+#rejection-reasons .reasons li { font-style: italic; }
+
+/* ensure it sticks in printed/exported PDFs */
+@media print {
+  #rejection-reasons .result-head { font-weight: 800 !important; }
+  #rejection-reasons .reasons li { font-style: italic !important; }
+}
+.export-only #rejection-reasons .result-head { font-weight: 800 !important; }
+.export-only #rejection-reasons .reasons li { font-style: italic !important; }
