@@ -11,6 +11,7 @@
   --ring: rgba(0,42,58,0.35);
   --shadow: 0 10px 25px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.06);
   --radius: 14px;
+   --form-font-size: clamp(0.8rem, 0.4vw + 0.95rem, 0.9rem);  /* fluid font size for form elements */
 }
 
 /* ====== Base ====== */
@@ -312,14 +313,14 @@ input, textarea, select, button,
 
 /* Placeholder style */
 #address::placeholder {
-  font-size: clamp(0.85rem, 0.4vw + 0.95rem, 0.9rem); 
+  font-size:  var(--form-font-size);
   color: var(--gray-500);
   opacity: 0.75;
 }
 
 /* Text in the closed select */
 .select {
-  font-size: clamp(0.8rem, 0.4vw + 0.95rem, 0.9rem); 
+  font-size:  var(--form-font-size);
   letter-spacing: 0.01em;
   word-spacing: 0.05em;
 }
@@ -600,6 +601,11 @@ input, textarea, select, button,
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);  
 }
 
+.autocomplete-results:empty {
+  box-shadow: none !important;
+  border: none !important;
+}
+
 /*Keyboard selection (Arrow + Enter) */
 .autocomplete-results .item:hover,
 .autocomplete-results .item.selected {
@@ -609,7 +615,12 @@ input, textarea, select, button,
 } 
 .autocomplete-results .item {
   border-radius: 4px;
-  padding: 6px 10px;
+  /*padding: 6px 10px;*/
+  padding: 8px 12px;
+  font-size: var(--form-font-size);
+  font-family: "Roboto", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  color: var(--gray-700);
+  
 }
 
 /* Smooth transition for focus/hover movement */

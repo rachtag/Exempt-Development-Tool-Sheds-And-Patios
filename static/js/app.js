@@ -1408,6 +1408,14 @@ function formatAssessmentHtml(raw) {
 function enforceNonNegativeOnBlur() {
   document.querySelectorAll('input[type="number"]').forEach((input) => {
     input.min = '0';
+    
+    // --- exclude rule for the characters '+'' '-' or 'e' ---//
+    input.addEventListener('keydown', function (e) {
+      if (["e", "E", "+", "-"].includes(e.key)) {
+              e.preventDefault();
+            }
+    }); 
+    
     input.addEventListener('blur', function () {
       if (this.value.trim() === '') return;
       const v = parseFloat(this.value);
