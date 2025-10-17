@@ -424,9 +424,23 @@ function applyDevVisibility() {
 
 // ======== REQUIRED CHECKS (non-empty) ========
 function labelFor(el) {
-  const lbl = document.querySelector("label[for='" + el.id + "']");
-  return (lbl ? lbl.textContent.trim() : (el.getAttribute("placeholder") || el.id || "Field"));
+
+  if (el.labels && el.labels.length) {
+    return el.labels[0].textContent.trim();
+  }
+
+  const field = el.closest('.field');
+  const local = field ? field.querySelector('label') : null;
+  if (local) return local.textContent.trim();
+
+  try {
+    const lbl = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+    if (lbl) return lbl.textContent.trim();
+  } catch (_) {}
+
+  return (el.getAttribute('placeholder') || el.id || 'Field');
 }
+
 // Single-message validation: ignore hidden/disabled, stop at first empty
 function validateRequired() {
   // clear any previous highlight
