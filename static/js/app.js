@@ -1468,6 +1468,13 @@ function prettifyLinks(html, {mode = "domain", label = "SEPP", force = false} = 
       } else if (mode === "label") {
         a.textContent = label;
 
+        const secMatch =
+          (urlObj.hash && urlObj.hash.match(/(?:^#)?(?:sec|s|section)[\.\-_]?(\d+(?:\.\d+)*)/i)) ||
+          null;
+        if (secMatch) {
+          a.textContent += " " + secMatch[1];
+        }        
+
         
         const next = a.nextSibling;
         
