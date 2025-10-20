@@ -386,6 +386,27 @@ input, textarea, select, button,
 #result .report-title{ margin:0 0 8px 0; line-height:1.2; }
 #result h1,#result h2,#result h3{ margin-top:0; }
 
+
+/* Fluid sizes that adapt between small and large screens */
+#result h1 { 
+  font-size: clamp(1.5rem, 1.1rem + 3vw, 3rem); 
+  margin-bottom: clamp(0.5rem, 0.3rem + 1vw, 1rem);
+}
+
+#result h2 { 
+  font-size: clamp(1.25rem, 1rem + 2vw, 2.25rem); 
+  margin-bottom: clamp(0.5rem, 0.25rem + 0.8vw, 0.875rem);
+}
+
+#result h3 { 
+  font-size: clamp(1.125rem, 0.95rem + 1.2vw, 1.75rem); 
+  margin-bottom: clamp(0.375rem, 0.25rem + 0.5vw, 0.75rem);
+}
+
+#result .report-title {
+  font-size: clamp(1rem, 0.9rem + 1vw, 1.5rem);
+}
+
 /* ---------- PDF banner (same colour as your frontpage header) ---------- */
 .pdf-banner{
   color:#fff;
@@ -630,15 +651,42 @@ input, textarea, select, button,
 }
 
 /* main statement bold */
-#rejection-reasons .result-head { font-weight: 800; }
+#rejection-reasons .result-head {
+  font-weight: 800;
+  line-height: 1.25;
+  /* Fluid between small and large screens */
+  font-size: clamp(1rem, 0.95rem + 1.2vw, 1.5rem);
+  margin-bottom: clamp(0.4rem, 0.3rem + 0.6vw, 0.8rem);
+}
 
 /* bullet sentences italic */
-#rejection-reasons .reasons li { font-style: italic; }
+#rejection-reasons .reasons li {
+  font-style: italic;
+  line-height: 1.5;
+  font-size: clamp(0.95rem, 0.9rem + 0.6vw, 1.125rem);
+  margin-block: 0.25em;
+}
 
 /* ensure it sticks in printed/exported PDFs */
 @media print {
-  #rejection-reasons .result-head { font-weight: 800 !important; }
-  #rejection-reasons .reasons li { font-style: italic !important; }
+  #rejection-reasons .result-head { 
+    font-weight: 800 !important;
+    font-size: 14pt !important;
+    line-height: 1.25 !important;
+  }
+  #rejection-reasons .reasons li { 
+    font-style: italic !important; 
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
 }
-.export-only #rejection-reasons .result-head { font-weight: 800 !important; }
-.export-only #rejection-reasons .reasons li { font-style: italic !important; }
+.export-only #rejection-reasons .result-head { 
+  font-weight: 800 !important; 
+  font-size: 14pt !important;
+  line-height: 1.25 !important;
+}
+.export-only #rejection-reasons .reasons li { 
+  font-style: italic !important; 
+  font-size: 11pt !important;
+  line-height: 1.4 !important;
+}
