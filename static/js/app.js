@@ -611,44 +611,12 @@ function handleSubmit(e) {
 
         // Build two views:
         // - on-screen: just the assessment result
-        // - pdf-only: header + assessment result (hidden on screen, shown only for print/export)
         const reportHtml = `
           <div id="report">
             <!-- On-screen only -->
             <div class="on-screen-only">
               <h2 class="report-title">Assessment Result</h2>
               ${reasonsHtml}
-            </div>
-
-            <!-- PDF only (explicit pages) -->
-            <div class="pdf-only">
-              <!-- PDF PAGE 1 -->
-              <section class="pdf-page" id="pdf-page-1">
-                <div class="pdf-banner">
-                  <h1>Exempt Development Assessment</h1>
-                  <p class="subtitle">Sheds &amp; Patios — Albury City</p>
-                  <p class="lead">Check if a shed or patio qualifies as exempt development and can be built without council approval.</p>
-                </div>
-                
-                <div class="pdf-body">
-                  <h2 class="report-title">Assessment Result</h2>
-                  ${reasonsHtml}
-                </div>
-              </section>
-
-              <!-- PDF PAGE 2 (summary) -->
-              <section class="pdf-page" id="pdf-page-2">
-                <div class="pdf-banner">
-                  <h1>Exempt Development Assessment</h1>
-                  <p class="subtitle">Sheds &amp; Patios — Albury City</p>
-                  <p class="lead">Check if a shed or patio qualifies as exempt development and can be built without council approval.</p>
-                </div>              
-              
-                <div class="pdf-body">
-                  <h2 class="report-title">Assessment Summary</h2>
-                  ${answersHtml}
-                </div>
-              </section>
             </div>
           </div>
         `;
@@ -772,507 +740,358 @@ async function waitForRender(container) {
   }
 }
 
-// function exportPdf() {
-// async function exportPdf() {
-//   const { jsPDF } = window.jspdf;
 
-//   const result = document.getElementById('result');
-//   if (!result) {
-//     alert('No result to export yet.');
-//     return;
-//   }
+function drawTick(pdf, x, y, sizeMm = 6) {
+  // draws a ✓ made of two lines
+  pdf.setDrawColor(0, 140, 0);    // green
+  pdf.setLineWidth(1.6);
+  // lower-left to middle
+  pdf.line(x, y, x + sizeMm * 0.45, y + sizeMm * 0.55);
+  // middle to top-right
+  pdf.line(x + sizeMm * 0.45, y + sizeMm * 0.55, x + sizeMm, y - sizeMm * 0.6);
+}
 
-//   // --- 1) Build an off-screen sandbox with a cloned #result ---
-//   const sandbox = document.createElement('div');
-//   // Acts as the scope for your .export-only CSS rules
-//   sandbox.className = 'export-only';
-//   // Keep it completely off-screen & invisible (but still renderable)
-//   sandbox.style.cssText = [
-//     'position:fixed',
-//     'left:-200vw',     // far off the viewport
-//     'top:0',
-//     'width:100vw',
-//     'background:#fff',
-//     'pointer-events:none',
-//     'opacity:0',
-//     'z-index:-1',
-//   ].join(';');
+function drawCross(pdf, x, y, sizeMm = 6) {
+  // draws a red X made of two lines
+  pdf.setDrawColor(220, 0, 0);    // red
+  pdf.setLineWidth(1.6);
+  pdf.line(x, y - sizeMm / 2, x + sizeMm, y + sizeMm / 2);
+  pdf.line(x, y + sizeMm / 2, x + sizeMm, y - sizeMm / 2);
+}
 
-//   // Deep clone of the result subtree
-//   const clone = result.cloneNode(true);
-//   sandbox.appendChild(clone);
-//   document.body.appendChild(sandbox);
 
-//   // Helper to let the browser layout/paint the sandbox before capture
-//   const waitNextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-//   await waitNextFrame();
+function formatResultHead(rawText) {
+  if (!rawText) return '';
 
-//   // Inside the sandbox, prefer explicit pages; else capture the whole clone
-//   const root = sandbox.querySelector('#result') || sandbox;
-//   const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
-//   const targets = pageNodes.length ? pageNodes : [root];
+  // Aggressive cleanup:
+  let cleanedText = rawText.trim()
+    .replace(/^[^A-Za-z0-9]+/, '')                 
+    .replace(/^\s*L\s+(?=The\b)/, '')              
+    .replace(/\s+/g, ' ');
 
-//   // --- 2) Setup jsPDF and margin-aware slicer ---
-//   const pdf = new jsPDF('p', 'mm', 'a4');
-//   const pdfW = pdf.internal.pageSize.getWidth();
-//   const pdfH = pdf.internal.pageSize.getHeight();
+  // Case-insensitive checks
+  const t = cleanedText.toUpperCase();
 
-//   // Margins (mm)
-//   const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
-
-//   function addCanvasAsPages(canvas, isFirstPage) {
-//     const usableW = pdfW - (MARGIN_L + MARGIN_R);
-//     const scale   = usableW / canvas.width;
-//     const usableH = pdfH - (MARGIN_T + MARGIN_B);
-//     const scaledH = canvas.height * scale;
-
-//     if (scaledH <= usableH) {
-//       if (!isFirstPage) pdf.addPage();
-//       pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG',
-//                    MARGIN_L, MARGIN_T, usableW, scaledH);
-//       return;
-//     }
-
-//     // Slice tall content in canvas pixels so each slice fits usableH
-//     const sliceHpx = Math.floor(usableH / scale);
-//     let y = 0, pageIndex = 0;
-
-//     while (y < canvas.height) {
-//       const h = Math.min(sliceHpx, canvas.height - y);
-
-//       const slice = document.createElement('canvas');
-//       slice.width = canvas.width;
-//       slice.height = h;
-//       slice.getContext('2d').drawImage(
-//         canvas,
-//         0, y, canvas.width, h,
-//         0, 0, canvas.width, h
-//       );
-
-//       if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
-//       pdf.addImage(slice.toDataURL('image/jpeg', 1.0), 'JPEG',
-//                    MARGIN_L, MARGIN_T, usableW, h * scale);
-
-//       y += h;
-//       pageIndex++;
-//     }
-//   }
-
-//   try {
-//     // --- 3) Render each target in the sandbox without touching the live page ---
-//     let first = true;
-//     for (const el of targets) {
-//       const canvas = await html2canvas(el, {
-//         scale: 2,
-//         useCORS: true,
-//         allowTaint: true,
-//         // Use the element’s own width to avoid global layout influence
-//         windowWidth: el.scrollWidth || document.documentElement.clientWidth
-//       });
-//       addCanvasAsPages(canvas, first);
-//       first = false;
-//     }
-
-//     // Optional footer
-//     const total = pdf.getNumberOfPages();
-//     for (let i = 1; i <= total; i++) {
-//       pdf.setPage(i);
-//       const w = pdf.internal.pageSize.getWidth();
-//       const h = pdf.internal.pageSize.getHeight();
-//       pdf.setFont('helvetica', 'normal');
-//       pdf.setFontSize(9);
-//       pdf.setTextColor(120);
-//       pdf.setDrawColor(200);
-//       pdf.setLineWidth(0.2);
-//       pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
-//       pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
-//       pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
-//     }
-
-//     pdf.save('assessment-result.pdf');
-//   } catch (err) {
-//     console.error(err);
-//     alert('Sorry—there was a problem generating the PDF.');
-//   } finally {
-//     // --- 4) Always remove the sandbox so nothing leaks to the DOM ---
-//     sandbox.remove();
-//   }
-// }
-// async function exportPdf() {
-//   const { jsPDF } = window.jspdf;
-
-//   const result = document.getElementById('result');
-//   if (!result) {
-//     alert('No result to export yet.');
-//     return;
-//   }
-
-//   // Ensure web fonts are loaded so text snapshots use the right font
-//   if (document.fonts && document.fonts.ready) {
-//     try { await document.fonts.ready; } catch {}
-//   }
-
-//   // --- 1) Build an off-screen sandbox with a cloned #result ---
-//   const sandbox = document.createElement('div');
-//   sandbox.className = 'export-only';
-//   sandbox.style.cssText = [
-//     'position:fixed',
-//     'left:-200vw',
-//     'top:0',
-//     `width:${result.scrollWidth || result.clientWidth || window.innerWidth}px`,
-//     'background:#fff',
-//     'pointer-events:none',
-//     'opacity:0',
-//     'z-index:-1',
-//   ].join(';');
-
-//   const clone = result.cloneNode(true);
-//   sandbox.appendChild(clone);
-//   document.body.appendChild(sandbox);
-
-//   // Let the browser layout/paint before capture
-//   const waitNextFrame = () =>
-//     new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-//   await waitNextFrame();
-
-//   // Prefer explicit pages; else capture the whole clone
-//   const root = sandbox.querySelector('#result') || sandbox;
-//   const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
-//   const targets = pageNodes.length ? pageNodes : [root];
-
-//   // --- 2) Setup jsPDF and slicer ---
-//   const pdf = new jsPDF('p', 'mm', 'a4');
-//   const pdfW = pdf.internal.pageSize.getWidth();
-//   const pdfH = pdf.internal.pageSize.getHeight();
-
-//   // Margins (mm)
-//   const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
-
-//   // Collect link rects relative to an element (CSS px), then scale to canvas px
-//   function collectLinkRects(el, renderScale) {
-//     const base = el.getBoundingClientRect();
-//     // Only real, navigable URLs (ignore #anchors)
-//     const anchors = Array.from(el.querySelectorAll('a[href]'))
-//       .filter(a => {
-//         const href = a.getAttribute('href') || '';
-//         return href && !href.startsWith('#');
-//       });
-//     return anchors.map(a => {
-//       const r = a.getBoundingClientRect();
-//       return {
-//         href: a.href, // absolute URL
-//         x: (r.left - base.left) * renderScale,
-//         y: (r.top  - base.top ) * renderScale,
-//         w: Math.max(1, r.width  * renderScale),
-//         h: Math.max(1, r.height * renderScale),
-//       };
-//     });
-//   }
-
-//   // Add a rendered canvas as one or multiple PDF pages; overlay link hotspots
-//   function addCanvasAsPages(canvas, isFirstPage, linkRects) {
-//     const usableW = pdfW - (MARGIN_L + MARGIN_R);     // mm
-//     const usableH = pdfH - (MARGIN_T + MARGIN_B);     // mm
-//     const pxToMm = usableW / canvas.width;            // mm per canvas px
-//     const scaledH = canvas.height * pxToMm;           // mm
-
-//     // Single-page case
-//     if (scaledH <= usableH) {
-//       if (!isFirstPage) pdf.addPage();
-//       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG',
-//                    MARGIN_L, MARGIN_T, usableW, scaledH);
-
-//       // Overlay all links
-//       for (const L of linkRects) {
-//         const xmm = MARGIN_L + L.x * pxToMm;
-//         const ymm = MARGIN_T + L.y * pxToMm;
-//         const wmm = L.w * pxToMm;
-//         const hmm = Math.max(0.5, L.h * pxToMm); // keep a minimum clickable height
-//         pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
-//       }
-//       return;
-//     }
-
-//     // Multi-page slicing: slice the big canvas in bitmap space,
-//     // then map only the links that intersect each slice.
-//     const sliceHpx = Math.floor(usableH / pxToMm); // px per page slice
-//     let y = 0, pageIndex = 0;
-
-//     while (y < canvas.height) {
-//       const h = Math.min(sliceHpx, canvas.height - y);
-
-//       const slice = document.createElement('canvas');
-//       slice.width = canvas.width;
-//       slice.height = h;
-//       const g = slice.getContext('2d');
-//       g.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
-
-//       if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
-//       pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG',
-//                    MARGIN_L, MARGIN_T, usableW, h * pxToMm);
-
-//       // Overlay links that intersect this slice
-//       const sliceBottom = y + h;
-//       for (const L of linkRects) {
-//         const Lbottom = L.y + L.h;
-//         if (Lbottom <= y || L.y >= sliceBottom) continue; // no overlap
-
-//         const inSliceY = Math.max(0, L.y - y);
-//         const cropH = Math.min(L.h, sliceBottom - L.y);
-
-//         const xmm = MARGIN_L + L.x * pxToMm;
-//         const ymm = MARGIN_T + inSliceY * pxToMm;
-//         const wmm = L.w * pxToMm;
-//         const hmm = Math.max(0.5, cropH * pxToMm);
-//         pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
-//       }
-
-//       y += h;
-//       pageIndex++;
-//     }
-//   }
-
-//   try {
-//     // --- 3) Render each target and assemble the PDF ---
-//     let first = true;
-//     for (const el of targets) {
-//       const renderScale = Math.min(2, window.devicePixelRatio || 1.5);
-//       const canvas = await html2canvas(el, {
-//         scale: renderScale,
-//         useCORS: true,          // requires images served with CORS headers
-//         allowTaint: false,      // safer: prevents tainted canvas breaking toDataURL
-//         backgroundColor: '#ffffff',
-//         // Use the element’s width to avoid global layout influence
-//         windowWidth: el.scrollWidth || document.documentElement.clientWidth
-//       });
-
-//       const linkRects = collectLinkRects(el, renderScale);
-//       addCanvasAsPages(canvas, first, linkRects);
-//       first = false;
-//     }
-
-//     // --- 4) Optional footer on each page ---
-//     const total = pdf.getNumberOfPages();
-//     for (let i = 1; i <= total; i++) {
-//       pdf.setPage(i);
-//       const w = pdf.internal.pageSize.getWidth();
-//       const h = pdf.internal.pageSize.getHeight();
-//       pdf.setFont('helvetica', 'normal');
-//       pdf.setFontSize(9);
-//       pdf.setTextColor(120);
-//       pdf.setDrawColor(200);
-//       pdf.setLineWidth(0.2);
-//       // Horizontal rule
-//       pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
-//       // Left footer text
-//       pdf.text('© Albury City · Exempt Development Checker', MARGIN_L, h - 6);
-//       // Right page numbers
-//       pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
-//     }
-
-//     pdf.save('assessment-result.pdf');
-//   } catch (err) {
-//     console.error(err);
-//     alert('Sorry—there was a problem generating the PDF.');
-//   } finally {
-//     // Always remove the sandbox so nothing leaks to the DOM
-//     sandbox.remove();
-//   }
-// }
-async function exportPdf() {
-  const { jsPDF } = window.jspdf;
-
-  const result = document.getElementById('result');
-  if (!result) {
-    alert('No result to export yet.');
-    return;
+  if (t.includes('DOES NOT QUALIFY')) {
+    // Red cross scenario (we'll color "X" in red at draw time)
+    const corePhrase = 'The proposed structure DOES NOT qualify for the following reasons:';
+    return 'X ' + corePhrase; // ASCII symbol; colored during rendering
+  } else if (t.includes('DOES QUALIFY') || t.includes('QUALIFIES')) {
+    // Green tick scenario (we'll just show "OK", can color green if desired)
+    const corePhrase = 'The proposed structure DOES qualify for exempt development.';
+    return '✓ ' + corePhrase;  // ASCII symbol; optionally colored
   }
 
-  // Ensure web fonts are loaded so text snapshots use the right font
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch {}
-  }
+  // Fallback: return the cleaned text if no known phrase is found
+  return cleanedText;
+}
 
-  // --- 1) Build an off-screen sandbox with a cloned #result ---
-  const sandbox = document.createElement('div');
-  sandbox.className = 'export-only';
-  sandbox.style.cssText = [
-    'position:fixed',
-    'left:-200vw',
-    'top:0',
-    `width:${result.scrollWidth || result.clientWidth || window.innerWidth}px`,
-    'background:#fff',
-    'pointer-events:none',
-    'opacity:0',
-    'z-index:-1',
-  ].join(';');
-
-  const clone = result.cloneNode(true);
-  sandbox.appendChild(clone);
-  document.body.appendChild(sandbox);
-
-  // Let the browser layout/paint before capture
-  const waitNextFrame = () =>
-    new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  await waitNextFrame();
-
-  // Prefer explicit pages; else capture the whole clone
-  const root = sandbox.querySelector('#result') || sandbox;
-  const pageNodes = Array.from(root.querySelectorAll('.pdf-only .pdf-page'));
-
-  //Assessment Summary first, then Assessment Result, then others ---
-  let targets = (pageNodes.length ? pageNodes : [root]);
-
-  const score = (el) => {
-    // Priority via data-section if present; else fall back to text sniffing
-    const ds = (el.dataset && el.dataset.section || '').toLowerCase();
-    const txt = (el.innerText || el.textContent || '').toLowerCase();
-
-    if (ds.includes('summary') || txt.includes('assessment summary')) return 0;
-    if (ds.includes('result')  || txt.includes('assessment result'))  return 1;
-    return 2; // anything else after those two
-  };
-
-  targets = targets.slice().sort((a, b) => score(a) - score(b));
-
-  // --- 2) Setup jsPDF and slicer ---
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const pdfW = pdf.internal.pageSize.getWidth();
-  const pdfH = pdf.internal.pageSize.getHeight();
-
-  // Margins (mm)
-  const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
-
-  // Collect link rects relative to an element (CSS px), then scale to canvas px
-  function collectLinkRects(el, renderScale) {
-    const base = el.getBoundingClientRect();
-    // Only real, navigable URLs (ignore #anchors)
-    const anchors = Array.from(el.querySelectorAll('a[href]'))
-      .filter(a => {
-        const href = a.getAttribute('href') || '';
-        return href && !href.startsWith('#');
-      });
-    return anchors.map(a => {
-      const r = a.getBoundingClientRect();
-      return {
-        href: a.href, // absolute URL
-        x: (r.left - base.left) * renderScale,
-        y: (r.top  - base.top ) * renderScale,
-        w: Math.max(1, r.width  * renderScale),
-        h: Math.max(1, r.height * renderScale),
-      };
-    });
-  }
-
-  // Add a rendered canvas as one or multiple PDF pages; overlay link hotspots
-  function addCanvasAsPages(canvas, isFirstPage, linkRects) {
-    const usableW = pdfW - (MARGIN_L + MARGIN_R);     // mm
-    const usableH = pdfH - (MARGIN_T + MARGIN_B);     // mm
-    const pxToMm = usableW / canvas.width;            // mm per canvas px
-    const scaledH = canvas.height * pxToMm;           // mm
-
-    // Single-page case
-    if (scaledH <= usableH) {
-      if (!isFirstPage) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG',
-                   MARGIN_L, MARGIN_T, usableW, scaledH);
-
-      // Overlay all links
-      for (const L of linkRects) {
-        const xmm = MARGIN_L + L.x * pxToMm;
-        const ymm = MARGIN_T + L.y * pxToMm;
-        const wmm = L.w * pxToMm;
-        const hmm = Math.max(0.5, L.h * pxToMm); // keep a minimum clickable height
-        pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
-      }
-      return;
-    }
-
-    // Multi-page slicing
-    const sliceHpx = Math.floor(usableH / pxToMm); // px per page slice
-    let y = 0, pageIndex = 0;
-
-    while (y < canvas.height) {
-      const h = Math.min(sliceHpx, canvas.height - y);
-
-      const slice = document.createElement('canvas');
-      slice.width = canvas.width;
-      slice.height = h;
-      const g = slice.getContext('2d');
-      g.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
-
-      if (!(isFirstPage && pageIndex === 0)) pdf.addPage();
-      pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG',
-                   MARGIN_L, MARGIN_T, usableW, h * pxToMm);
-
-      // Overlay links that intersect this slice
-      const sliceBottom = y + h;
-      for (const L of linkRects) {
-        const Lbottom = L.y + L.h;
-        if (Lbottom <= y || L.y >= sliceBottom) continue; // no overlap
-
-        const inSliceY = Math.max(0, L.y - y);
-        const cropH = Math.min(L.h, sliceBottom - L.y);
-
-        const xmm = MARGIN_L + L.x * pxToMm;
-        const ymm = MARGIN_T + inSliceY * pxToMm;
-        const wmm = L.w * pxToMm;
-        const hmm = Math.max(0.5, cropH * pxToMm);
-        pdf.link(xmm, ymm, wmm, hmm, { url: L.href });
-      }
-
-      y += h;
-      pageIndex++;
-    }
-  }
-
-  try {
-    // --- 3) Render each target and assemble the PDF ---
-    let first = true;
-    for (const el of targets) {
-      const renderScale = Math.min(2, window.devicePixelRatio || 1.5);
-      const canvas = await html2canvas(el, {
-        scale: renderScale,
-        useCORS: true,          // requires images served with CORS headers
-        allowTaint: false,      // safer: prevents tainted canvas breaking toDataURL
-        backgroundColor: '#ffffff',
-        // Use the element’s width to avoid global layout influence
-        windowWidth: el.scrollWidth || document.documentElement.clientWidth
-      });
-
-      const linkRects = collectLinkRects(el, renderScale);
-      addCanvasAsPages(canvas, first, linkRects);
-      first = false;
-    }
-
-    // --- 4) Optional footer on each page ---
-    const total = pdf.getNumberOfPages();
-    for (let i = 1; i <= total; i++) {
-      pdf.setPage(i);
-      const w = pdf.internal.pageSize.getWidth();
-      const h = pdf.internal.pageSize.getHeight();
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(9);
-      pdf.setTextColor(120);
-      pdf.setDrawColor(200);
-      pdf.setLineWidth(0.2);
-      // Horizontal rule
-      pdf.line(MARGIN_L, h - 12, w - MARGIN_R, h - 12);
-      // Left footer text
-      pdf.text('© Albury City · Exempt Development Assessment', MARGIN_L, h - 6);
-      // Right page numbers
-      pdf.text(`Page ${i} of ${total}`, w - MARGIN_R, h - 6, { align: 'right' });
-    }
-
-    pdf.save('assessment-result.pdf');
-  } catch (err) {
-    console.error(err);
-    alert('Sorry—there was a problem generating the PDF.');
-  } finally {
-    // Always remove the sandbox so nothing leaks to the DOM
-    sandbox.remove();
+/**
+ * Helper to set link styles (blue and underline) and reset them.
+ */
+function setLinkStyles(pdf, isLink) {
+  if (isLink) {
+    // Set blue color
+    pdf.setTextColor(0, 0, 255);
+    // Set underline style
+    pdf.setFont(undefined, 'underline');
+  } else {
+    // Reset to original grey color
+    pdf.setTextColor(50, 50, 50);
+    // Reset to normal style
+    pdf.setFont(undefined, 'normal');
   }
 }
+
+/**
+ * Main function to export the assessment result to a PDF.
+ */
+async function exportPdf() {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+
+  // --- Configuration & Metrics ---
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
+  const MARGIN_T = 12, MARGIN_R = 12, MARGIN_B = 16, MARGIN_L = 12;
+  const usableW = pdfW - (MARGIN_L + MARGIN_R);
+  const LINE_GAP = 4.6;
+  const BULLET_INDENT = 4.5;
+  const TEXT_X = MARGIN_L + BULLET_INDENT + 1.5;
+  const CONTENT_MAX_W = usableW - (TEXT_X - MARGIN_L);
+
+  // --- DOM Data Collection ---
+  const report = document.getElementById('report');
+  if (!report) { alert('No result to export yet.'); return; }
+
+  // Assumes you have a collectAnswers() that returns [{label, value}, ...]
+  const answers = collectAnswers() || [];
+
+  // Where to read reasons (list items)
+  const reasonsRoot = report.querySelector('#rejection-reasons') || report;
+  const resultItems = Array.from(reasonsRoot.querySelectorAll('li'));
+
+  // Get raw head text from DOM and normalize
+  const rawResultHead = (report.querySelector('.result-head')?.textContent || '').trim();
+  const resultHead = formatResultHead(rawResultHead);
+
+  // --- PDF Rendering ---
+  let y = MARGIN_T;
+
+  // Header banner
+  y = renderHeaderBanner(pdf, y, pdfW, MARGIN_L, MARGIN_T, usableW);
+
+  // Gap after banner
+  y += 15;
+
+  // Default text color
+  pdf.setTextColor(50, 50, 50);
+
+  // --- SECTION 1: Assessment Summary ---
+  y = renderSectionTitle(pdf, 'Assessment Summary', MARGIN_L, y);
+  y = renderAssessmentSummary(pdf, answers, MARGIN_L, y, usableW, LINE_GAP, BULLET_INDENT, TEXT_X);
+
+  // --- SECTION 2: Assessment Result ---
+  y = renderSectionTitle(pdf, 'Assessment Result', MARGIN_L, y);
+
+  // Render the formatted headline with a drawn icon (no Unicode glyphs)
+  if (resultHead) {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+
+    // Decide status straight from the text (robust to any leading tokens)
+    const qualifies   = /DOES\s+QUALIFY|QUALIFIES/i.test(resultHead);
+    const notQualify  = /DOES\s+NOT\s+QUALIFY/i.test(resultHead);
+
+    // Icon position & size
+    const iconX = MARGIN_L;
+    const iconY = y - 1;        // slight vertical centering tweak
+    const iconSize = 6;         // mm
+    let textStartX = MARGIN_L;
+
+    if (qualifies) {
+      drawTick(pdf, iconX, iconY, iconSize);
+      textStartX = iconX + iconSize + 2;   // space after icon
+    } else if (notQualify) {
+      drawCross(pdf, iconX, iconY, iconSize);
+      textStartX = iconX + iconSize + 2;
+    }
+
+    // Remove any leading token like "X " or "✓ " if present
+    const cleaned = resultHead.replace(/^[^\w]+/, '').replace(/^(X|✓)\s+/, '');
+
+    // Draw the rest of the sentence in grey
+    pdf.setTextColor(50, 50, 50);
+    y = drawWrappedText(pdf, cleaned, textStartX, y, usableW - (textStartX - MARGIN_L), LINE_GAP);
+    y += 2;
+  }
+
+
+  // Render the result bullet points (printed as inline text with links, no bullets)
+  y = renderResultItems(pdf, resultItems, MARGIN_L, y, pdfH, MARGIN_B, LINE_GAP, BULLET_INDENT, TEXT_X, CONTENT_MAX_W);
+
+  // --- FOOTER ---
+  renderFooter(pdf, pdfW, pdfH, MARGIN_L, MARGIN_R, MARGIN_B);
+
+  // --- Save ---
+  pdf.save('assessment-result.pdf');
+}
+
+// =========================================================================
+// --- Helper Functions for Rendering ---
+// =========================================================================
+
+function renderHeaderBanner(pdf, startY, pdfW, MARGIN_L, MARGIN_T, usableW) {
+  let y = startY;
+  const BANNER_COLOR = '#002A3A';
+  const BANNER_HEIGHT = 35;
+  const LINE_GAP = 4.6;
+
+  // Draw the full-width filled rectangle
+  pdf.setFillColor(BANNER_COLOR);
+  pdf.rect(0, y - MARGIN_T, pdfW, BANNER_HEIGHT, 'F');
+
+  // Set text color to white for the banner content
+  pdf.setTextColor(255, 255, 255);
+
+  // Title
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(16);
+  pdf.text('Exempt Development Assessment', MARGIN_L, y);
+  y += 7;
+
+  // Subtitle
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(11);
+  pdf.text('Sheds & Patios — Albury City', MARGIN_L, y);
+  y += 6;
+
+  // Lead description
+  pdf.setFontSize(10);
+  const lead = 'Check if a shed or patio qualifies as exempt development and can be built without council approval.';
+  y = drawWrappedText(pdf, lead, MARGIN_L, y, usableW, LINE_GAP);
+  y += 3;
+
+  return y;
+}
+
+function renderSectionTitle(pdf, title, MARGIN_L, startY) {
+  let y = startY;
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(12);
+  pdf.text(title, MARGIN_L, y);
+  y += 6;
+  return y;
+}
+
+function renderAssessmentSummary(pdf, answers, MARGIN_L, startY, usableW, LINE_GAP, BULLET_INDENT, TEXT_X) {
+  let y = startY;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+
+  if (!answers || answers.length === 0) {
+    y = drawWrappedText(pdf, '(No answers)', MARGIN_L, y, usableW, LINE_GAP);
+  } else {
+    for (const { label, value } of answers) {
+      // bullet
+      pdf.text('•', MARGIN_L + BULLET_INDENT, y);
+      // line text
+      const line = `${label}: ${value}`;
+      y = drawWrappedText(pdf, line, TEXT_X, y, usableW - (TEXT_X - MARGIN_L), LINE_GAP);
+      y += 1.5; // small gap between items
+      if (y > pdf.internal.pageSize.getHeight() - 16 - 20) break; // hard cap for one page
+    }
+  }
+  y += 3;
+  return y;
+}
+
+function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, LINE_GAP, BULLET_INDENT, TEXT_X, maxW) {
+  let y = startY;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+
+  // Remove indentation for reasons; start flush left
+  const NEW_TEXT_X = MARGIN_L;
+  const NEW_MAX_W = pdf.internal.pageSize.getWidth() - (MARGIN_L * 2);
+
+  for (const li of resultItems) {
+    // Convert DOM to runs (text + links)
+    const runs = nodeToRuns(li);
+
+    let x = NEW_TEXT_X;
+    let remainingW = NEW_MAX_W;
+
+    for (let r = 0; r < runs.length; r++) {
+      const run = runs[r];
+      if (!run.text) continue;
+
+      const isLink = (run.type === 'link' && run.href);
+
+      // Apply link or normal text styles
+      setLinkStyles(pdf, isLink);
+
+      // Ensure spacing between adjacent runs if both are wordy and missing whitespace
+      // (simple heuristic)
+      if (r > 0) {
+        const prev = runs[r - 1];
+        if (prev && prev.text && /\w$/.test(prev.text) && /^\w/.test(run.text)) {
+          // add a space
+          const spaceW = pdf.getTextWidth(' ');
+          if (spaceW > remainingW) {
+            // move to next line
+            y += LINE_GAP;
+            x = NEW_TEXT_X;
+            remainingW = NEW_MAX_W;
+            setLinkStyles(pdf, isLink);
+          } else {
+            pdf.text(' ', x, y);
+            x += spaceW;
+            remainingW -= spaceW;
+          }
+        }
+      }
+
+      const pieces = pdf.splitTextToSize(run.text, remainingW);
+
+      for (let i = 0; i < pieces.length; i++) {
+        const piece = pieces[i];
+
+        if (isLink) {
+          pdf.textWithLink(piece, x, y, { url: run.href });
+        } else {
+          pdf.text(piece, x, y);
+        }
+
+        if (i < pieces.length - 1) {
+          y += LINE_GAP;
+          x = NEW_TEXT_X;
+          remainingW = NEW_MAX_W;
+          // Re-apply link styles at the start of the new wrapped line
+          setLinkStyles(pdf, isLink);
+        } else {
+          const w = pdf.getTextWidth(piece);
+          x += w;
+          remainingW -= w;
+        }
+      }
+    }
+
+    // Reset styles after item
+    setLinkStyles(pdf, false);
+
+    // Finish the line
+    y += LINE_GAP;
+    y += 1; // small separation after each reason
+
+    if (y > pdfH - MARGIN_B - 18) break; // keep it to one page
+  }
+  return y;
+}
+
+function renderFooter(pdf, pdfW, pdfH, MARGIN_L, MARGIN_R, MARGIN_B) {
+  const footerY = pdfH - 12;
+  pdf.setDrawColor(200);
+  pdf.setLineWidth(0.2);
+  pdf.line(MARGIN_L, footerY, pdfW - MARGIN_R, footerY);
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  pdf.setTextColor(120); // light grey for footer
+  pdf.text('© Albury City · Exempt Development Assessment', MARGIN_L, footerY + 6);
+  pdf.text('Page 1 of 1', pdfW - MARGIN_R, footerY + 6, { align: 'right' });
+}
+
+function drawWrappedText(doc, text, x, y0, width, lineGap) {
+  const lines = doc.splitTextToSize(text, width);
+  for (const line of lines) {
+    doc.text(line, x, y0);
+    y0 += lineGap;
+  }
+  return y0;
+}
+
+function nodeToRuns(rootEl) {
+  const runs = [];
+  rootEl.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = (node.textContent || '').replace(/\s+/g, ' ').trim();
+      if (t) runs.push({ type: 'text', text: t });
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = /** @type {HTMLElement} */ (node);
+      if (el.tagName === 'A') {
+        const href = el.getAttribute('href') || '';
+        const t = el.textContent?.replace(/\s+/g, ' ').trim();
+        if (t) runs.push({ type: 'link', text: t, href });
+      } else {
+        // recurse into nested elements (e.g., <strong>, <em>, spans)
+        nodeToRuns(el).forEach(r => runs.push(r));
+      }
+    }
+  });
+  return runs;
+}
+
 
 
 // ======== RESET ========
