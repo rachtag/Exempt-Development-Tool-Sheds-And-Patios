@@ -690,3 +690,25 @@ input, textarea, select, button,
   font-size: 11pt !important;
   line-height: 1.4 !important;
 }
+
+/* ====== Custom Tooltip Styling for Zoning ====== */
+
+.custom-tooltip {
+  position: absolute;
+  background: transparent;
+  color: var(--highlight, #1434e9); /* same as pick list highlight */
+  font-weight: 500;
+  font-size: var(--form-font-size, clamp(0.8rem, 0.4vw + 0.95rem, 0.9rem));
+  text-shadow: 0 0 6px rgba(33, 150, 243, 0.25);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  z-index: 1000;
+  top: 0;
+  transform: translateY(0);
+}
+
+.custom-tooltip.show {
+  opacity: 1;
+}

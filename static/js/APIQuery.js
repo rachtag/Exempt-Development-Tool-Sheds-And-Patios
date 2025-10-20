@@ -558,10 +558,10 @@ input.addEventListener("keydown", (e) => {
 
         // Extract relevant values
         const lotSize = boundary?.lotSize || "";
-        const heritageVal = (heritage || "no").toLowerCase();
-        const foreshoreVal = (foreshore || "no").toLowerCase();
-        const bushfireLower = (bushfireVal || "no").toLowerCase();
-        const esaVal = (esa || "no").toLowerCase();
+        const heritageVal = heritage || "No";
+        const foreshoreVal = foreshore || "No";
+        const bushfireLower = bushfireVal || "No";
+        const esaVal = esa || "No";
 
         // 
         refreshPermission = true;
@@ -759,10 +759,10 @@ async function selectAddress(address) {
     ]);
 
     const lotSize = boundary?.lotSize || "";
-    const heritageVal = (heritage || "no").toLowerCase();
-    const foreshoreVal = (foreshore || "no").toLowerCase();
-    const bushfireLower = (bushfireVal || "no").toLowerCase();
-    const esaVal = (esa || "no").toLowerCase();
+    const heritageVal = heritage || "No";
+    const foreshoreVal = foreshore || "No";
+    const bushfireLower = bushfireVal || "No";
+    const esaVal = esa || "No";
 
     refreshPermission = true; // 
 
@@ -808,6 +808,69 @@ if (zoningInput) {
       alert(`Please enter a valid zoning code consistent with the NSW planning scheme, such as R1, R3, RU5.`);
       e.target.value = "";
     }
+  });
+}
+
+// ====================== Hover Tooltip for Zoning Field ======================
+  //Zoning hover descriptions
+const zoningHoverDescriptions = {
+  R1: "R1 - General Residential Zone",
+  R2: "R2 - Low Density Residential Zone",
+  R3: "R3 - Medium Density Residential Zone",
+  R4: "R4 - High Density Residential Zone",
+  R5: "R5 - Large Lot Residential Zone",
+  RU1: "RU1 - Primary Production Zone",
+  RU2: "RU2 - Rural Landscape Zone",
+  RU3: "RU3 - Forestry Zone",
+  E1: "E1 - National Parks and Nature Reserves Zone",
+  E2: "E2 - Environmental Conservation Zone",
+  E3: "E3 - Environmental Management Zone",
+  E4: "E4 - Environmental Living Zone",
+  MU1: "MU1 - Mixed Use Zone",
+  RE1: "RE1 - Public Recreation Zone",
+  RE2: "RE2 - Private Recreation Zone",
+  C1: "C1 - Commercial Core Zone",
+  C2: "C2 - Neighbourhood Centre Zone",
+  C3: "C3 - Environmental Conservation Zone",
+  SP1: "SP1 - Special Activities Zone",
+  IN1: "IN1 - General Industrial Zone",
+  IN2: "IN2 - Light Industrial Zone",
+  B1: "B1 - Neighbourhood Centre Business Zone",
+  B2: "B2 - Local Centre Business Zone",
+  B3: "B3 - Commercial Core Zone",
+  B4: "B4 - Mixed Use Business Zone",
+  W1: "W1 - Natural Waterways Zone",
+  W2: "W2 - Recreational Waterways Zone",
+  W3: "W3 - Working Waterways Zone"
+};
+
+// Tooltip setup for zoning input field
+if (zoningInput) {
+  const tooltip = document.createElement("div");
+  tooltip.className = "custom-tooltip";
+  document.body.appendChild(tooltip);
+
+  zoningInput.addEventListener("mouseenter", (e) => {
+    const value = zoningInput.value.trim().toUpperCase();
+    const text = zoningHoverDescriptions[value];
+    if (!text) return;
+
+    tooltip.textContent = text;
+    tooltip.classList.add("show");
+
+    // Position the tooltip
+    tooltip.style.top = `${e.pageY - (tooltip.offsetHeight / 2)}px`; // same vertical level as cursor
+    tooltip.style.left = `${e.pageX + 15}px`; // small offset to right
+  });
+
+  zoningInput.addEventListener("mousemove", (e) => {
+    // keep tooltip following cursor horizontally at same level
+    tooltip.style.top = `${e.pageY - (tooltip.offsetHeight / 2)}px`;
+    tooltip.style.left = `${e.pageX + 15}px`;
+  });
+
+  zoningInput.addEventListener("mouseleave", () => {
+    tooltip.classList.remove("show");
   });
 }
 
