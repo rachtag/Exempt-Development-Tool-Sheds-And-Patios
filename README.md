@@ -53,8 +53,21 @@ From VS Code:
   The interface was designed in line with **WAGC accessibility guidelines** to support users who might be using **screen readers, keyboard-only navigation, or other assistive technologies**.
 
 ## 🔧Built With
-- Languages: HTML, CSS, JavaScript, Python
-- List any specific packages here
+- **Languages:** HTML, CSS, JavaScript, Python
+- **Backend Framework & Server:**
+   - Flask - Web application framework
+   - Gunicorn - WSGI HTTP server
+- **Python Libraries:**
+   - Flask-Limiter - Rate limiting for API endpoints
+   - Requests - HTTP Library for API calls
+   - tzdata - Timezone data
+- **Frontend Libraries:**
+   - html2canvas (v1.4.1) - HTML to canvas rendering for PDF generation
+   - jsPDF (v2.5.1) - Client-side PDF generation
+- **APIs & Services:**
+   - ArcGIS Geocoding API - Address geocoding and spatial queries
+   - NSW Planning Portal API - Address validation and planning data
+   - NSW Government GIS Services - Zoning, heritage, bushfire, and environmental data layers
 
 ## 📄Key Pages
 - http://127.0.0.1:5000 (index.html)
@@ -100,14 +113,14 @@ The `assessments.db` SQLite database was set up for testing purposes. For deploy
 
 ## 👥 Authors
 
-| Name | Role | Organisation |
+| Name | GitHub Profile | Organisation |
 | ------ | ------ | ------ |
-| [Andrew Curtolo](https://www.linkedin.com/in/profile-url) | Specific Role | La Trobe University |
-| [Binju Subedi](https://www.linkedin.com/in/profile-url) | Specific Role | La Trobe University |
-| [Christina Wang](https://www.linkedin.com/in/profile-url) | Specific Role | La Trobe University |
-| [Kusheta Goorohoo](https://www.linkedin.com/in/profile-url) | Specific Role | La Trobe University |
-| [Rachel Taggart](https://www.linkedin.com/in/racheltaggart)| Specific Role | La Trobe University |
-| [Yixiao Zhang](https://www.linkedin.com/in/profile-url)| Specific Role | La Trobe University |
+| Andrew Curtolo | [ACurtolo](https://github.com/ACurtolo) | La Trobe University |
+| Binju Subedi | [Binnju](https://github.com/Binnju) | La Trobe University |
+| Christina Wang | [chris-tina-w](https://github.com/chris-tina-w) | La Trobe University |
+| Kusheta Goorohoo | [Kushee-Ta](https://github.com/Kushee-Ta) | La Trobe University |
+| Rachel Taggart | [rachtag](https://github.com/rachtag)| La Trobe University |
+| Yixiao Zhang | [Nick22058017](https://github.com/Nick22058017)| La Trobe University |
 
 ## 📄 License
 
