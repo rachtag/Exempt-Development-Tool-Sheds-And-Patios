@@ -324,7 +324,8 @@ export async function queryBoundary(x, y) {
 
       // Final formatting
       if (lotSize) {
-        lotSize = lotSize.toFixed(2); // always return as string with 2 decimals
+        
+        lotSize = Math.round(lotSize); // round to nearest integer
       }
 
       return {
