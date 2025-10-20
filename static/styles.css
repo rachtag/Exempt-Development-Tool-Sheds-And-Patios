@@ -695,20 +695,23 @@ input, textarea, select, button,
 
 .custom-tooltip {
   position: absolute;
-  background: transparent;
-  color: var(--highlight, #1434e9); /* same as pick list highlight */
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.95);   /* soft white panel */
+  color:  #042ea0 ;            
   font-size: var(--form-font-size, clamp(0.8rem, 0.4vw + 0.95rem, 0.9rem));
-  text-shadow: 0 0 6px rgba(33, 150, 243, 0.25);
+  font-weight: 500;
+  padding: 6px 10px;                       /* readable padding */
+  border: 1px solid rgba(26, 115, 232, 0.25); /* light blue edge */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);  /* gentle elevation */
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s ease-in-out;
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transform: translateY(2px);              /* small hover motion */
   z-index: 1000;
-  top: 0;
-  transform: translateY(0);
 }
 
 .custom-tooltip.show {
   opacity: 1;
+  transform: translateY(0);                /* slide up slightly */
 }

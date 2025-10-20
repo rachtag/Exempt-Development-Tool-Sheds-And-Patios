@@ -814,34 +814,69 @@ if (zoningInput) {
 // ====================== Hover Tooltip for Zoning Field ======================
   //Zoning hover descriptions
 const zoningHoverDescriptions = {
+  // Residential Zones
   R1: "R1 - General Residential Zone",
   R2: "R2 - Low Density Residential Zone",
   R3: "R3 - Medium Density Residential Zone",
   R4: "R4 - High Density Residential Zone",
   R5: "R5 - Large Lot Residential Zone",
+
+  // Rural Zones
   RU1: "RU1 - Primary Production Zone",
   RU2: "RU2 - Rural Landscape Zone",
   RU3: "RU3 - Forestry Zone",
+  RU4: "RU4 - Primary Production Small Lots Zone",
+  RU5: "RU5 - Village Zone",
+  RU6: "RU6 - Transition Zone",
+
+  // Business Zones
+  B1: "B1 - Neighbourhood Centre Business Zone",
+  B2: "B2 - Local Centre Business Zone",
+  B3: "B3 - Commercial Core Business Zone",
+  B4: "B4 - Mixed Use Business Zone",
+  B5: "B5 - Productivity Support Business Zone",
+  B6: "B6 - Enterprise Corridor Business Zone",
+  B7: "B7 - Business Park Business Zone",
+  B8: "B8 - Metropolitan Centre Business Zone",
+
+  // Industrial Zones
+  IN1: "IN1 - General Industrial Zone",
+  IN2: "IN2 - Light Industrial Zone",
+  IN3: "IN3 - Heavy Industrial Zone",
+  IN4: "IN4 - Working Waterfront Zone",
+
+  // Special Purpose Zones
+  SP1: "SP1 - Special Activities Zone",
+  SP2: "SP2 - Infrastructure Zone",
+  SP3: "SP3 - Tourist Zone",
+  SP4: "SP4 - Enterprise Zone",
+  SP5: "SP5 - Metropolitan Centre Zone",
+
+  // Environmental Protection Zones
   E1: "E1 - National Parks and Nature Reserves Zone",
   E2: "E2 - Environmental Conservation Zone",
   E3: "E3 - Environmental Management Zone",
   E4: "E4 - Environmental Living Zone",
-  MU1: "MU1 - Mixed Use Zone",
-  RE1: "RE1 - Public Recreation Zone",
-  RE2: "RE2 - Private Recreation Zone",
+  E5: "E5 - Environmental Protection Zone",
+
+  // Waterway Zones
+  W1: "W1 - Natural Waterways Zone",
+  W2: "W2 - Recreational Waterways Zone",
+  W3: "W3 - Working Waterways Zone",
+  W4: "W4 - Maritime Services Zone",
+
+  // Commercial Zones
   C1: "C1 - Commercial Core Zone",
   C2: "C2 - Neighbourhood Centre Zone",
   C3: "C3 - Environmental Conservation Zone",
-  SP1: "SP1 - Special Activities Zone",
-  IN1: "IN1 - General Industrial Zone",
-  IN2: "IN2 - Light Industrial Zone",
-  B1: "B1 - Neighbourhood Centre Business Zone",
-  B2: "B2 - Local Centre Business Zone",
-  B3: "B3 - Commercial Core Zone",
-  B4: "B4 - Mixed Use Business Zone",
-  W1: "W1 - Natural Waterways Zone",
-  W2: "W2 - Recreational Waterways Zone",
-  W3: "W3 - Working Waterways Zone"
+  C4: "C4 - Environmental Living Zone",
+
+  // Mixed Use
+  MU1: "MU1 - Mixed Use Zone",
+
+  // Recreation Zones
+  RE1: "RE1 - Public Recreation Zone",
+  RE2: "RE2 - Private Recreation Zone"
 };
 
 // Tooltip setup for zoning input field
