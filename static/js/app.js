@@ -1283,6 +1283,7 @@ function prettifyLinks(html, {mode = "domain", label = "SEPP", force = false} = 
     } catch {
       a.setAttribute("target", "_blank");
       a.setAttribute("rel", "noopener noreferrer");
+      a.setAttribute("title", "Opens the NSW Government Legislation website");
       return;
     }
 
@@ -1325,6 +1326,7 @@ function prettifyLinks(html, {mode = "domain", label = "SEPP", force = false} = 
 
     a.setAttribute("target", "_blank");
     a.setAttribute("rel", "noopener noreferrer");
+    a.setAttribute("title", "Opens the NSW Government Legislation website");
   });
 
   return tpl.innerHTML;
