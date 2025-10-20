@@ -9,7 +9,7 @@ Developed in collaboration with **La Trobe University** and **Albury City Counci
 ### 🗐 1. Clone Repo
 To get a local copy of the project, open your terminal and run:
 ```bash
-git clone (link here to council repo)
+https://github.com/rachtag/Exempt-Development-Tool-Sheds-And-Patios.git
 ```
 ### 🚥 2. Start the Application
 Open the folder in Visual Studio Code.
@@ -18,7 +18,7 @@ From VS Code:
 - Click the Run ▶️ button in the top-right corner.
 - Flask will automatically start a local development server (usually on http://127.0.0.1:5000/).
 
-## 💡Key Features
+## 💡 Key Features
 - 🧩 **Interactive Questionnaire**  
   Guides users step-by-step through exemption criteria for sheds and patios, with dynamic fields that adapt based on development type and property zoning.
 
@@ -52,7 +52,7 @@ From VS Code:
 - ♿ **Accessibility Considerations**  
   The interface was designed in line with **WAGC accessibility guidelines** to support users who might be using **screen readers, keyboard-only navigation, or other assistive technologies**.
 
-## 🔧Built With
+## 🔧 Built With
 - **Languages:** HTML, CSS, JavaScript, Python
 - **Backend Framework & Server:**
    - Flask - Web application framework
@@ -69,14 +69,14 @@ From VS Code:
    - NSW Planning Portal API - Address validation and planning data
    - NSW Government GIS Services - Zoning, heritage, bushfire, and environmental data layers
 
-## 📄Key Pages
+## 📄 Key Pages
 - http://127.0.0.1:5000 (index.html)
 - http://127.0.0.1:5000/get-logging-db (assessment log)
 
 The application is one page for ease of use and navigation. 
 It uses conditional rendering to populate required fields based on user entered development type (shed or patio) and property zoning information.
 
-## Application Structure
+## 🧱 Application Structure
 Below is a breakdown of the file structure for the ExemptAdvisor application:
 ```
 Exempt-Development-Tool-Sheds-And-Patios/
@@ -106,10 +106,27 @@ Exempt-Development-Tool-Sheds-And-Patios/
 ├── requirements.txt # Python dependencies list
 ├── README.md # Project documentation
 ```
-#### 🏗️ **Future Development: Retaining Walls**  
-The backend ExemptAssessAPI.py file contains code to support assessments for retaining walls, which can be extended in future versions of the application.
-#### 🗄️ **Database Note**  
-The `assessments.db` SQLite database was set up for testing purposes. For deployment on Council servers, it is recommended to implement a persistent server-side database to ensure reliable storage of assessment records.
+
+## 🗄️ Assessment Database Schema
+The ExemptAdvisor application uses a lightweight **SQLite** database (`assessments.db`) to record user assessments activity and corresponding outcomes. Each record represents a single exemption check performed through the application.
+
+| Field Name | Data Type | Description |
+|-------------|------------|-------------|
+| **id** | INTEGER (Primary Key) | Auto-incremented, unique identifier for each record |
+| **timestamp** | TEXT (ISO 8601) | Date and time the assessment was created (e.g., `2025-10-20T14:42:32.596514+11:00`) |
+| **context** | TEXT | Indicates the result context of the assessment (e.g., `Exempt`, `Not Exempt`) |
+| **input_json** | TEXT (JSON) | JSON-encoded object containing user-provided input data such as address, zoning, land size, and structure dimensions |
+| **response_json** | TEXT (JSON) | JSON-encoded object containing the system’s assessment result and reference URLs |
+
+The database is primarily intended for **testing and development**.  
+For production deployment on Council servers, a persistent, server-side database is recommended to ensure reliable storage of assessment records.
+
+## 🏗️ Future Development
+**Retaining Walls**  
+The backend 'ExemptAssessAPI.py' file already includes preliminary logic to support assessments for retaining walls, which can be extended and activated in future versions of the application.
+
+**Persistent Server-side Database**
+Implementing a persistent, server-side database (e.g., 'PostgreSQL' or 'MySQL') to replace the local 'SQLite' instance, enabling secure long-term storage of assessment records, supporting concurrent access by multiple users, and allowing integration with Council's internal systems and authentication services.
 
 ## 👥 Authors
 
