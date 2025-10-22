@@ -611,15 +611,29 @@ function handleSubmit(e) {
 
         // Build two views:
         // - on-screen: just the assessment result
-        const reportHtml = `
-          <div id="report">
-            <!-- On-screen only -->
-            <div class="on-screen-only">
-              <h2 class="report-title">Assessment Result</h2>
-              ${reasonsHtml}
-            </div>
-          </div>
-        `;
+const disclaimerHtml = `
+  <div class="disclaimer-banner">
+    <strong>Disclaimer</strong>
+    <div>
+      The result provided above is based on the information submitted being true, accurate, and complete.
+      Any changes to prepopulated fields or deviations from the details provided may affect the applicability
+      of the above outcome, and your development may not be exempt. Albury City Council accepts no responsibility
+      for any incorrect or incomplete information, and users proceed at their own risk.
+    </div>
+  </div>
+`;
+
+const reportHtml = `
+  <div id="report">
+    <!-- On-screen only -->
+    <div class="on-screen-only">
+      <h2 class="report-title">Assessment Result</h2>
+      ${reasonsHtml}
+      ${disclaimerHtml}  <!-- 👈 now visible on the page, at the bottom -->
+    </div>
+  </div>
+`;
+
         resultPre.innerHTML = reportHtml.trim();
         showDownloadIfReady();
     })
@@ -884,9 +898,12 @@ async function exportPdf() {
     y += 2;
   }
 
+// Render the result bullet points...
+y = renderResultItems(pdf, resultItems, MARGIN_L, y, pdfH, MARGIN_B, LINE_GAP, BULLET_INDENT, TEXT_X, CONTENT_MAX_W);
 
-  // Render the result bullet points (printed as inline text with links, no bullets)
-  y = renderResultItems(pdf, resultItems, MARGIN_L, y, pdfH, MARGIN_B, LINE_GAP, BULLET_INDENT, TEXT_X, CONTENT_MAX_W);
+// --- show disclaimer box at the bottom of Section 2 (after reasons) ---
+y = renderDisclaimer(pdf, y, MARGIN_L, usableW, pdfH, MARGIN_T, MARGIN_B, LINE_GAP);
+
 
   // --- FOOTER ---
   renderFooter(pdf, pdfW, pdfH, MARGIN_L, MARGIN_R, MARGIN_B);
@@ -1071,6 +1088,58 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
     if (y > pdfH - MARGIN_B - 18) break; // one-page guard
   }
   return y;
+}
+
+function renderDisclaimer(pdf, startY, MARGIN_L, usableW, pdfH, MARGIN_T, MARGIN_B, LINE_GAP) {
+  const title = 'Disclaimer';
+  const body =
+    'The result provided above is based on the information submitted being true, accurate, and complete. ' +
+    'Any changes to prepopulated fields or deviations from the details provided may affect the applicability ' +
+    'of the above outcome, and your development may not be exempt. Albury City Council accepts no responsibility ' +
+    'for any incorrect or incomplete information, and users proceed at their own risk.';
+
+  // simple light panel + left accent
+  const PAD_X = 4;      // inner horizontal padding (mm)
+  const PAD_Y = 4;      // inner vertical padding (mm)
+  const ACCENT_W = 2;   // left accent width (mm)
+  const innerW = usableW - PAD_X * 2 - ACCENT_W;
+
+  // measure text
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(10);
+  const titleH = LINE_GAP;
+
+  pdf.setFont('helvetica', 'normal');
+  const bodyLines = pdf.splitTextToSize(body, innerW);
+  const bodyH = bodyLines.length * LINE_GAP;
+
+  const boxH = PAD_Y + titleH + 2 + bodyH + PAD_Y;
+
+  // new page if needed
+  let y = startY + 4; // small gap above the banner
+  if (y + boxH > pdfH - MARGIN_B) {
+    pdf.addPage();
+    y = MARGIN_T;
+  }
+
+  // background + accent
+  pdf.setFillColor(255, 248, 225); // #fff8e1
+  pdf.rect(MARGIN_L, y, usableW, boxH, 'F');
+  pdf.setFillColor(251, 192, 45);  // #fbc02d
+  pdf.rect(MARGIN_L, y, ACCENT_W, boxH, 'F');
+
+  // text
+  let ty = y + PAD_Y + 0.5;
+  pdf.setTextColor(93, 64, 55); // #5d4037
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(title, MARGIN_L + ACCENT_W + PAD_X, ty);
+  ty += titleH + 2;
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(bodyLines, MARGIN_L + ACCENT_W + PAD_X, ty);
+
+  return y + boxH + 6; // return the new cursor Y
 }
 
 
