@@ -942,47 +942,107 @@ function renderSectionTitle(pdf, title, MARGIN_L, startY) {
   return y;
 }
 
+
 function renderAssessmentSummary(pdf, answers, MARGIN_L, startY, usableW, LINE_GAP, BULLET_INDENT, TEXT_X) {
   let y = startY;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(10);
 
+  // Layout
+  const bulletX = MARGIN_L + BULLET_INDENT;
+  const BULLET_SPACE = 4.5;
+  const textX = bulletX + BULLET_SPACE;        // where text starts after the bullet
+  const lineWidth = usableW - (textX - MARGIN_L);
+
+  // Spacing / pagination
+  const LINE = Math.max(LINE_GAP || 5.2, 5.6);  // slightly bigger line gap helps copy/paste
+  const topMargin = 12;
+  const bottomLimit = () => pdf.internal.pageSize.getHeight() - 16 - 20; // MARGIN_B + footer guard
+
+  // Guard: no answers
   if (!answers || answers.length === 0) {
-    y = drawWrappedText(pdf, '(No answers)', MARGIN_L, y, usableW, LINE_GAP);
-  } else {
-    for (const { label, value } of answers) {
-      // Match bullet spacing from Assessment Result
-      const BULLET_SPACE = 4.5;
-      pdf.text('•', MARGIN_L + BULLET_INDENT, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(50, 50, 50);
+    y = drawWrappedText(pdf, '(No answers)', MARGIN_L, y, usableW, LINE);
+    y += 3;
+    return y;
+  }
 
-      const textStartX = MARGIN_L + BULLET_INDENT + BULLET_SPACE;
-      const lineWidth = usableW - (textStartX - MARGIN_L);
+  // OPTIONAL: light de-dupe by label (case/space insensitive)
+  const seen = new Set();
+  const cleaned = [];
+  for (const item of answers) {
+    const key = String(item.label || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (!key) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push(item);
+  }
 
-      // Draw label in bold
-      pdf.setFont('helvetica', 'bold');
-      const labelText = `${label}: `;
-      pdf.text(labelText, textStartX, y);
+  // Helper to draw one "• Label: Value" paragraph with hanging indent and mixed fonts.
+  function drawKVLine(label, value) {
+    // Ensure we have strings
+    const lab = String(label ?? '').trim();
+    const val = String(value ?? '').trim() || '—';
 
-      // Measure label width to start the value right after it
-      const labelWidth = pdf.getTextWidth(labelText);
+    // Paragraph tokens (we’ll switch fonts as we draw)
+    const tokens = [
+      { text: `${lab}: `, font: 'bold' },
+      { text: val,       font: 'normal' }
+    ];
 
-      // Draw value in italic
-      pdf.setFont('helvetica', 'italic');
-      const valueText = String(value || '');
-      const valueLines = pdf.splitTextToSize(valueText, lineWidth - labelWidth);
-      pdf.text(valueLines, textStartX + labelWidth, y);
+    // Draw bullet at the start line
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(50, 50, 50);
+    pdf.text('•', bulletX, y);
 
-      y += LINE_GAP;
-      y += 1.5; // small gap between items
+    // Cursor at start of text run
+    let x = textX;
 
-      // Keep to one page
-      if (y > pdf.internal.pageSize.getHeight() - 16 - 20) break;
+    // Walk token->words, wrap by measuring incrementally
+    for (const t of tokens) {
+      const words = t.text.split(/(\s+)/); // keep spaces as tokens so spacing is preserved
+      for (const w of words) {
+        const isSpace = /^\s+$/.test(w);
+        const word = isSpace ? w : w; // same, but explicit
+
+        // switch font for this word
+        pdf.setFont('helvetica', t.font === 'bold' ? 'bold' : 'italic');
+        pdf.setFontSize(10);
+
+        const wWidth = pdf.getTextWidth(word);
+
+        // wrap if needed (don’t wrap leading spaces)
+        if (!isSpace && (x + wWidth > textX + lineWidth)) {
+          // new line with hanging indent (no bullet)
+          y += LINE;
+          if (y > bottomLimit()) { pdf.addPage(); y = topMargin; }
+          x = textX;
+        }
+
+        // draw word
+        pdf.text(word, x, y);
+        x += wWidth;
+      }
     }
+  }
+
+  for (const { label, value } of cleaned) {
+    if (y > bottomLimit()) {
+      pdf.addPage();
+      y = topMargin;
+    }
+
+    drawKVLine(label, value);
+
+    // Paragraph spacing before next item
+    y += LINE * 0.90;
   }
 
   y += 3;
   return y;
 }
+
+
 
 function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, LINE_GAP, BULLET_INDENT, TEXT_X, maxW) {
   let y = startY;
@@ -990,31 +1050,33 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
 
-  // Left edge for text & available width
   const NEW_TEXT_X = MARGIN_L;
   const NEW_MAX_W = pdf.internal.pageSize.getWidth() - (MARGIN_L * 2);
+  const bottomGuard = () => pdf.internal.pageSize.getHeight() - MARGIN_B - 18;
+  const bulletSpace = 4.5;
 
   for (const li of resultItems) {
-    // Convert DOM node to runs (plain text + links)
+    // if near the bottom, add a page instead of dropping items
+    if (y > bottomGuard()) {
+      pdf.addPage();
+      y = 12; // top margin
+    }
+
     const runs = nodeToRuns(li);
 
-    // ── BULLET (same spacing as Summary/Result) ───────────────────────────────
-    const BULLET_SPACE = 4.5;
+    // bullet
     pdf.setTextColor(50, 50, 50);
     pdf.setFont('helvetica', 'normal');
     pdf.text('•', NEW_TEXT_X + BULLET_INDENT, y);
 
-    // Start text a bit to the right of the bullet
-    let x = NEW_TEXT_X + BULLET_INDENT + BULLET_SPACE;
-    let remainingW = NEW_MAX_W - BULLET_SPACE;
+    let x = NEW_TEXT_X + BULLET_INDENT + bulletSpace;
+    let remainingW = NEW_MAX_W - bulletSpace;
 
     for (let r = 0; r < runs.length; r++) {
       const run = runs[r];
       if (!run.text) continue;
 
       const isLink = (run.type === 'link' && run.href);
-
-      // Non-links: italic; Links: blue (no underline to avoid font resets)
       if (isLink) {
         pdf.setTextColor(0, 0, 255);
         pdf.setFont('helvetica', 'normal');
@@ -1023,15 +1085,16 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
         pdf.setFont('helvetica', 'italic');
       }
 
-      // Add a space if two wordy runs touch
+      // add space between touching runs if needed
       if (r > 0) {
         const prev = runs[r - 1];
         if (prev && prev.text && /\w$/.test(prev.text) && /^\w/.test(run.text)) {
           const spaceW = pdf.getTextWidth(' ');
-          if (spaceW > remainingW) {
+          if (x + spaceW > NEW_TEXT_X + NEW_MAX_W) {
             y += LINE_GAP;
-            x = NEW_TEXT_X + BULLET_INDENT + BULLET_SPACE;
-            remainingW = NEW_MAX_W - BULLET_SPACE;
+            x = NEW_TEXT_X + BULLET_INDENT + bulletSpace;
+            remainingW = NEW_MAX_W - bulletSpace;
+            if (y > bottomGuard()) { pdf.addPage(); y = 12; }
           } else {
             pdf.text(' ', x, y);
             x += spaceW;
@@ -1042,19 +1105,17 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
 
       const pieces = pdf.splitTextToSize(run.text, remainingW);
       for (let i = 0; i < pieces.length; i++) {
+        if (y > bottomGuard()) { pdf.addPage(); y = 12; }
         const piece = pieces[i];
-
         if (isLink) {
           pdf.textWithLink(piece, x, y, { url: run.href });
         } else {
           pdf.text(piece, x, y);
         }
-
         if (i < pieces.length - 1) {
-          // wrap to next line under the same bullet indent
           y += LINE_GAP;
-          x = NEW_TEXT_X + BULLET_INDENT + BULLET_SPACE;
-          remainingW = NEW_MAX_W - BULLET_SPACE;
+          x = NEW_TEXT_X + BULLET_INDENT + bulletSpace;
+          remainingW = NEW_MAX_W - bulletSpace;
         } else {
           const w = pdf.getTextWidth(piece);
           x += w;
@@ -1063,12 +1124,10 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
       }
     }
 
-    // reset for next item
+    // next bullet
     pdf.setTextColor(50, 50, 50);
     pdf.setFont('helvetica', 'normal');
     y += LINE_GAP + 1;
-
-    if (y > pdfH - MARGIN_B - 18) break; // one-page guard
   }
   return y;
 }
