@@ -668,6 +668,7 @@ function collectAnswers() {
   document.querySelectorAll(".field input, .field select, .field textarea").forEach(el => {
     if (el.disabled) return;
     if (el.closest('.hidden')) return;
+    if (el.id === 'address') return;  // ✅ add this line
 
     // compute value
     let val = '';
@@ -791,17 +792,14 @@ function formatResultHead(rawText) {
  */
 function setLinkStyles(pdf, isLink) {
   if (isLink) {
-    // Set blue color
+    // Link color only; keep current font family (helvetica)
     pdf.setTextColor(0, 0, 255);
-    // Set underline style
-    pdf.setFont(undefined, 'underline');
+    // If you want underlines, draw them manually when placing text.
   } else {
-    // Reset to original grey color
     pdf.setTextColor(50, 50, 50);
-    // Reset to normal style
-    pdf.setFont(undefined, 'normal');
   }
 }
+
 
 /**
  * Main function to export the assessment result to a PDF.
@@ -953,34 +951,62 @@ function renderAssessmentSummary(pdf, answers, MARGIN_L, startY, usableW, LINE_G
     y = drawWrappedText(pdf, '(No answers)', MARGIN_L, y, usableW, LINE_GAP);
   } else {
     for (const { label, value } of answers) {
-      // bullet
+      // Match bullet spacing from Assessment Result
+      const BULLET_SPACE = 4.5;
       pdf.text('•', MARGIN_L + BULLET_INDENT, y);
-      // line text
-      const line = `${label}: ${value}`;
-      y = drawWrappedText(pdf, line, TEXT_X, y, usableW - (TEXT_X - MARGIN_L), LINE_GAP);
+
+      const textStartX = MARGIN_L + BULLET_INDENT + BULLET_SPACE;
+      const lineWidth = usableW - (textStartX - MARGIN_L);
+
+      // Draw label in bold
+      pdf.setFont('helvetica', 'bold');
+      const labelText = `${label}: `;
+      pdf.text(labelText, textStartX, y);
+
+      // Measure label width to start the value right after it
+      const labelWidth = pdf.getTextWidth(labelText);
+
+      // Draw value in italic
+      pdf.setFont('helvetica', 'italic');
+      const valueText = String(value || '');
+      const valueLines = pdf.splitTextToSize(valueText, lineWidth - labelWidth);
+      pdf.text(valueLines, textStartX + labelWidth, y);
+
+      y += LINE_GAP;
       y += 1.5; // small gap between items
-      if (y > pdf.internal.pageSize.getHeight() - 16 - 20) break; // hard cap for one page
+
+      // Keep to one page
+      if (y > pdf.internal.pageSize.getHeight() - 16 - 20) break;
     }
   }
+
   y += 3;
   return y;
 }
 
 function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, LINE_GAP, BULLET_INDENT, TEXT_X, maxW) {
   let y = startY;
+
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
 
-  // Remove indentation for reasons; start flush left
+  // Left edge for text & available width
   const NEW_TEXT_X = MARGIN_L;
   const NEW_MAX_W = pdf.internal.pageSize.getWidth() - (MARGIN_L * 2);
 
   for (const li of resultItems) {
-    // Convert DOM to runs (text + links)
+    // Convert DOM node to runs (plain text + links)
     const runs = nodeToRuns(li);
 
-    let x = NEW_TEXT_X;
-    let remainingW = NEW_MAX_W;
+    // ── BULLET (same spacing as Summary/Result) ───────────────────────────────
+    const BULLET_SPACE = 4.5;
+    pdf.setTextColor(50, 50, 50);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('•', NEW_TEXT_X + BULLET_INDENT, y);
+
+    // Start text a bit to the right of the bullet
+    let x = NEW_TEXT_X + BULLET_INDENT + BULLET_SPACE;
+    let remainingW = NEW_MAX_W - BULLET_SPACE;
 
     for (let r = 0; r < runs.length; r++) {
       const run = runs[r];
@@ -988,22 +1014,24 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
 
       const isLink = (run.type === 'link' && run.href);
 
-      // Apply link or normal text styles
-      setLinkStyles(pdf, isLink);
+      // Non-links: italic; Links: blue (no underline to avoid font resets)
+      if (isLink) {
+        pdf.setTextColor(0, 0, 255);
+        pdf.setFont('helvetica', 'normal');
+      } else {
+        pdf.setTextColor(50, 50, 50);
+        pdf.setFont('helvetica', 'italic');
+      }
 
-      // Ensure spacing between adjacent runs if both are wordy and missing whitespace
-      // (simple heuristic)
+      // Add a space if two wordy runs touch
       if (r > 0) {
         const prev = runs[r - 1];
         if (prev && prev.text && /\w$/.test(prev.text) && /^\w/.test(run.text)) {
-          // add a space
           const spaceW = pdf.getTextWidth(' ');
           if (spaceW > remainingW) {
-            // move to next line
             y += LINE_GAP;
-            x = NEW_TEXT_X;
-            remainingW = NEW_MAX_W;
-            setLinkStyles(pdf, isLink);
+            x = NEW_TEXT_X + BULLET_INDENT + BULLET_SPACE;
+            remainingW = NEW_MAX_W - BULLET_SPACE;
           } else {
             pdf.text(' ', x, y);
             x += spaceW;
@@ -1013,7 +1041,6 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
       }
 
       const pieces = pdf.splitTextToSize(run.text, remainingW);
-
       for (let i = 0; i < pieces.length; i++) {
         const piece = pieces[i];
 
@@ -1024,11 +1051,10 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
         }
 
         if (i < pieces.length - 1) {
+          // wrap to next line under the same bullet indent
           y += LINE_GAP;
-          x = NEW_TEXT_X;
-          remainingW = NEW_MAX_W;
-          // Re-apply link styles at the start of the new wrapped line
-          setLinkStyles(pdf, isLink);
+          x = NEW_TEXT_X + BULLET_INDENT + BULLET_SPACE;
+          remainingW = NEW_MAX_W - BULLET_SPACE;
         } else {
           const w = pdf.getTextWidth(piece);
           x += w;
@@ -1037,17 +1063,16 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
       }
     }
 
-    // Reset styles after item
-    setLinkStyles(pdf, false);
+    // reset for next item
+    pdf.setTextColor(50, 50, 50);
+    pdf.setFont('helvetica', 'normal');
+    y += LINE_GAP + 1;
 
-    // Finish the line
-    y += LINE_GAP;
-    y += 1; // small separation after each reason
-
-    if (y > pdfH - MARGIN_B - 18) break; // keep it to one page
+    if (y > pdfH - MARGIN_B - 18) break; // one-page guard
   }
   return y;
 }
+
 
 function renderFooter(pdf, pdfW, pdfH, MARGIN_L, MARGIN_R, MARGIN_B) {
   const footerY = pdfH - 12;
