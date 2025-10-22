@@ -779,7 +779,7 @@ function formatResultHead(rawText) {
     return 'X ' + corePhrase; // ASCII symbol; colored during rendering
   } else if (t.includes('DOES QUALIFY') || t.includes('QUALIFIES')) {
     // Green tick scenario (we'll just show "OK", can color green if desired)
-    const corePhrase = 'The proposed structure DOES qualify for exempt development.';
+    const corePhrase = 'The proposed structure DOES qualify for exempt development.For more information, please refer to the relevant State Environmental Planning Policy (SEPP) legislation.';
     return '✓ ' + corePhrase;  // ASCII symbol; optionally colored
   }
 
@@ -889,7 +889,7 @@ async function exportPdf() {
   y = renderResultItems(pdf, resultItems, MARGIN_L, y, pdfH, MARGIN_B, LINE_GAP, BULLET_INDENT, TEXT_X, CONTENT_MAX_W);
 
   // --- FOOTER ---
-  renderFooter(pdf, pdfW, pdfH, MARGIN_L, MARGIN_R, MARGIN_B);
+  addFooters(pdf, { MARGIN_L: 12, MARGIN_R: 12 });
 
   // --- Save ---
   pdf.save('assessment-result.pdf');
@@ -1133,18 +1133,30 @@ function renderResultItems(pdf, resultItems, MARGIN_L, startY, pdfH, MARGIN_B, L
 }
 
 
-function renderFooter(pdf, pdfW, pdfH, MARGIN_L, MARGIN_R, MARGIN_B) {
-  const footerY = pdfH - 12;
-  pdf.setDrawColor(200);
-  pdf.setLineWidth(0.2);
-  pdf.line(MARGIN_L, footerY, pdfW - MARGIN_R, footerY);
 
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(9);
-  pdf.setTextColor(120); // light grey for footer
-  pdf.text('© Albury City · Exempt Development Assessment', MARGIN_L, footerY + 6);
-  pdf.text('Page 1 of 1', pdfW - MARGIN_R, footerY + 6, { align: 'right' });
+function addFooters(pdf, { MARGIN_L = 12, MARGIN_R = 12 } = {}) {
+  const pageCount = pdf.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+    const footerY = pdfH - 12;
+
+    // line
+    pdf.setDrawColor(200);
+    pdf.setLineWidth(0.2);
+    pdf.line(MARGIN_L, footerY, pdfW - MARGIN_R, footerY);
+
+    // text
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(120);
+    pdf.text('© Albury City · Exempt Development Assessment', MARGIN_L, footerY + 6);
+    pdf.text(`Page ${i} of ${pageCount}`, pdfW - MARGIN_R, footerY + 6, { align: 'right' });
+  }
 }
+
 
 function drawWrappedText(doc, text, x, y0, width, lineGap) {
   const lines = doc.splitTextToSize(text, width);
