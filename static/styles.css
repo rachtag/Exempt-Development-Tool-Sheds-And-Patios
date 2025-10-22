@@ -74,16 +74,18 @@ body{
 }
 .muted{color: var(--gray-500);}
 .small{font-size: 12px;}
-.disclosure {
-  background: #fff8e1;        /* soft yellow highlight */
-  border-left: 4px solid #fbc02d; /* golden accent bar */
+.disclosure,
+.disclaimer-banner {
+  background: #fff8e1;
+  border-left: 4px solid #fbc02d;
   padding: 10px 12px;
   margin-top: 10px;
   border-radius: 8px;
   font-size: 12px;
-  color: #5d4037;             /* dark brown text for contrast */
+  color: #5d4037;
   line-height: 1.4;
 }
+
 .link{color: var(--brand); text-decoration: underline; text-underline-offset: 2px;}
 .link:hover{opacity:0.9}
 
