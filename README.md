@@ -71,14 +71,14 @@ From VS Code:
 
 ## 📄 Key Pages
 - http://127.0.0.1:5000 (index.html)
-# Developer Reference Pages:
+The user-facing application is one page for ease of use and navigation. 
+It uses conditional rendering to populate required fields based on user entered development type (shed or patio) and property zoning information.
+### Developer Reference Pages:
 - http://127.0.0.1:5000/get-logging-db (assessment log)
 - http://127.0.0.1:5000/get_shed_help (shed assessment help)
 - http://127.0.0.1:5000/get_patio_help (patio assessment help)
 - http://127.0.0.1:5000/get_retain_wall_help (retaining wall assessment help)
 
-The user-facing application is one page for ease of use and navigation. 
-It uses conditional rendering to populate required fields based on user entered development type (shed or patio) and property zoning information.
 
 ## 🧱 Application Structure
 Below is a breakdown of the file structure for the ExemptAdvisor application:
