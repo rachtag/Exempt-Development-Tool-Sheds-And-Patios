@@ -71,6 +71,7 @@ From VS Code:
 
 ## 📄 Key Pages
 - http://127.0.0.1:5000 (index.html)
+
 The user-facing application is one page for ease of use and navigation. 
 It uses conditional rendering to populate required fields based on user entered development type (shed or patio) and property zoning information.
 ### Developer Reference Pages:
