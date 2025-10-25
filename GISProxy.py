@@ -8,7 +8,7 @@ config_path = os.path.join(os.path.dirname(__file__), "env", "geocode.conf")
 with open(config_path, "r") as f:
     config = json.load(f)
 
-API_KEY = config.get("ARCGIS_API_KEY")
+API_KEY = os.getenv("ARCGIS_API_KEY", config.get("ARCGIS_API_KEY"))
 GEOCODE_URL = config.get("GEOCODE_URL")
 
 def geocode_address(address):
