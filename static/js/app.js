@@ -63,7 +63,6 @@ function init() {
   setupRoofFascia_Connection(patioFields);
 
   // roof === "yes" -> show stormwater
-  //setupRoofStormwater(shedFields);
   setupRoofStormwater(patioFields);
 
   // attached === "yes" -> show above_gutter
