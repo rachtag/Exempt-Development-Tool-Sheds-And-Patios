@@ -68,6 +68,22 @@ From VS Code:
    - ArcGIS Geocoding API - Address geocoding and spatial queries
    - NSW Planning Portal API - Address validation and planning data
    - NSW Government GIS Services - Zoning, heritage, bushfire, and environmental data layers
+ 
+## 🌐 API Configuration
+
+This application requires a valid ArcGIS API key for property information retrieval and geocoding functions.
+
+You can configure the API key in one of the following ways:
+
+- **Local development:** Open `/env/geocode.conf` and insert your API key where indicated:
+
+```json
+"ARCGIS_API_KEY": "REPLACE_ME",
+```
+
+- **Deployment environments:** Store the key as an environment secret or variable in your chosen deployment platform.
+
+The API key must have the necessary permissions for address geocoding and spatial data access.
 
 ## 📄 Key Pages
 - http://127.0.0.1:5000 (index.html)
